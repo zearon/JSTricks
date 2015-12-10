@@ -28,6 +28,8 @@ chrome.runtime.onMessage.addListener(function(msg, sender) {
 			SetIcon(tabid, method, id, arg);
 		} else if (method == "SendMessageToTab") {
 			SendMessageToTab(tabid, method, id, arg);
+		} else if (method == "ConsoleLog") {
+			ConsoleLog(tabid, method, id, arg);
 		}
 	}
 });
@@ -74,6 +76,10 @@ function SendMessageToTab(tabid, method, id, arg) {
 	chrome.tabs.sendMessage(tabid, arg, function(response) {
 		API_SendResponse(tabid, method, id, tab);
 	});
+}
+
+function ConsoleLog(tabid, method, id, arg) {
+	console.log(arg);
 }
 
 })();

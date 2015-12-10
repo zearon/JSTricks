@@ -15,6 +15,12 @@
   	seajs.use(dependencys, callback);
   }
   
+  //console.log(meta_data);
+  var config;
+  if (meta_data && (config = meta_data["seajs.config"])) {
+  	seajs.config(config);
+  }
+  
   // Define resolve plugin for local storage shchema
   seajs.on("resolve", function(data) {
     if (! data.id)

@@ -335,6 +335,32 @@
 									<td><input type="button" class="localstorage_saveitem" target="$setting.popupwindow_genUIPanelMaxHeight" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.popupwindow_genUIPanelMaxHeight" value="Default" /></td>
 								<tr>
+								
+								<tr>
+									<td colspan="4"><h3>Site-Specific Scripts</h3></td>
+								<tr>
+								<tr class="localstorage_item">
+									<td title="hello">Show Main script</td>
+									<td><select class="localstorage_itemvalue" target="$setting.sitescripts_showMainScript" defaultvalue="false" >
+										<option>false</option>
+										<option>true</option>
+									</select</td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.sitescripts_showMainScript" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.sitescripts_showMainScript" value="Default" /></td>
+								<tr>
+								
+								<tr>
+									<td colspan="4"><h3>Debug</h3></td>
+								<tr>
+								<tr class="localstorage_item">
+									<td title="hello">Debug Mode</td>
+									<td><select class="localstorage_itemvalue" target="$setting.DEBUG" defaultvalue="false" >
+										<option>false</option>
+										<option>true</option>
+									</select</td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.DEBUG" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.DEBUG" value="Default" /></td>
+								<tr>
 								<!--
 								<tr class="localstorage_item">
 									<td>Popup window width</td>
@@ -353,6 +379,7 @@
 									<td colspan="4" style="border-top:solid 1px #bbbbbb; padding-top: 10px;">
 										<input type="button" class="localstorage_saveall" value="Save All" />
 										<input type="button" class="localstorage_resetall" value="All Default" />
+										<p>Refresh page to make settings effective.</p>
 									</td>
 								</tr>
 							</table>

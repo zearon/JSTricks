@@ -132,8 +132,9 @@
 				localStorage["meta"] = meta;
 				currentSavedStateMeta = editorMeta.getValue();
 			} catch (exception) {
-				alert("Cannot save metadata. It is not valid JSON data.");
 				console.log(exception);
+				if (confirm("Cannot save metadata. It is not valid JSON data.\nDo your want to open http://jsonlint.com/ to perform syntax check?"))
+					window.open("http://jsonlint.com/", "jsonlint");
 				return;
 			}
 			
@@ -221,7 +222,9 @@
 					}
 				}
 				keys.sort();
-				keys.unshift("Main", "Default");
+				keys.unshift("Default");
+				if (localStorage["$setting.sitescripts_showMainScript"] == "true")
+					keys.unshift("Main");
 				//console.log(keys);
 					
 				
@@ -1350,7 +1353,7 @@
 				$("#cloudrestore-key").val(localStorage["$setting.cloud-lastsave"]);
 			*/
 			
-			$("input.localstorage_itemvalue").each(function(ind, ele) {
+			$(".localstorage_itemvalue").each(function(ind, ele) {
 				var node = $(this);
 				var key = $(this).attr("target");
 				var defaultValue = $(this).attr("defaultvalue");

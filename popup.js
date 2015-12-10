@@ -5,6 +5,11 @@ var activeTabId = [];
 var tabUrl = "";
 var tabSite = "";
 var API_CALLBACKS = {};
+
+var DEBUG = false;
+if (inExtensionPage && localStorage["$setting.DEBUG"] == "true")
+	DEBUG = true;
+	
 API_GetSelectedTab(function(tab) {
 	//console.log(tab);
 	activeTabId[0] = tab.id;
@@ -92,6 +97,12 @@ function API_SendMessageToTab(tabid, msg, callback) {
 	}
 }
 
+function log(arg) {
+	console.log(arg);
+	if (DEBUG) {
+		API_SendRequest("ConsoleLog", arg);
+	}
+}
 
 
 
@@ -189,13 +200,13 @@ function API_SendMessageToTab(tabid, msg, callback) {
 			if(!localStorage[url])
 			{
 				ta.value = 
-`(function($) {
+`run(["jquery"], function($) {
   function main() {
 
   }
   
-  main();
-}) (jQuery);
+  $(main);
+});
 `;
 				return "";
 			}
@@ -230,8 +241,12 @@ function API_SendMessageToTab(tabid, msg, callback) {
 			execute("Site script", editor.getValue(), editorCss.getValue());
 		}
 		function runSelected(){
+			var code = editor.getSelection();
+			var header = editor.getValue().match(/\s*(run[\s\S]*?function\s*\(.*\)\s*\{)/)[1];
+			var wrappedCode = header + "\n" + code + "\n});";
 			
-			execute("Selected site script", editor.getSelection(), editorCss.getSelection());
+			log(wrappedCode);
+			execute("Selected site script", wrappedCode, editorCss.getSelection());
 		}
 		function cacheScript()
 		{
@@ -777,7 +792,7 @@ function API_SendMessageToTab(tabid, msg, callback) {
 			
 			var cursor = editor.getCursor();
 			editor.setCursor(cursor);
-		}	
+		}
 		
 		function addRequireFile() {
 			var url = $(this).attr("data-require");
