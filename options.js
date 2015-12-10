@@ -930,26 +930,26 @@
 			var autostart = document.getElementById("jscb").checked;
 			if (selectedTitle == "Default")
 				return;
-						
+			/*			
 			if (autostart) {
 				// change from autostart to not autostart
-				/*
-				 	  $(main);		->		  main();
-					})(jQuery);		->		})(jQuery);
-				*/
+				//
+				// 	  $(main);		->		  main();
+				//	})(jQuery);		->		})(jQuery);
+				//
 				var srccode = editorJs.getValue();
 				var srccode = srccode.replace(/\$\s*\(\s*main\s*\)\s*;(\s*\}\s*\)\s*\(\s*jQuery\s*\)\s*;\s*)$/, "main();$1");
 				editorJs.setValue(srccode);
 			} else {
 				// change from not autostart to autostart
-				/*
-				 	  main();		->		  $(main);
-					})(jQuery);		->		})(jQuery);
-				*/
+				//
+				// 	  main();		->		  $(main);
+				//	})(jQuery);		->		})(jQuery);
+				//
 				var srccode = editorJs.getValue();
 				var srccode = srccode.replace(/main\s*\(\s*\)\s*;(\s*\}\s*\)\s*\(\s*jQuery\s*\)\s*;\s*)$/, "$(main);$1");
 				editorJs.setValue(srccode);
-			}			
+			}	*/		
 		}
 		
 		function backup() {

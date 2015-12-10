@@ -402,25 +402,27 @@ function API_SendMessageToTab(tabid, msg, callback) {
 				editor.setLine(0, "jQuery(function($) {\n" + editor.getLine(0));
 				editor.setLine(lineCount, editor.getLine(lineCount) + "\n});");
 			}*/
+			
+			/*
 			if (autostart) {
 				// change from autostart to not autostart
-				/*
-				 	  $(main);		->		  main();
-					})(jQuery);		->		})(jQuery);
-				*/
+				//
+				// 	  $(main);		->		  main();
+				//	})(jQuery);		->		})(jQuery);
+				//
 				var srccode = editor.getValue();
 				var srccode = srccode.replace(/\$\s*\(\s*main\s*\)\s*;(\s*\}\s*\)\s*\(\s*jQuery\s*\)\s*;\s*)$/, "main();$1");
 				editor.setValue(srccode);
 			} else {
 				// change from not autostart to autostart
-				/*
-				 	  main();		->		  $(main);
-					})(jQuery);		->		})(jQuery);
-				*/
+				//
+				// 	  main();		->		  $(main);
+				//	})(jQuery);		->		})(jQuery);
+				//
 				var srccode = editor.getValue();
 				var srccode = srccode.replace(/main\s*\(\s*\)\s*;(\s*\}\s*\)\s*\(\s*jQuery\s*\)\s*;\s*)$/, "$(main);$1");
 				editor.setValue(srccode);
-			}
+			}*/
 		}
 		
 		function showInDialog() {
@@ -439,21 +441,24 @@ function API_SendMessageToTab(tabid, msg, callback) {
 					
 				var tabid = tab[0].id;
 				chrome.tabs.executeScript(tabid, {"code": `
-					var $ = require("jquery");//jQuery;
-					$("#JST-POPUP-PINNED").parent(".ui-dialog").remove();
-					$("#JST-POPUP-PINNED").remove();
-					$("<iframe id='JST-POPUP-PINNED' src='chrome-extension://"+chrome.runtime.id+"/popup.html' style='width:600px;height:571px;' />")
-					.appendTo("body")
-					.dialog({"title":"JavaScript Tricks (Double click to toggle)", "width":"630", "height":"600"});
-					$("#JST-POPUP-PINNED").css("width", "calc(100% - 28px)");	
+					run(["jquery", "jquery-ui"], function($) {
 					
-					$(".ui-dialog-titlebar").dblclick(function() {
-						$(this).attr("title", "Double click to toggle (collapse or extend) dialog box.");
-						$(this).next().toggle();
+						$("#JST-POPUP-PINNED").parent(".ui-dialog").remove();
+						$("#JST-POPUP-PINNED").remove();
+						$("<iframe id='JST-POPUP-PINNED' src='chrome-extension://"+chrome.runtime.id+"/popup.html' style='width:600px;height:571px;' />")
+						.appendTo("body")
+						.dialog({"title":"JavaScript Tricks (Double click to toggle)", "width":"630", "height":"600"});
+						$("#JST-POPUP-PINNED").css("width", "calc(100% - 28px)");	
+						
+						$(".ui-dialog-titlebar").dblclick(function() {
+							$(this).attr("title", "Double click to toggle (collapse or extend) dialog box.");
+							$(this).next().toggle();
+						});
+						
+						if (${hideDialog})
+							$("#JST-POPUP-PINNED").parent().hide();
+						
 					});
-					
-					if (${hideDialog})
-						$("#JST-POPUP-PINNED").parent().hide();
 				`});
 			});
 			
