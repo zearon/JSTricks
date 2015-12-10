@@ -7,14 +7,14 @@
 		"default_popup": "popup.html"
 	},
 	"content_scripts": [ {
-		"js": [ "js/sea-debug.js","js/jquery.js", "js/jquery-ui.js", "lib/codemirror.js", "mode/javascript/javascript.js", "autoload.js", "nodeSelector.js"],
+		"js": [ "js/sea-debug.js", "js/domReady.js", "lib/codemirror.js", "mode/javascript/javascript.js", "autoload.js"],
 		"css": ["css/custom-theme/jquery-ui.css", "css/custom-theme/jquery-ui-fix.css"],
 		"matches": [ "http://*/*", "https://*/*", "file://*/*" ],
 		"run_at": "document_start"
 	} ],
 	"web_accessible_resources": [
 		"js/require.custom.js",
-		"js/jquery.js", "js/jquery-ui.js", "js/dialogextend.js", "lib/codemirror.js", 
+		"js/jquery.sea.js", "js/jquery-ui.js", "js/dialogextend.js", "lib/codemirror.js", 
 		"injected.js", "popup.js", "popup.html", "options.js", "options.html"],
 	"description": "Add your own JavaScript (powered by JQuery) and/or CSS to any page to trick it!",
 	"icons": {

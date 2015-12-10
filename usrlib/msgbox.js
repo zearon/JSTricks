@@ -1,11 +1,11 @@
 //****************************************************
 //**             Message Box Utilities              **
 //****************************************************
-(function() {
-	var $ = jQuery;
+seajs.use("jquery", function($) {
+	window.log = log;
+	
 	var messageTimer = null;
 	var msgDivID = "jstmessage___eircksdfjkdfh";
-	window.log = log;
 	
 	function log(text, raw) {
 	  console.log(text);
@@ -79,95 +79,5 @@
 		buildMsgBox();
 	});
 	
-	
-	//****************************************************
-	//**       Loaded Content Script Dictionary         **
-	//****************************************************
-	
-	
-	//****************************************************
-	//**               Include Utilities                **
-	//****************************************************
-	console.log("[JScript Tricks] define function includeCS(urls) in msgbox.js");
-	function require(urls, callback) {
-	  var urlList = {}; var signal = $.Deferred();
-	  if (typeof urls === "string") {
-		urlList[0] = urls;
-	  } else {
-		urlList = urls;
-	  
-		if (!(typeof urls === "object") || !urlList[0]) {
-		  console.log("includeCS requires one or an array of url strings.");
-		  console.log(urls);
-		  signal.reject();
-		  return signal;
-		}
-	  }
-	  
-	  chrome.runtime.sendMessage({method: "RequireContectScript", data:urlList}, function() {
-		try {  	
-		  if (callback)
-			callback();
-		} catch (exception) {}
-		
-		signal.resolve();
-	  });
-	  
-	  return signal;
-	}
-	
-	function includeCS(urls, callback) {
-	  var urlList = {}; var signal = $.Deferred();
-	  if (typeof urls === "string") {
-		urlList[0] = urls;
-	  } else {
-		urlList = urls;
-	  
-		if (!(typeof urls === "object") || !urlList[0]) {
-		  console.log("includeCS requires one or an array of url strings.");
-		  console.log(urls);
-		  signal.reject();
-		  return signal;
-		}
-	  }
-	  
-	  return __loadScript(signal, callback, urlList, 0);
-	}
-	
-	function __loadScript(signal, callback, urlList, index) {
-	  var url = urlList[index];
-	  if (!url) {
-		console.log(`urls[${index}]="${url}" is invalid`);
-		return;
-	  }
-		
-		
-	  if (!(/^(http|https|file|chrome-extension):\/\//.test(url))) {
-		// Load dynamic content scripts
-		url = "chrome-extension://" + chrome.runtime.id + "/" + url;
-	  }
-	  
-	  //console.log(url);
-	  
-	  $.getScript(url)
-		.done(function() {
-		  console.log(`script loaded from ${url}`);
-		  
-		  if (index < urlList.length - 1) {
-			__loadScript(signal, callback, urlList, index + 1);
-		  } else {
-			try{
-			  if (callback)
-				callback();
-			} catch (exception) {}
-			
-			signal.resolve();
-		  }
-			
-		})
-		.fail(function() { signal.reject(); });
-	  
-	  return signal;
-	}
-})();
- 
+
+}); 

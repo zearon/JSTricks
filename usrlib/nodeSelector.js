@@ -1,4 +1,5 @@
-(function($) {
+seajs.use("jquery", function($) {
+
 	var NS_switch = false;
 	var NS_styleName = "NS_SELECTED_NODE_2312356451321356453";
 	var NS_titleNode = "NS_nodeSelector";
@@ -153,4 +154,4 @@
 		$("#" + NS_titleNode).text(nodeName);
 	}
 
-})(jQuery);
+});
