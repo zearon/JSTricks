@@ -46,8 +46,6 @@ function guid() {
         function processRequest(tabid, url, requestMethod, requestData) {
 			var d = url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/); 
 			var key = d[1];
-        	if( !localStorage[key] ) 
-        		return;
 					
 			//chrome.browserAction.setIcon({path:"icon24_auto.png"});
 			
@@ -57,8 +55,7 @@ function guid() {
         	}
         	
         	// Inject site-specific scripts on website loaded.
-            else if (requestMethod == "JSTinjectScript")
-            {
+            else if (requestMethod == "JSTinjectScript") {
             	if (localStorage["$setting.enabled"] === undefined)
             		localStorage["$setting.enabled"] = "true";
             		
@@ -68,6 +65,14 @@ function guid() {
             	} else {
             		chrome.browserAction.setIcon({path: "icon24.png"});
             	}
+            	
+				var autoloadFileList = [];
+				if( !localStorage[key] ) {
+					addNecessaryScriptsToHead(autoloadFileList);				
+					loadIncludeFiles(tabid, null, autoloadFileList, 0);
+					
+					return;
+				}
             
             	// console.log("[JScript Tricks] loading scripts for tab " + tabid + " " + url);
 				
@@ -86,7 +91,7 @@ function guid() {
 				`});
 				
 				var autoloadFiles = {}; var fileCount = 0;
-				var autoloadFileList = [];
+				autoloadFileList = [];
 				try {
 					var metadata = JSON.parse(localStorage["meta"]);
 					var include = metadata["include"];
@@ -102,24 +107,13 @@ function guid() {
 						autoloadFileList.push(autoloadFiles[index]);
 					}
 					autoloadFileList.unshift(
-						{name:"boot/setMetaData", code:`var meta_data = JSON.parse(decodeURIComponent("${encodeURIComponent(localStorage['meta'])}"))`, type:"js"},
-						{name:"boot/boot.js", file:"boot.js", type:"js"},
 						{name:"boot/jquery", file:"js/jquery.sea.js", type:"js"}, /*
 						{name:"boot/jquery-ui", file:"js/jquery-ui.js", type:"js"},  
 						{name:"boot/jquery-init", code:"jQuery.noConflict();", type:"js"}, */
 						{name:"boot/msgbox", file:"usrlib/msgbox.js", type:"js"}, 
 						{name:"boot/nodeSelector", file:"usrlib/nodeSelector.js", type:"js"}
 					);
-					if (localStorage["Main"]) {
-						try {
-							var mlsd = JSON.parse(localStorage["Main"]);
-							if (mlsd.script)
-								autoloadFileList.unshift({name:"boot/Main", code:mlsd.script, type:"js"});
-						} catch (exception) {
-							chrome.tabs.executeScript(tabid, {code: 'showMessage("Error occurs during loading Main script");'});
-							console.log(exception);
-						}
-					}
+					addNecessaryScriptsToHead(autoloadFileList);
 					
 					
 					// console.log("autoloadFiles:");
@@ -184,6 +178,23 @@ function guid() {
 				
 				loadIncludeFiles(tabid, null, autoloadFileList, 0);
             }
+        }
+        
+        function addNecessaryScriptsToHead(autoloadFileList) {
+			autoloadFileList.unshift(
+				{name:"boot/setMetaData", code:`var meta_data = JSON.parse(decodeURIComponent("${encodeURIComponent(localStorage['meta'])}"))`, type:"js"},
+				{name:"boot/boot.js", file:"boot.js", type:"js"}
+			);
+			if (localStorage["Main"]) {
+				try {
+					var mlsd = JSON.parse(localStorage["Main"]);
+					if (mlsd.script)
+						autoloadFileList.unshift({name:"boot/Main", code:mlsd.script, type:"js"});
+				} catch (exception) {
+					chrome.tabs.executeScript(tabid, {code: 'showMessage("Error occurs during loading Main script");'});
+					console.log(exception);
+				}
+			}
         }
         
 		function loadDefaultScript(tabid, key, autoloadFileList) {

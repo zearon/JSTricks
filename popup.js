@@ -795,20 +795,24 @@ function log(arg) {
 		}
 		
 		function addRequireFile() {
-			var url = $(this).attr("data-require");
-			var requireInput = $("#jsincludefile");
-			var requireFilesText = requireInput.val();
-			var requireFiles = requireFilesText.split(/\s*,\s*/);
-			var contains = false;
-			for ( var i = 0; i < requireFiles.length; ++i ) {
-				if (requireFiles[i] == url) {
-					contains = true;
-					break;
-				}
-			}
-			if (!contains)
-				requireFiles.push(url);
-				
-			requireFilesText = requireFiles.filter(function(str) {return str != ""; }).join(", ");
-			requireInput.val(requireFilesText);
+//		 Require filed is not needed with sea.js
+//		
+//			var url = $(this).attr("data-require");
+//			var requireInput = $("#jsincludefile");
+//			var requireFilesText = requireInput.val();
+//			var requireFiles = requireFilesText.split(/\s*,\s*/);
+//			var contains = false;
+//			for ( var i = 0; i < requireFiles.length; ++i ) {
+//				if (requireFiles[i] == url) {
+//					contains = true;
+//					break;
+//				}
+//			}
+//			if (!contains)
+//				requireFiles.push(url);
+//				
+//			requireFilesText = requireFiles.filter(function(str) {return str != ""; }).join(", ");
+//			requireInput.val(requireFilesText);
+//		
+		
 		}
