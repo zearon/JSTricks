@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<!--
+ * Copyright (c) 2010 The Chromium Authors. All rights reserved.  Use of this
+ * source code is governed by a BSD-style license that can be found in the
+ * LICENSE file.
+-->
+<html>
+  <head>	
+	<title>Javascript Tricks - Options</title>
+	<script type="text/javascript" src="js/cryptojs/aes.js" ></script>	
+	<script type="text/javascript" src="js/cryptojs/md5.js" ></script>	
+	<script type="text/javascript" src="js/cryptojs/pad-zeropadding.js" ></script>	
+
+	<script src="lib/codemirror.js"></script>    
+	<script src="lib/javascript-hint.js"></script>    
+	<script src="lib/simple-hint.js"></script>    
+    <script src="mode/javascript/javascript.js"></script>    
+	<script src="mode/css/css.js"></script>    
+	<script type="text/javascript" src="js/jquery.js" ></script>	
+	<script type="text/javascript" src="js/jquery-ui.js" ></script>	
+	<script type="text/javascript" src="js/jsformatter.js" ></script>	
+
+	<script src="usrlib/localStorageBackup.js"></script>  
+	<script src="options.js"></script>
+	
+    <link rel=stylesheet href="lib/codemirror.css">    
+	<link rel=stylesheet href="css/custom-theme/jquery-ui.css">   
+	<link rel=stylesheet href="css/custom-theme/jquery-ui-1.8.21.custom.css">   
+    <link rel="stylesheet" href="options.css"> 
+	<style>
+		
+	</style>
+	</head>
+	<body>
+	<div id="jstmessage" ></div>
+	<div id="floatingWindow" ></div>
+	<div class="header">
+		<div id="logowrapper"><img id="logo" src='icon128.png' alt='' style='float:right;margin:5px;'/></div>
+		<div id="page-title">
+			<h1>JavaScript Tricks v<span id='version'></span> - options</h1>
+			by Jeffrey
+		</div>
+	</div>
+	<div id="centercontainer" >
+		<div id="toptabs" class="tabs">
+			<ul>
+				<li><a href="#tabs-sss">Site-Specific Scripts</a></li>
+				<li><a href="#tabs-dcs">Dynamic Content Scripts</a></li>
+				<li><a href="#tabs-gs">Global Settings</a></li>
+			</ul>
+			<span id="backupToolbar" class="hide" style="display:block;margin-right:60px;float:right;position:relative;top:-25px;">
+							<input id="testtest" type="button" value="Test" class="hide" style="display:none" />
+							<input class="cloudbackup" type="button" value="Backup" />
+							<input class="cloudrestore" type="button" value="Restore" /><br/><br/>
+			</span>
+			<div id="tabs-sss" class="tab">
+				<div class="editwrap" >
+					<div id="site-list" class="navbar">
+							<div id='menu' style='overflow:auto;min-width:200px;clear:both;'></div>
+					</div>
+					<div class="editorPanel">
+						<div id='editorJs' class="hidableEditorArea" style='visibility:block;'>
+							<div class="toolbar" style="left:0; right:280px;" >
+								<table class="toolbar-left">
+									<tr>
+									<td style="width: 120px;">Content Contains: </td>
+									<td> <input id="jscontentfiltertext" style="width:98%;" title="Tip: Search Regexp \S+ for non-empty values" />  </td>
+									<td style="width: 20px;"><select id="contentfiltermode" >
+										<option>String</option>
+										<option>Regexp</option>
+									</select>
+									</td>
+									</tr>
+								</table>
+								<table class="toolbar-left">
+								<tr>
+									<td style="width: 200px;">Requires dynamic content script: </td>
+									<td><input id="jsincludefile" style="width:98%;" title="Can be multiple values seperated by commas" /></td>
+								</tr>
+								</table>
+							</div>
+							<div class="toolbar" style="top:0px;" >	
+								<div style="">
+									<input id="jscontentfilterbtn" type="button" value="Filter JS" />
+									<input id="csscontentfilterbtn" type="button" value="Filter CSS" />
+									<input id="clearcontentfilterbtn" type="button" value="Show All" style="width:107px" />
+								</div>
+								<div style="">
+									<input id="jscb" type='checkbox' /><label for='jscb' id="forjscb" style="height:20px; top:-1px;">Autostart</label>
+									<input id="jshid" type='checkbox' style='display:none'/><label for='jshid' style='display:none'>Hidden</label>
+									<input id="jssave" type='button' value="Save [Ctrl+S]" />
+									<input id="jsdelete" type='button' value="Delete" />		
+								</div>
+								<div style="display:inline-block;">
+									<input id="findReplaceDialogBtn" type="button" value="Find and Replace" />
+								</div>
+								<div style="display:inline-block; float:right;">
+									<input type="button" value="+" class="textSizeUpBtn" />
+									<span class='textsizeval'>11px</span>
+									<input type="button" value="-" class="textSizeDownBtn" />
+								</div>
+								<div style='display:none;clear:right;'>
+									<select id='jsscriptfile' >
+									</select>
+								</div>
+							</div>
+							<div class="tabs" style="">
+								<ul>
+									<li><a href="#tabs-1">JavaScript</a></li>
+									<li><a href="#tabs-2">CSS</a></li>
+								</ul>
+								<div id="tabs-1" class="tab">
+									<div id="editorwrap" class="editwrap" >
+										<textarea id='taedit'></textarea>
+									</div>
+								</div>
+								<div id="tabs-2" class="tab">
+									<div id="editorwrap2" class="editwrap" >
+										<textarea id='taeditcss'></textarea>
+									</div>
+								</div>
+								<!--
+								<span><div id='dummyheight' class="editwrap" ></div></span>
+								-->
+							</div>
+							
+							<div id="findReplaceDialog" style="display:none; ">
+								<div>Find:</div>
+								<div><textarea id="findDialog-findstring" style="width:100%" ></textarea></div>
+								<div>Replace with:</div>
+								<div><textarea id="findDialog-replacement" style="width:100%" ></textarea></div>
+								<div>Search for:
+									<select id="findDialog-searchfor"> 
+										<option>Script</option>
+										<option>CSS</option>
+										<option>Both</option>
+									</select>
+								Search method: 
+								<select id="findDialog-searchmethod"> 
+									<option>String</option>
+									<option>Regexp</option>
+								</select>								
+								</div>
+								<div> 
+									Case-insensitive:<input id="findDialog-regex-i" type="checkbox" />
+									Global:<input id="findDialog-regex-g" type="checkbox" />
+									Multiple Lines:<input id="findDialog-regex-m" type="checkbox" />
+								</div>
+								<hr/>
+								
+								<div style="display:none;">
+								<input type="button" id="" value="Find" />
+								<input type="button" id="" value="Replace" />
+								<input type="button" id="" value="Replace and Find" />
+								</div>
+								For All Site-Scripts:
+								<div style="margin-top: 2px;">
+								<input type="button" id="findDialog-previewBtn" value="Preview Replace" />
+								<input type="button" id="findDialog-cancelBtn" value="Cancel" />
+								<input type="button" id="findDialog-doBtn" value="DO" />
+								</div>
+							</div>
+						</div>
+					</div>	
+				</div>
+			</div>
+				
+			<div id="tabs-dcs" class="tab">
+				<div class="editwrap" >
+					<div id="script-list" class="navbar" style="overflow:hidden">
+						<div class="" style="height:28px; border-bottom:white 1px solid; padding-top:4px; padding-left: 0px;">
+							<input id="dcsadd" type='button' value="Add" />
+							<input id="dcssort" type='button' value="Sort" />
+							<input id="dcsreindex" type='button' value="Reindex" />
+							<input id="dcsupdatemenu" type='button' value="Re-Menu" title="Refresh context menu"/>
+						</div>
+						<div id='contentscript-menu' style='overflow:auto;min-width:200px; position:absolute; bottom:0; left:0; right:0; top: 30px;'>
+						</div>
+					</div>
+					<div class="editorPanel">
+						<div id='editorScripts' class="hidableEditorArea" style='visibility:block;'>
+							<div class="toolbar" style="left:0; right:10px;" >
+								<table class="toolbar-left"><tr>
+									<td style="width:350px;">
+										Group:
+										<input id="dcsgroup" type="text" size="10" />
+										Title:
+										<input id="dcstitle" type="text" size="20" />
+										Include:
+									</td>
+									<td>
+										<input id="dcsinclude" type="text" style="width:98%;" />
+									</td>
+									<td style="width:150px; text-align:right;">
+										Index: 
+										<input id="dcsindex" type="text" size="3" />
+										<input id="dcsindexup" type="button" value="⬆︎" />
+										<input id="dcsindexdown" type="button" value="⬇︎" />	
+									</td>
+								</tr></table>
+							</div>
+							<div class="toolbar" style="top:30px;" >	
+								<div style="display:inline-block;float:right;">
+									<input id="dcsrename" type='button' value="Rename" />		
+									<input id="dcssave" type='button' value="Save [Ctrl+S]" />
+									<input id="dcsdelete" type='button' value="Delete" />
+									<input type="button" value="+" class="textSizeUpBtn" >
+									<span class='textsizeval'>11px</span>
+									<input type="button" value="-" class="textSizeDownBtn">
+								</div>
+								<div style='display:none; clear:both;'>
+									<select id='jsscriptfile' >
+									</select>
+								</div>
+							</div>
+							
+							<div class="tabs" style="">
+								<ul>
+									<li><a href="#tabs-dcs1">JavaScript</a></li>
+									<li id="tabs-metadata"><a href="#tabs-dcs2">MetaData (Global) </a></li>
+								</ul>
+								<div id="tabs-dcs1" class="tab">
+									<div id="editorwrap" class="editwrap" >
+										<textarea id='dyscriptedit'></textarea>
+									</div>
+								</div>
+								<div id="tabs-dcs2" class="tab">
+									<div id="editorwrap2" class="editwrap" >
+										<textarea id='taeditmeta'></textarea>
+									</div>
+								</div>
+								<!--
+								<span><div id='dummyheight' class="editwrap" ></div></span>
+								-->
+							</div>
+							
+							<!--
+							<div style="position:absolute; width:100%; height:100%; top:0px; padding:52px 0px 10px 0px; box-sizing:border-box; z-index:0;">
+
+							</div>
+							-->
+						</div>
+					</div>	
+				</div>
+			</div>
+				
+			<div id="tabs-gs" class="tab">
+				<div class="editwrap settingNav" >
+					<div id="settings-list" class="navbar">
+						<div style='overflow:auto;min-width:200px;clear:both;'>
+							<div class="jstbox settingKey selected" target="settings-default"><div class="jsttitle">Backup and Restore</div></div>
+							<div class="jstbox settingKey" target="settings-global"><div class="jsttitle">Global Settings</div></div>
+							<div class="jstbox settingKey" target="settings-json-viewer"><div class="jsttitle">JSON Viewer</div></div>
+							<div class="jstbox settingKey" target="settings-manual"><div class="jsttitle">User Manual</div></div>
+							<div class="jstbox settingKey" target="settings-about"><div class="jsttitle">About</div></div>
+						</div>
+					</div>
+					<div class="editorPanel">
+						<div id="settings-default" class="settingPanel">
+							<h2>Cloud Storage Backup and Restore</h2>
+							<input class="cloudbackup" type="button" value="Backup" />
+							<input class="cloudrestore" type="button" value="Restore" /><br/><br/>
+							Settings to be load: 
+							<input id="cloudrestore-key" type="text" class="localstorage_itemvalue" target="$setting.cloud-lastsave" value="" size="20" />
+							<input id="cloudlist" type="button" value="List" />
+							<input id="cloudview" type="button" value="View" />
+							<input id="cloudleavelast10" type="button" value="Remove All Except Last 10" /> 
+							<input id="clouddelete" type="button" value="Delete" /> 
+							<input id="cloudtoggleselect" type="button" value="Multiple Select" data-selectmode="radio" /> 
+							<div id="cloudrestore-keys">
+							</div>
+							
+							<h5 class="click-to-toggle-next-node">Cloud storage settings (Click to toggle)</h5>
+							<table class="cloudsave-setting localstorage_block hide">
+							<tr>
+								<td>URL: </td>
+								<td><input id="cloudsave-url" type="url" size="70" class="localstorage_itemvalue" 
+									target="$setting.cloud-url" 
+									defaultvalue="http://<hostname>/cloudsave.php"  
+									value="http://<hostname>/cloudsave.php" /> <br/></td>
+							</tr>
+							<tr>
+								<td>Path: </td>
+								<td><input id="cloudsave-path" type="text" class="localstorage_itemvalue" 
+									target="$setting.cloud-path" defaultvalue="chrome-ext" value="chrome-ext" /></td>
+							</tr>
+							<tr>
+								<td>Passphrase: </td>
+								<td><input id="cloudsave-passphrase" type="password" class="localstorage_itemvalue" 
+									target="$setting.cloud-passphrase" defaultvalue="chrome-ext" value="chrome-ext" />
+									<input class="cloudsave-showkey" type="button" value="Show" /></td>
+							</tr>
+							<tr>
+								<td>Key-IV: </td>
+								<td><input id="cloudsave-keyiv" type="password"  class="localstorage_itemvalue" 
+									target="$setting.cloud-keyiv" defaultvalue="" value="" />
+									<input class="cloudsave-showkey" type="button" value="Show" />
+									<input id="cloudsave-genkey" type="button" value="Generate a key iv" /> <span></span></td>
+							</tr>
+							<tr>
+								<td></td>
+								<td><input id="cloudsave-savesettings" class="localstorage_saveall" type="button" value="Save" /></td>
+							</tr>
+							</table>
+							
+							<h5 class="click-to-toggle-next-node">Deploy Cloud storage system (Click to toggle)</h5>
+							<div class="hide" style="">
+								<p> The cloud storage system is a simple PHP application with only one php file. </p>
+								<p>Step 1. Create your passphrase and generate a Key-IV.</p>
+								<p>Step 2. Create a php file whose content can be fetch by clicking the "Show cloud save source" button below.</p>
+								<p>Step 3. Replace the variable value accordingly with php hosting setting and values got in step 1.</p>
+								<p>Step 4. Check if mcrypt is supported with phpinfo(). If not supported, install php5-mcrypt with "apt-get install" or "yum install"</p>
+								<p>Step 5. Deploy the php to your own php web server or php web hosting server.</p>
+								<input id="show-cloudsave-src" type="button" value="Show cloud save source" />
+							</div>
+							<hr/>
+							
+							<h2>Local Storage Backup and Restore</h2>
+							<input type="button" id="backupbtn" value="Backup" style='height:25px' />
+							<a id="__UI_dialog__link" download="backup.json" title="Click to download the backup file." style="display:none;position:relative;top:5px">Download</a>
+							<br/>
+							Local storage backup file:
+							<input id="__LocalStorageFP__" type="file" title="Please select the backup file to restore" style="width:150px"/>
+							<input type="button" id="restorebtn" value="Restore" style='height:25px' />
+						</div>
+						<div id="settings-global" class="settingPanel">
+							<h2>Global settings</h2><hr/>
+							<table class="localstorage_block">
+								<tr>
+									<td colspan="4"><h3>Generated UI in Popup Window</h3></td>
+								<tr>
+								<tr class="localstorage_item">
+									<td title="hello">Max Height of Panel</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.popupwindow_genUIPanelMaxHeight" defaultvalue="164" value="164" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.popupwindow_genUIPanelMaxHeight" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.popupwindow_genUIPanelMaxHeight" value="Default" /></td>
+								<tr>
+								<!--
+								<tr class="localstorage_item">
+									<td>Popup window width</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.popupwindow_width" defaultvalue="600" value="600" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.popupwindow_width" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.popupwindow_width" value="Default" /></td>
+								<tr>
+								<tr class="localstorage_item">
+									<td>Popup window height</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.popupwindow_height" defaultvalue="571" value="571" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.popupwindow_height" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.popupwindow_height" value="Default" /></td>
+								<tr>
+								-->
+								<tr>
+									<td colspan="4" style="border-top:solid 1px #bbbbbb; padding-top: 10px;">
+										<input type="button" class="localstorage_saveall" value="Save All" />
+										<input type="button" class="localstorage_resetall" value="All Default" />
+									</td>
+								</tr>
+							</table>
+						</div>
+						<div id="settings-json-viewer" class="settingPanel">
+							<h3>JSON Viewer</h3><hr/>
+							<input id="jsonFileLoad" type="button" value="Load" />
+							<input id="jsonFilePath" type="file"/>
+							<br/>Show script for:
+							<input id="jsonObjPath" type="text" size="30" value="Default" />
+							<input id="jsonObjExtract" type="button" value="Extract" />
+							<hr/>
+							<div id="json-viewer-tabs">
+							  <ul>
+								<li><a href="#json-viewer-tabs-1">JSON File</a></li>
+								<li><a href="#json-viewer-tabs-2">Javascript</a></li>
+							  </ul>
+							  <div id="json-viewer-tabs-1">
+							  	<textarea id="json-file"></textarea>
+							  	<div id="json-viewer-site-list" style="overflow:auto"></div>
+							  </div>
+							  <div id="json-viewer-tabs-2">
+							  	<textarea id="json-file-obj"></textarea>
+							  </div>
+							</div>
+						</div>
+						<div id="settings-manual" class="settingPanel">
+							<h2>Brief User Manual</h2><hr/>
+						</div>
+						<div id="settings-about" class="settingPanel">
+							<h2>About</h2><hr/>
+							<h3>Copyright Description</h3>
+							<p>
+							<a target="_blank" href="https://chrome.google.com/webstore/detail/javascript-tricks/dpkgacdhagkgdhgmbfdhbmgdgnjibodb"><b>Javascript Tricks</b></a> 
+							is a chrome extension developed based on 
+							<a target="_blank" href="https://chrome.google.com/webstore/detail/jscript-tricks/odialddippdmebbfbflcneemfdglimod"><b>JScript Tricks</b></a>, 
+							which is originally developed by Szamil. His/her work is very fundamental and important to
+							this project and thus reserves great appreciation! 
+							If there is any copyright issue, please post a comment 
+							<a target="_blank" href="https://chrome.google.com/webstore/detail/javascript-tricks/dpkgacdhagkgdhgmbfdhbmgdgnjibodb">here</a>
+							to let me know.</p>
+							<p>
+							Several months ago, I searched the chrome web store and found <b>JScript Tricks</b> is very 
+							useful to me. When I start to use it, I feel some features are very necessary, such as setting
+							backup and restore, but Szamil does not update it any more. As a result, I start this project to 
+							extend the original JScript Tricks.
+							
+							</p>
+							
+							<br/>
+							<h3 id="settings-release-notes-btn" class="empty">Release Notes: (Click to collapse or extend)</h3>
+							<div id="settings-release-notes" style="display:none;">		
+								Loading...					
+							</div>					
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div style='font-size: 8pt; clear:both; margin:10px; width: 100%; text-align:right; position:fixed; bottom: 10px; right: 0px;'>
+		Powered by <a href='http://codemirror.net/' target='_blank'>CodeMirror</a>		
+		
+		<div id='donateDiv' style="float:left;position:absolute;top:-10px;left:0;margin-left:20px;">
+			<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank" style="display:inline-block;">
+				<input type="hidden" name="cmd" value="_donations">
+				<input type="hidden" name="business" value="zearongong@gmail.com">
+				<input type="hidden" name="lc" value="EN">
+				<input type="hidden" name="item_name" value="JavaScript Trick Chrome Extension donation">
+				<input type="hidden" name="no_note" value="0">
+				<input type="hidden" name="currency_code" value="USD">
+				<input type="hidden" name="bn" value="PP-DonationsBF:btn_donate_LG.gif:NonHostedGuest">
+				<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+				<img alt="" border="0" src="https://www.paypalobjects.com/pl_PL/i/scr/pixel.gif" width="1" height="1">
+			</form>
+			<!--
+			<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank" style="display:inline-block;">
+				<input type="hidden" name="cmd" value="_donations">
+				<input type="hidden" name="business" value="thewall37@gmail.com">
+				<input type="hidden" name="lc" value="PL">
+				<input type="hidden" name="item_name" value="JavaScript Trick Chrome Extension donation">
+				<input type="hidden" name="no_note" value="0">
+				<input type="hidden" name="currency_code" value="USD">
+				<input type="hidden" name="bn" value="PP-DonationsBF:btn_donate_LG.gif:NonHostedGuest">
+				<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+				<img alt="" border="0" src="https://www.paypalobjects.com/pl_PL/i/scr/pixel.gif" width="1" height="1">
+			</form>
+			-->
+		</div>
+	</div>
+
+	
+  </body>
+</html>
