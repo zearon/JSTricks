@@ -102,10 +102,11 @@ function guid() {
 						autoloadFileList.push(autoloadFiles[index]);
 					}
 					autoloadFileList.unshift(
-						{name:"boot/jquery", file:"js/jquery.js", type:"js"}, 
-						{name:"boot/jquery-ui", file:"js/jquery-ui.js", type:"js"}, 
-						{name:"boot/jquery-init", code:"jQuery.noConflict();", type:"js"}, 
-						{name:"boot/msgbox", file:"usrlib/msgbox.js", type:"js"}
+						{name:"boot/jquery", file:"js/jquery.sea.js", type:"js"},
+						{name:"boot/jquery-ui", file:"js/jquery-ui.js", type:"js"},  /*
+						{name:"boot/jquery-init", code:"jQuery.noConflict();", type:"js"}, */
+						{name:"boot/msgbox", file:"usrlib/msgbox.js", type:"js"}, 
+						{name:"boot/nodeSelector", file:"usrlib/nodeSelector.js", type:"js"}
 					);
 					if (localStorage["Main"]) {
 						try {

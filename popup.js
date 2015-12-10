@@ -439,7 +439,7 @@ function API_SendMessageToTab(tabid, msg, callback) {
 					
 				var tabid = tab[0].id;
 				chrome.tabs.executeScript(tabid, {"code": `
-					var $ = jQuery;
+					var $ = require("jquery");//jQuery;
 					$("#JST-POPUP-PINNED").parent(".ui-dialog").remove();
 					$("#JST-POPUP-PINNED").remove();
 					$("<iframe id='JST-POPUP-PINNED' src='chrome-extension://"+chrome.runtime.id+"/popup.html' style='width:600px;height:571px;' />")

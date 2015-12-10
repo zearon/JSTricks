@@ -1129,6 +1129,4 @@ seajs.config = function(configData) {
   return seajs
 }
 
-global.define.amd = true;
-
 })(this);
