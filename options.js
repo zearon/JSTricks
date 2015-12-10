@@ -58,7 +58,7 @@
 
 		var selectedTitle = "";
 		
-		var scripts = ["jquery.js"];
+		var scripts = ["js/jquery.js"];
 		
 		CodeMirror.commands.autocomplete = function(cm) {
 			CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);
@@ -1515,27 +1515,43 @@
 			var name = prompt("Script name:");
 			if (!name)
 				return;
-			name = name.replace(/^\s*/, "").replace(/\s*$/, "");
+			name = name.trim();
+			if (! /^[0-9a-zA-Z_]+$/.test(name)) {
+				alert("Invalid name!\nName should be a non-empty string consists of only 26 letters, 10 digits and underscore.");
+				return;
+			}
+				
 			if (checkDuplicateContentScript(name)) {
 				alert("A script with the given name already exists. Please change a name.");
 				return;
 			}
 			
+			var template = template_content_script_common;
+			var group = "";
+			if (confirm("Does this content script provide a module for other scripts?")) {
+				template = template_content_script_module;
+				group = "lib";
+			};
+			
+			var code = template.replace(/\$\(name\)/g, name);
+			console.log(code);			
+
 			selectedContentScript = name;
 			var index = getNextContentScriptIndex();
-			$("#dcsgroup").val("");
+			$("#dcsgroup").val(group);
 			$("#dcsindex").val(index);
 			$("#dcstitle").val(name);
 			$("#dcsinclude").val("");
 			
 			addContentScriptMenu(name, index);
 			
-			currentSavedStateDCS = "";
-			editDynScript.setValue("");
+			currentSavedStateDCS = code;
+			editDynScript.setValue(code);
 			
 			saveContentScript();
 			
 			updateContentScriptForContextMenu();
+			
 		}
 		
 		function saveContentScript() {

@@ -15,11 +15,20 @@
   	seajs.use(dependencys, callback);
   }
   
+  // Add some settings in meta data
   //console.log(meta_data);
   var config;
   if (meta_data && (config = meta_data["seajs.config"])) {
   	seajs.config(config);
   }
+  
+  // Add some default settings
+  seajs.config({
+    "alias": {
+      "jquery": "jquery.sea.js",
+      "jquery-ui": "jquery-ui.js"
+    }
+  });
   
   // Define resolve plugin for local storage shchema
   seajs.on("resolve", function(data) {
