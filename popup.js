@@ -508,7 +508,7 @@ function log(arg) {
 				$("#editor-script-gen-ui").append('<div id="'+divID+'" class="tab-pane"></div>');
 				var sectionDiv = $('#' + divID);
 				//sectionDiv.append('<div><h3 class="section-title" data="'+section.objName+' = Object.create">'+section.title+'<input type="text" value="'+section.title+'" style="display:none" /></h3></div>');
-				sectionDiv.append('<div style="display:inline; margin-right:5px;"><input class="add-script-btn init-script-btn" type="button" value="Init" data-require="'+section.title+'" data-code="var '+section.objName+' = new '+section.title+'();\n" /></div>');
+				sectionDiv.append('<div style="display:inline; margin-right:5px;"><input class="add-script-btn init-script-btn" type="button" value="Init" data-require="'+section.className+'" data-obj="'+section.objName+'" data-code="" /></div>');
 				for (var j=0; j < section.commands.length; ++ j) {
 					var command = section.commands[j];
 					var statementType = command.statement ? command.statement : "common";
@@ -741,10 +741,13 @@ function log(arg) {
 		}
 		
 		function addScript() {	
-			var btn = $(this);			
+			var btn = $(this);
+			var linePos = editor.getCursor()["line"];
 			if (btn.hasClass("init-script-btn")) {
-				if (editor.getCursor()["line"] == 0)
+				if (linePos == 0)
 					editor.setCursor({line:2, ch:0});
+			} else if (linePos < 2) {
+				editor.setCursor({line:2, ch:0});
 			}
 			
 			var indentLevel = getIndentLevel();
@@ -758,8 +761,8 @@ function log(arg) {
 			stmt = btn.attr('data-code');
 			if (stmt) {
 				stmt = stmt.replace(/^\s*/mg, indent).replace(/\n\s*$/, "\n");
-			} else {				
-				stmt = btn.attr('data-func') + "(";
+			} else if ( (stmt = btn.attr('data-func')) ) {				
+				stmt += "(";
 				btn.parent().find('input:text, select').each(function (idx, elm) { 
 					if (idx != 0)
 						stmt += ", ";
@@ -785,16 +788,28 @@ function log(arg) {
 				}
 			}
 			
-			var code = editor.getValue();
-			code += stmt;
-			editor.setCursor({line:editor.getCursor()["line"], ch:0});
-			editor.replaceSelection(stmt);
-			
-			var cursor = editor.getCursor();
-			editor.setCursor(cursor);
+			if (stmt) {
+				var code = editor.getValue();
+				code += stmt;
+				editor.setCursor({line:editor.getCursor()["line"], ch:0});
+				editor.replaceSelection(stmt);
+				
+				var cursor = editor.getCursor();
+				editor.setCursor(cursor);
+			}
 		}
 		
 		function addRequireFile() {
+			var node = $(this);
+			var className = node.attr("data-require");
+			var objName = node.attr("data-obj");
+			
+			var code = editor.getValue();
+			var pattern = /(\s*run[\s\S]*?)(\],\s*function\s*\(.*)(\)\s*\{[\s\S]*)/;
+			code = code.replace(pattern, '$1, "#'+className+'"$2'+', '+objName+'$3');
+			editor.setValue(code);
+		
+		
 //		 Require filed is not needed with sea.js
 //		
 //			var url = $(this).attr("data-require");
