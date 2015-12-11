@@ -124,6 +124,33 @@ function guid() {
 				loadDefaultScript(tabid, key, autoloadFileList);
             }
             
+            // Invoked when content menues are clicked.
+            else if (requestMethod == "ExecuteContentScript") {
+            	var csName = requestData;
+				var autoloadFileList = [];
+				addAContentScriptToLoadList(autoloadFileList, csName);
+				var lastScript = autoloadFileList[autoloadFileList.length - 1];
+				lastScript.name = lastScript.name + "-" + guid();
+				
+				// Load all included files in chain.
+				loadIncludeFiles(tabid, null, autoloadFileList, 0);
+            }
+            
+            // Invoked by RUN script or RUN selected script in popup window
+            else if (requestMethod == "ExecuteSiteScript") {
+            	var data = JSON.parse(requestData);
+            	//console.log(data);
+            	var name = data.name;
+            	var includes = data.includes;
+            	var script = data.script;
+            	
+				var autoloadFileList = [];
+				addContentScriptsToLoadList(autoloadFileList, includes);
+				autoloadFileList.push( {"name":name+"-"+guid(), "code":script, "type":"js"} );
+				
+				loadIncludeFiles(tabid, null, autoloadFileList, 0);
+            }
+            
             // Invoked when sea.js request a module saved in local storage with a URI such as localstorage://Novel.
             // or the source code of a external script file.
             else if (requestMethod == "InjectModule") {
@@ -152,31 +179,11 @@ function guid() {
 				}				
             }
             
-            // Invoked when content menues are clicked.
-            else if (requestMethod == "ExecuteContentScript") {
-            	var csName = requestData;
-				var autoloadFileList = [];
-				addAContentScriptToLoadList(autoloadFileList, csName);
-				var lastScript = autoloadFileList[autoloadFileList.length - 1];
-				lastScript.name = lastScript.name + "-" + guid();
-				
-				// Load all included files in chain.
-				loadIncludeFiles(tabid, null, autoloadFileList, 0);
-            }
-            
-            // Invoked by RUN script or RUN selected script in popup window
-            else if (requestMethod == "ExecuteSiteScript") {
-            	var data = JSON.parse(requestData);
-            	//console.log(data);
-            	var name = data.name;
-            	var includes = data.includes;
-            	var script = data.script;
-            	
-				var autoloadFileList = [];
-				addContentScriptsToLoadList(autoloadFileList, includes);
-				autoloadFileList.push( {"name":name+"-"+guid(), "code":script, "type":"js"} );
-				
-				loadIncludeFiles(tabid, null, autoloadFileList, 0);
+            // Invoked by clicking show popup page in dialog button in popup window
+            else if (requestMethod == "InjectPopupPage") {
+				var code = compile_template(codesnippit_showPopupInWebpage, requestData);
+				//console.log(code);
+				chrome.tabs.executeScript(tabid, {"code": code});
             }
         }
         

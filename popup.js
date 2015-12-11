@@ -199,15 +199,7 @@ function log(arg) {
 			var ta = document.getElementById("scriptText");
 			if(!localStorage[url])
 			{
-				ta.value = 
-`run(["jquery"], function($) {
-  function main() {
-
-  }
-  
-  $(main);
-});
-`;
+				ta.value = compile_template(template_site_script);
 				return "";
 			}
 			var lsd = JSON.parse(localStorage[url]);
@@ -450,32 +442,18 @@ function log(arg) {
 				
 			saveEditDialogContext();
 			
+/* 
 			chrome.tabs.query({"active":true}, function(tab) {
 				if (!tab[0])
 					return;
 					
 				var tabid = tab[0].id;
-				chrome.tabs.executeScript(tabid, {"code": `
-					run(["jquery", "jquery-ui"], function($) {
-					
-						$("#JST-POPUP-PINNED").parent(".ui-dialog").remove();
-						$("#JST-POPUP-PINNED").remove();
-						$("<iframe id='JST-POPUP-PINNED' src='chrome-extension://"+chrome.runtime.id+"/popup.html' style='width:600px;height:571px;' />")
-						.appendTo("body")
-						.dialog({"title":"JavaScript Tricks (Double click to toggle)", "width":"630", "height":"600"});
-						$("#JST-POPUP-PINNED").css("width", "calc(100% - 28px)");	
-						
-						$(".ui-dialog-titlebar").dblclick(function() {
-							$(this).attr("title", "Double click to toggle (collapse or extend) dialog box.");
-							$(this).next().toggle();
-						});
-						
-						if (${hideDialog})
-							$("#JST-POPUP-PINNED").parent().hide();
-						
-					});
-				`});
+				var code = compile_template(codesnippit_showPopupInWebpage, {hideDialog});
+				console.log(code);
+				chrome.tabs.executeScript(tabid, {"code": code});
 			});
+ */
+			chrome.runtime.sendMessage({tabid: activeTabId[0], method:"InjectPopupPage", data:{hideDialog}});
 			
 			window.close();
 		}
@@ -565,7 +543,7 @@ function log(arg) {
 				.css("max-height", ""+localStorage["$setting.popupwindow_genUIPanelMaxHeight"]+"px")
 				.append('<div id="genUITab-____Clear______" class="tab-pane"></div>');
 			
-			$(".add-script-btn").click(addScript);
+			$(".add-script-btn").attr("title", "Click button to add code in editor at current cursor place.").click(addScript);
 			$(".init-script-btn").click(addRequireFile);
 			$(".select-domnode-btn").click(startSelectingDomNode);
 			
@@ -806,7 +784,18 @@ function log(arg) {
 			
 			var code = editor.getValue();
 			var pattern = /(\s*run[\s\S]*?)(\],\s*function\s*\(.*)(\)\s*\{[\s\S]*)/;
-			code = code.replace(pattern, '$1, "#'+className+'"$2'+', '+objName+'$3');
+			var match = code.match(pattern);
+			
+			if (match[1] && match[1].indexOf('"#'+className+'"') > -1) {
+				// Remove dependency
+				match[1] = match[1].replace(new RegExp(',\\s*\\"#'+className+'\\"'), '');
+				match[2] = match[2].replace(new RegExp(',\\s*'+objName), '');
+				code = match[1] + match[2] + match[3];
+			} else {
+				// Add dependency
+				code = `${match[1]}, "#${className}"${match[2]}, ${objName}${match[3]}`;
+			}
+			//code = code.replace(pattern, '$1, "#'+className+'"$2'+', '+objName+'$3');
 			editor.setValue(code);
 		
 		
