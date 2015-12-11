@@ -37,7 +37,7 @@ define("#{{name}}", ["jquery", "#LibBase"], function(require, exports, module) {
   {{name}}.prototype.do = function () {
     // Your code goes here.
   	
-    console.log("{{name}}.do is invoked");
+    console.log("{{name}}.do() is invoked");
     console.log(this);
   };
   
@@ -60,8 +60,8 @@ define("#{{name}}", ["jquery"], function(require, exports, module) {
   /* Exported symbols. You can define exports.whatever here and after. */
   exports.do = function () {
     // Your code goes here.
-  	
-    console.log("{{name}}.do is invoked");
+    
+    console.log("{{name}}.do() is invoked");
   };
 });
 
