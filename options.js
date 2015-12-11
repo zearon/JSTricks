@@ -1533,7 +1533,8 @@
 				group = "lib";
 			};
 			
-			var code = template.replace(/\$\(name\)/g, name);
+			var context = {"name": name};
+			var code = compile_template(template, context);
 			console.log(code);			
 
 			selectedContentScript = name;
