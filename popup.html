@@ -218,15 +218,24 @@
 		<div id="tabs-3">
 			<div id="editorwrap3" class="topeditorwrap" style="clear:both">
 				<textarea id='demo-code'>
-(function($) {
+/* Line 11
+ *     run(["jquery", "#Novel"], function($, novel) { ... });
+ *   means this piece of script should import module jquery as symbol $ and 
+ *   dynamic content script named Novel as symbol novel respectively.
+ *
+ * Line 12 - 15 defines a function named main, which do the actual job.
+ * Line 17 uses jQuery to indicate that when the DOM tree of the web Page
+ *   is ready, call the main function.
+ */
+ 
+run(["jquery", "#Novel"], function($, novel) {
   function main() {
-    console.log("hello");
-    var novel = new Novel();
-    novel.prefetch("a:contains('下一'):eq(0)");
+    novel.prefetch('a:contains(\'下一\'):eq(0)');
+    console.log("Done.");
   }
   
   $(main);
-})(jQuery);
+});
 				</textarea>
 			</div>
 		</div>

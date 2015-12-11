@@ -106,8 +106,8 @@ function guid() {
 					for (index in autoloadFiles) {
 						autoloadFileList.push(autoloadFiles[index]);
 					}
-					autoloadFileList.unshift(
-						{name:"boot/jquery", file:"js/jquery.sea.js", type:"js"}, /*
+					autoloadFileList.unshift(/*
+						{name:"boot/jquery", file:"js/jquery.sea.js", type:"js"}, 
 						{name:"boot/jquery-ui", file:"js/jquery-ui.js", type:"js"},  
 						{name:"boot/jquery-init", code:"jQuery.noConflict();", type:"js"}, */
 						{name:"boot/msgbox", file:"usrlib/msgbox.js", type:"js"}, 
@@ -182,7 +182,12 @@ function guid() {
         
         function addNecessaryScriptsToHead(autoloadFileList) {
 			autoloadFileList.unshift(
-				{name:"boot/setMetaData", code:`var meta_data = JSON.parse(decodeURIComponent("${encodeURIComponent(localStorage['meta'])}"))`, type:"js"},
+				{name:"boot/setMetaData", code:`
+							var DEBUG = new Object(); 
+							DEBUG.on = ${localStorage["$setting.DEBUG"]};
+							var meta_data = JSON.parse(decodeURIComponent("${encodeURIComponent(localStorage['meta'])}"));
+							var meta_data = JSON.parse(decodeURIComponent("${encodeURIComponent(localStorage['meta'])}"));
+						`, type:"js"},
 				{name:"boot/boot.js", file:"boot.js", type:"js"}
 			);
 			if (localStorage["Main"]) {
@@ -273,6 +278,9 @@ function guid() {
 
 			// console.log(execDetail);
 			loadFunc(tabid, execDetail, callNextInChain);
+			
+			// Reduce memory leak
+			delete callNextInChain;
         }
         
         function insertScriptNodeAsDataUri() {
