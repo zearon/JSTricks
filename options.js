@@ -1565,7 +1565,7 @@
 			$("#dcstitle").val(name);
 			$("#dcsinclude").val("");
 			
-			addContentScriptMenu(name, index);
+			addContentScriptMenu(name, index, "");
 			
 			currentSavedStateDCS = "";
 			editorDynScript.setValue("");
@@ -1617,7 +1617,7 @@
 			$(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`).attr("index", index)
 				.find(".index").text(index);
 				
-			$(`#contentscript-menu > .jstbox[name='${selectedContentScript}'] .group`).text(group);
+			$(`#contentscript-menu > .jstbox[name='${selectedContentScript}'] .group`).text(group + "/");
 			
 			currentSavedStateDCS = editorDynScript.getValue();
 			
@@ -1805,15 +1805,14 @@
 			chrome.extension.sendRequest({method: "UpdateContextMenu", data:groups});
 		}
 		
-		function addContentScriptMenu(name, index) {
+		function addContentScriptMenu(name, index, group) {
 			// console.log('addContentScriptMenu: ' + name);
-			var group = "";
-			try {
-				group = JSON.parse(localStorage["$cs-"+name]).group;
-			} catch(exception) {}
+			if (!group)
+				group = "";
+
 			var container = $("#contentscript-menu");
 			container.find("> .jstbox").removeClass("selected");
-			$(`<div class="jstbox contentScriptKey selected" name="${name}" index="${index}">
+			var node = $(`<div class="jstbox contentScriptKey selected" name="${name}" index="${index}">
 					<div class="jsttitle" style="display:inline;font-variant:normal;position:relative;">
 						<span class="index">${index}</span>
 						<span>-</span>
@@ -1883,7 +1882,7 @@
 				var name = item['name'];
 				var key = "$cs-" + name;
 				if (addMenu)
-					addContentScriptMenu(item.name, item["index"]);
+					addContentScriptMenu(item.name, item["index"], item['group']);
 				
 				delete item['name'];
 				if (procItem)
@@ -1891,6 +1890,8 @@
 			}
 			
 			$("#contentscript-menu").find("> .jstbox").removeClass("selected");
+			if (selectedContentScript)
+				$(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`).addClass("selected");
 		}
 		
 		function sortContentScriptByDefault(a, b) {
