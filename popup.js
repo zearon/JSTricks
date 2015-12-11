@@ -9,6 +9,7 @@ var API_CALLBACKS = {};
 var DEBUG = false;
 if (inExtensionPage && localStorage["$setting.DEBUG"] == "true")
 	DEBUG = true;
+var RUN_BUTTON_CODE = localStorage["$setting.DEBUG_runbuttoncode"] == "true";
 	
 API_GetSelectedTab(function(tab) {
 	//console.log(tab);
@@ -232,13 +233,15 @@ function log(arg) {
 			
 			execute("Site script", editor.getValue(), editorCss.getValue());
 		}
-		function runSelected(){
-			var code = editor.getSelection();
+		function runCodeSnippet(codesnippet) {
 			var header = editor.getValue().match(/\s*(run[\s\S]*?function\s*\(.*\)\s*\{)/)[1];
-			var wrappedCode = header + "\n" + code + "\n});";
+			var wrappedCode = header + "\n" + codesnippet + "\n});";
 			
-			log(wrappedCode);
+			console.log(wrappedCode);
 			execute("Selected site script", wrappedCode, editorCss.getSelection());
+		}
+		function runSelected(){
+			runCodeSnippet(editor.getSelection());
 		}
 		function cacheScript()
 		{
@@ -268,7 +271,7 @@ function log(arg) {
 				editorCss.setValue( localStorage['cacheCss'] );
 		}
 		function editInOptionPage() {
-			window.open("chrome-extension://"+chrome.runtime.id+"/options.html?page=sitescripts&site="+tabSite, "editOptionPage");
+			window.open("chrome-extension://"+chrome.runtime.id+"/options.html?page=sitescripts&site="+tabSite, "OptionPage");
 		}
 		
 		var editor=null;
@@ -284,6 +287,7 @@ function log(arg) {
 			$("#showInDialogBtn").click(showInDialog);
 			$("#forjstcb").click(changeAutostart);
 			$("#enableDisableBtn").click(toggleExtension);
+			$("#optionsBtn").click(function() { window.open(chrome.runtime.getURL("options.html"), "OptionPage"); });
 			
 			$("#jstcb").button({icons: {
 						primary: "ui-icon-locked"
@@ -300,6 +304,7 @@ function log(arg) {
 			}
 			tabs();
 			setEnableDisableBtnImage();
+			setupKeyEventHandler();
 			 
 			createCustomizeUI();
 		
@@ -310,11 +315,12 @@ function log(arg) {
 					tabMode: 'indent',
 					lineNumbers:true,
 					matchBrackets :true,
-					extraKeys:{
-						"Ctrl-S":function(){
+					/*extraKeys:{
+						"Ctrl-S":function(event){
 							save_options();
+							console.log(event);
 						}			
-					},
+					},*/
 					onChange  : function(){
 						cacheScript();
 					}
@@ -324,11 +330,11 @@ function log(arg) {
 					tabMode: 'indent',
 					lineNumbers:true,
 					matchBrackets :true,
-					extraKeys:{
+					/*extraKeys:{
 						"Ctrl-S":function(){
 							save_options();
 						}			
-					},
+					},*/
 					onChange  : function(){
 						cacheCss();
 					}
@@ -339,11 +345,11 @@ function log(arg) {
 					lineNumbers:true,
 					matchBrackets :true,
 					readOnly:true,
-					extraKeys:{
+					/*extraKeys:{
 						"Ctrl-S":function(){
 							save_options();
 						}			
-					}
+					}*/
 				}); 	
 			
 				// Height adjusting 
@@ -357,6 +363,11 @@ function log(arg) {
 					var editor1Height = windowHeight - $("#tabs-1 .CodeMirror-scroll").offset().top - 1;
 					$("#tabs-1 .CodeMirror-scroll").css("height", editor1Height);
 				//}
+				
+				if (RUN_BUTTON_CODE) {
+					$("#tabs-1 .CodeMirror").css("background-color", "#ffeeee");
+					$("#js-editor-hint").show();
+				}
 			});
 			
 			$("#editor-script-gen-ui-title > ul:first > li").click(function() {
@@ -364,6 +375,23 @@ function log(arg) {
 				$("#tabs-1 .CodeMirror-scroll").css("height", editor1Height);
 			});
 		});//;
+		
+		function setupKeyEventHandler() {
+			var mac_os = navigator.userAgent.indexOf("Mac OS") > -1;
+			
+			$('body').on('keydown',function (event){
+				var key = event.which;
+				var modifier = event.ctrlKey;
+				if (mac_os) 
+					modifier = event.metaKey;
+				
+				if(modifier && String.fromCharCode( key ).toLowerCase() == 's') {
+					save_options();
+					event.preventDefault();
+				}
+			});
+		}
+		
 		function tabs()
 		{
 			$("#tabs > ul li").each(function(ind,el){
@@ -661,11 +689,12 @@ function log(arg) {
 			var textAfterCursor = textInEditor.substr(editorCursorIndex);
 			//console.log(textAfterCursor);
 			var indentLevel = 0;
-			var curchar = null, strchar = null, strChars = ["'", '"', "`"], strCharCount = strChars.length;
-			var escapeChar = false, inregex = false;
+			var chars = []; curchar = null, strchar = null, strChars = ["'", '"', "`"], strCharCount = strChars.length;
+			var escapeChar = false, inregex = false, inLineComment = false, inBlockComment = false;
 			
 			for (var i = 0; i < textAfterCursor.length; ++ i) {
 				curchar = textAfterCursor[i];
+				chars.unshift(curchar);
 				
 				if (escapeChar) {
 					escapeChar = false;
@@ -681,6 +710,26 @@ function log(arg) {
 						if (curchar == "/") {
 							// terminate current regular expression  literal.
 							inregex = false;
+						} else if (chars[1] == "/" && chars[0] == "/") {
+							// not a regular expression but a line comment.
+							inregex = false;
+							inLineComment = true;
+						} else if (chars[1] == "/" && chars[0] == "*") {
+							// not a regular expression but a block comment.
+							inregex = false;
+							inBlockComment = true;
+						}
+					} else if (inLineComment) {
+						// current character is within a line comment.
+						if (curchar == "\n") {
+							// terminate current regular expression literal.
+							inLineComment = false;
+						}
+					} else if (inBlockComment) {
+						// current character is within a line comment.
+						if (chars[1] == "*" && chars[0] == "/") {
+							// terminate current regular expression literal.
+							inBlockComment = false;
 						}
 					} else {
 						// current character is not within a string literal.
@@ -703,6 +752,9 @@ function log(arg) {
 						}
 					}
 				}
+				
+				if (i>3)
+					chars.pop();
 			}
 			/************* End of syntax analysis **************/
 			
@@ -731,7 +783,7 @@ function log(arg) {
 			var indentLevel = getIndentLevel();
 			var actualIndentLevel = indentLevel > 1 ? indentLevel : 1;
 			var indent = getIndent(actualIndentLevel);
-			// console.log("indent level is " + indentLevel + ", and actual indent level is " + actualIndentLevel);
+			console.log("indent level is " + indentLevel + ", and actual indent level is " + actualIndentLevel);
 			
 			var stmtType = btn.attr('data-statement');
 			stmtType = stmtType ? stmtType : "common";
@@ -767,13 +819,18 @@ function log(arg) {
 			}
 			
 			if (stmt) {
-				var code = editor.getValue();
-				code += stmt;
-				editor.setCursor({line:editor.getCursor()["line"], ch:0});
-				editor.replaceSelection(stmt);
-				
-				var cursor = editor.getCursor();
-				editor.setCursor(cursor);
+				if (RUN_BUTTON_CODE) {
+					console.log("run button code.");
+					runCodeSnippet(stmt);
+				} else {
+					var code = editor.getValue();
+					code += stmt;
+					editor.setCursor({line:editor.getCursor()["line"], ch:0});
+					editor.replaceSelection(stmt);
+					
+					var cursor = editor.getCursor();
+					editor.setCursor(cursor);
+				}
 			}
 		}
 		

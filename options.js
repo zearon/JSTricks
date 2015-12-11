@@ -486,6 +486,7 @@
 			
 			loadContentScriptTemplate();
 			loadAllContentScripts();
+			$(".navbar > *").scrollTop(0);
 			
 			$('#jsonFileLoad').click(loadJsonFile);
 			$('#jsonObjExtract').click(extractJsonObject);
@@ -1443,63 +1444,6 @@
 				showMessage("Cloud storage settings saved");
 		}
 		
-		function initControlsRelatingToLocalStorage() {			
-			// Data loading and saving behavior are defined in initControlsRelatingToLocalStorage functions
-			// with specific class pattern on html elements.
-			/*
-			if (localStorage["$setting.cloud-url"])
-				$("#cloudsave-url").val(localStorage["$setting.cloud-url"]);
-			if (localStorage["$setting.cloud-path"])
-				$("#cloudsave-path").val(localStorage["$setting.cloud-path"]);
-			if (localStorage["$setting.cloud-key"])
-				$("#cloudsave-key").val(localStorage["$setting.cloud-key"]);
-			if (localStorage["$setting.cloud-lastsave"])
-				$("#cloudrestore-key").val(localStorage["$setting.cloud-lastsave"]);
-			*/
-			
-			$(".localstorage_itemvalue").each(function(ind, ele) {
-				var node = $(this);
-				var key = $(this).attr("target");
-				var defaultValue = $(this).attr("defaultvalue");
-				if (localStorage[key])
-					node.val(localStorage[key]);
-					
-				node.parents(".localstorage_item").first().find(".localstorage_saveitem").click(function() {
-					localStorage[key] = node.val();
-					showMessage("The setting is saved.");
-				});
-				node.parents(".localstorage_item").first().find(".localstorage_resetitem").click(function() {
-					if (!confirm("Do you really want to set to default value: " + defaultValue + "?"))
-						return;
-					node.val(defaultValue);
-					localStorage[key] = defaultValue;
-					showMessage("The setting is set to default.");
-				});
-			});
-			
-			$(".localstorage_saveall").click(function() {
-				$(this).parents(".localstorage_block").find(".localstorage_itemvalue").each(function(index, ele) {
-					var node = $(ele);
-					var target = node.attr('target');
-					var value = node.val();
-					localStorage[target] = value;
-				});
-				showMessage("All settings are saved.");
-			});
-			$(".localstorage_resetall").click(function() {
-				if (!confirm("Do you really want to set all settings to default values?"))
-					return;
-				$(this).parents(".localstorage_block").find(".localstorage_itemvalue").each(function(index, ele) {
-					var node = $(ele);
-					var target = node.attr('target');
-					var value = node.attr('defaultvalue');
-					node.val(value);
-					localStorage[target] = value;
-				});
-				showMessage("All settings are set to default.");
-			});
-		}
-		
 		function cloudStorageAddKeysToUI(keys) {
 			var selectmode = $("#cloudtoggleselect").attr("data-selectmode");
 			$("#cloudrestore-keys").children("*").remove();
@@ -1534,7 +1478,70 @@
 		}
 		
 		
+		function updateSettings() {
+			chrome.runtime.sendMessage({method:"UpdateSettings"});
+		}
 		
+		function initControlsRelatingToLocalStorage() {			
+			// Data loading and saving behavior are defined in initControlsRelatingToLocalStorage functions
+			// with specific class pattern on html elements.
+			/*
+			if (localStorage["$setting.cloud-url"])
+				$("#cloudsave-url").val(localStorage["$setting.cloud-url"]);
+			if (localStorage["$setting.cloud-path"])
+				$("#cloudsave-path").val(localStorage["$setting.cloud-path"]);
+			if (localStorage["$setting.cloud-key"])
+				$("#cloudsave-key").val(localStorage["$setting.cloud-key"]);
+			if (localStorage["$setting.cloud-lastsave"])
+				$("#cloudrestore-key").val(localStorage["$setting.cloud-lastsave"]);
+			*/
+			
+			$(".localstorage_itemvalue").each(function(ind, ele) {
+				var node = $(this);
+				var key = $(this).attr("target");
+				var defaultValue = $(this).attr("defaultvalue");
+				if (localStorage[key])
+					node.val(localStorage[key]);
+					
+				node.parents(".localstorage_item").first().find(".localstorage_saveitem").click(function() {
+					localStorage[key] = node.val();
+					showMessage("The setting is saved.");
+					updateSettings();
+				});
+				node.parents(".localstorage_item").first().find(".localstorage_resetitem").click(function() {
+					if (!confirm("Do you really want to set to default value: " + defaultValue + "?"))
+						return;
+					node.val(defaultValue);
+					localStorage[key] = defaultValue;
+					showMessage("The setting is set to default.");
+					updateSettings();
+				});
+			});
+			
+			$(".localstorage_saveall").click(function() {
+				$(this).parents(".localstorage_block").find(".localstorage_itemvalue").each(function(index, ele) {
+					var node = $(ele);
+					var target = node.attr('target');
+					var value = node.val();
+					localStorage[target] = value;
+				});
+				showMessage("All settings are saved.");
+				updateSettings();
+			});
+			$(".localstorage_resetall").click(function() {
+				if (!confirm("Do you really want to set all settings to default values?"))
+					return;
+				$(this).parents(".localstorage_block").find(".localstorage_itemvalue").each(function(index, ele) {
+					var node = $(ele);
+					var target = node.attr('target');
+					var value = node.attr('defaultvalue');
+					node.val(value);
+					localStorage[target] = value;
+				});
+				showMessage("All settings are set to default.");
+				updateSettings();
+			});
+		}
 		
 		
 		
@@ -1893,7 +1900,7 @@
 					</div>
 				</div>
 			`).appendTo(container).click(loadContentScript);
-			container.scrollTop(99999);  //container.height();
+			container[0].scrollTop += 32;  //container.height();
 		}
 		
 		function checkDuplicateContentScript(name) {

@@ -4,7 +4,11 @@ var codesnippit_showPopupInWebpage =
 	$("#JST-POPUP-PINNED").remove();
 	$("<iframe id='JST-POPUP-PINNED' src='chrome-extension://"+chrome.runtime.id+"/popup.html' style='width:600px;height:571px;' />")
 	.appendTo("body")
-	.dialog({"title":"JavaScript Tricks (Double click to toggle)", "width":"630", "height":"600"});
+	.dialog({
+		"title":"JavaScript Tricks (Double click to toggle)", 
+		"width":"630", "height":"600",
+		"position": {"my": "right top", "at": "right top", "of": window}
+	});
 	$("#JST-POPUP-PINNED").css("width", "calc(100% - 28px)");	
 	
 	$(".ui-dialog-titlebar").dblclick(function() {
