@@ -492,6 +492,8 @@
 			
 			initControlsRelatingToLocalStorage();
 			
+			setupKeyEventHandler();
+			
 			$(".hide").hide();
 			$(".click-to-toggle-next-node").click(function() { $(this).next().toggle(); });
 			
@@ -526,7 +528,7 @@
 				if(ev.keyCode==112)
 					return false;
 			});
-			editorJs = CodeMirror.fromTextArea(document.getElementById("taedit"), {
+			editorJs = generateEditor(document.getElementById("taedit"), {
 					mode: 'text/javascript',					
 					tabMode: 'indent',
 					lineNumbers:true,
@@ -558,7 +560,7 @@
 				
 				
 			
-			editorCss = CodeMirror.fromTextArea(document.getElementById("taeditcss"), {
+			editorCss = generateEditor(document.getElementById("taeditcss"), {
 					mode: 'text/css',					
 					tabMode: 'indent',
 					lineNumbers:true,
@@ -595,7 +597,8 @@
 			
 			//hide some menu
 			$(document).keydown(function(event){
-				if(event.altKey && event.ctrlKey && String.fromCharCode( event.which ).toLowerCase() == 'h')
+					
+				if(event.altKey && modifier && String.fromCharCode( event.which ).toLowerCase() == 'h')
 				{
 					$(".jstbox.hiddenFlag").each(function(ind,el){$(el).delay(ind*100).slideToggle()});
 					$("#jshid, label[for=jshid]").fadeToggle();
@@ -609,11 +612,6 @@
 					{
 						hiddenOpt = true;
 					}
-				}
-				if(event.ctrlKey && String.fromCharCode( event.which ).toLowerCase() == 's')
-				{
-					save();
-					return false;
 				}
 			});
 			// setting panel initialization
@@ -684,8 +682,82 @@
 				editorMeta.setValue("");
 		}
 		
+		var focusNotOnMenuList = true;
+		var focusedMenuItem = null;
+		function setupKeyEventHandler() {
+			var mac_os = navigator.userAgent.indexOf("Mac OS") > -1;
+			if (mac_os)
+				$(":button[value='Save [Ctrl+S]']").val("Save [⌘+S]");
+
+			$("*").focus(function(event) {
+				focusNotOnMenuList = true;
+			});
+			$(".navbar *").click(function(event) {
+				focusNotOnMenuList = false;
+				focusedMenuItem = $(event.target).closest(".jstbox");
+				//console.log(focusedMenuItem);
+			});
+			
+			$('body').on('keydown',function (event){
+				var key = event.which;
+				var modifier = event.ctrlKey;
+				if (mac_os) {
+					modifier = event.metaKey;
+				}
+				// console.log(event.which);// 打印出具体是按的哪个按键。
+				
+				if(modifier && String.fromCharCode( key ).toLowerCase() == 's')
+				{
+					save();
+					event.preventDefault();
+					return;
+				}
+				
+				// Up and down keys
+				if (key == 38 || key == 40) {
+					
+					if (focusNotOnMenuList)
+						return;
+					
+					event.preventDefault();
+					var node = null;
+					
+					if(event.which == 38) {
+						node = focusedMenuItem.prev();
+					} else if (event.which == 40) {
+						node = focusedMenuItem.next();
+					}
+					
+					if (node.length < 1)
+						return;
+					
+					node.click();
+					var container = node.parent();
+					var containerHeight = container.height();
+					var pos = node.position();
+					var pos_y = pos.top; // 32 is the height of the menu item.
+					console.log(`Container height is ${containerHeight} and y position is ${pos_y}`);
+					
+					// 32 is the height of .jstbox
+					if (pos_y + 32 > containerHeight) {
+						container[0].scrollTop += 32;
+					} else if (pos_y < 0) {
+						container[0].scrollTop -= 32;
+					}
+					console.log(container[0].scrollTop);
+				}
+			});
+		}
+		
+		function generateEditor(node, options) {
+			options["onFocus"] = function() {
+				focusNotOnMenuList = true;
+			}
+			return CodeMirror.fromTextArea(node, options);
+		}
+		
 		function generateJSEditor(textareaID) {
-			return CodeMirror.fromTextArea(document.getElementById(textareaID), {
+			return generateEditor(document.getElementById(textareaID), {
 					mode: 'text/javascript',					
 					tabMode: 'indent',
 					lineNumbers:true,
