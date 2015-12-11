@@ -411,7 +411,7 @@
 		}
 		function filterSiteScriptByJSContent() {
 			var content = $("#jscontentfiltertext").val();
-			var mode = $("#contentfiltermode").val();
+			var mode = $("#contentfiltermode")[0].selectedIndex;
 			var filter = content;
 			if (mode){
 				filter = new RegExp(content);
@@ -420,7 +420,7 @@
 		}
 		function filterSiteScriptByCSSContent() {
 			var content = $("#jscontentfiltertext").val();
-			var mode = $("#contentfiltermode").val();
+			var mode = $("#contentfiltermode")[0].selectedIndex;
 			var filter = content;
 			if (mode){
 				filter = new RegExp(content);
@@ -434,7 +434,7 @@
 		var editorJs = null;
 		var editorCss = null;
 		var editorMeta = null;
-		var editDynScript = null;
+		var editorDynScript = null;
 		var editorJsonFile = null;
 		var editorJsonObjectValue = null;
 		var hlLineJs = null;
@@ -453,7 +453,8 @@
 			$("#exportbtn").click(exportSettings);
 			$("#findReplaceDialogBtn").click(showFindReplaceDialog);
 			$("input:button.textSizeUpBtn").click(function(){textSize(1)});
-			$("input:button.textSizeDownBtn").click(function(){textSize(-1)});	
+			$("input:button.textSizeDownBtn").click(function(){textSize(-1)});				
+			$("#findDialog-findBtn").click(findReplaceDialog_find);
 			$("#findDialog-previewBtn").click(findReplaceDialog_preview);
 			$("#findDialog-cancelBtn").click(findReplaceDialog_cancel);
 			$("#findDialog-doBtn").click(findReplaceDiailog_do);
@@ -475,6 +476,7 @@
 			$("#dcssave").click(save);
 			$("#dcsadd").click(addContentScript);
 			$("#dcsrename").click(renameContentScript);
+			$("#dcsgencodebytemplate").change(generateContentScript);
 			$("#dcsdelete").click(deleteContentScript);
 			$("#dcssort").click(sortContentScript);
 			$("#dcsindexup").click(moveUpContentScript);
@@ -482,6 +484,7 @@
 			$("#dcsreindex").click(reindexContentScript);
 			$("#dcsupdatemenu").click(updateContentScriptForContextMenu);
 			
+			loadContentScriptTemplate();
 			loadAllContentScripts();
 			
 			$('#jsonFileLoad').click(loadJsonFile);
@@ -582,7 +585,7 @@
 				}); 
 			
 			editorMeta = generateJSEditor("taeditmeta"); 				
-			editDynScript = generateJSEditor("dyscriptedit"); 
+			editorDynScript = generateJSEditor("dyscriptedit"); 
 			editorJsonFile = generateJSEditor("json-file"); 
 			editorJsonObjectValue = generateJSEditor("json-file-obj"); 
 			
@@ -1031,16 +1034,16 @@
 		function findReplaceDialog_updateReplaceKey() {
 			findReplaceDialog_replaceKey = {};
 			
-			var mode = $("#findDialog-searchfor").val();
+			var mode = $("#findDialog-searchfor")[0].selectedIndex;
 			var targetType = "js";
-			if (mode == "CSS") 
+			if (mode == 1) 
 				targetType = "css";
-			else if (mode == "Both") 
+			else if (mode == 2) 
 				targetType = "js+css";
 						
 			var pattern = $("#findDialog-findstring").val();
-			var method  = $("#findDialog-searchmethod").val();
-			if (method == "Regexp") {			
+			var method  = $("#findDialog-searchmethod")[0].selectedIndex;
+			if (method == 1) {			
 				var regexp_i = $("#findDialog-regex-i")[0].checked;
 				var regexp_g = $("#findDialog-regex-g")[0].checked;
 				var regexp_m = $("#findDialog-regex-m")[0].checked;
@@ -1061,6 +1064,27 @@
 			findReplaceDialog_replaceKey["replacement"] = $("#findDialog-replacement").val();
 		}
 		
+		function findReplaceDialog_find() {
+			findReplaceDialog_updateReplaceKey();
+			
+			mapSiteScriptFunc = dummyMapSiteScriptFunc;
+			
+			// Refresh views
+			$("#tabs-sss .CodeMirror").css("background-color", "");
+			var site = selectedTitle;
+			loadSiteScripts(findReplaceDialog_replaceKey["pattern"], 
+				findReplaceDialog_replaceKey["targetType"], isSiteScriptName);
+			var selectedSiteMenu = $(`#site-list .jstbox[data-site='${site}']`).click();
+			if (selectedSiteMenu.length < 1)
+				$("#site-list .jstbox:first").click();
+			
+			if (findReplaceDialog_replaceKey["targetType"] == "js") {
+				$("#tabs-sss .tabs > ul li:nth(0)").click();
+			} else if (findReplaceDialog_replaceKey["targetType"] == "css") {
+				$("#tabs-sss .tabs > ul li:nth(1)").click();
+			}
+		}
+		
 		function findReplaceDialog_preview() {
 			findReplaceDialog_updateReplaceKey();
 			
@@ -1071,7 +1095,15 @@
 			var site = selectedTitle;
 			loadSiteScripts(findReplaceDialog_replaceKey["pattern"], 
 				findReplaceDialog_replaceKey["targetType"], isSiteScriptName);
-			$(`#site-list .jstbox[data-site='${site}']`).click();
+			var selectedSiteMenu = $(`#site-list .jstbox[data-site='${site}']`).click();
+			if (selectedSiteMenu.length < 1)
+				$("#site-list .jstbox:first").click();
+			
+			if (findReplaceDialog_replaceKey["targetType"] == "js") {
+				$("#tabs-sss .tabs > ul li:nth(0)").click();
+			} else if (findReplaceDialog_replaceKey["targetType"] == "css") {
+				$("#tabs-sss .tabs > ul li:nth(1)").click();
+			}
 		}
 		
 		function findReplaceDialog_cancel() {		
@@ -1524,35 +1556,46 @@
 			if (checkDuplicateContentScript(name)) {
 				alert("A script with the given name already exists. Please change a name.");
 				return;
-			}
-			
-			var template = template_content_script_common;
-			var group = "";
-			if (confirm("Does this content script provide a module for other scripts?")) {
-				template = template_content_script_module;
-				group = "lib";
-			};
-			
-			var context = {"name": name};
-			var code = compile_template(template, context);
-			console.log(code);			
+			}	
 
 			selectedContentScript = name;
 			var index = getNextContentScriptIndex();
-			$("#dcsgroup").val(group);
+			$("#dcsgroup").val("");
 			$("#dcsindex").val(index);
 			$("#dcstitle").val(name);
 			$("#dcsinclude").val("");
 			
 			addContentScriptMenu(name, index);
 			
-			currentSavedStateDCS = code;
-			editDynScript.setValue(code);
+			currentSavedStateDCS = "";
+			editorDynScript.setValue("");
 			
 			saveContentScript();
 			
 			updateContentScriptForContextMenu();
 			
+		}
+					
+		function loadContentScriptTemplate() {
+			var selectNode = $("#dcsgencodebytemplate");
+			for (key in template_content_script_all) {
+				selectNode.append(`<option value="${key}">${key}</option>`);
+			}
+			
+			
+		}
+		
+		function generateContentScript() {
+			if (this.selectedIndex > 0 && editorDynScript.getValue() &&
+				!confirm("WARNING!!!\nThis operation will remove your existing code!\nDo you really want to proceed?") )
+				return;
+			
+			var tmplName = this.value;
+			var tmpl = template_content_script_all[tmplName];
+			if (tmpl) {
+				var code = compile_template(tmpl, {name: selectedContentScript});
+				editorDynScript.setValue(code);
+			}
 		}
 		
 		function saveContentScript() {
@@ -1562,7 +1605,7 @@
 				return;
 			
 			var key = "$cs-" + selectedContentScript;
-			var dcstitle = editDynScript.getValue() ;
+			var dcstitle = editorDynScript.getValue() ;
 			var group = $("#dcsgroup").val();
 			var title = $("#dcstitle").val();
 			var sfile = $("#dcsinclude").val();
@@ -1576,7 +1619,7 @@
 				
 			$(`#contentscript-menu > .jstbox[name='${selectedContentScript}'] .group`).text(group);
 			
-			currentSavedStateDCS = editDynScript.getValue();
+			currentSavedStateDCS = editorDynScript.getValue();
 			
 			showMessage("Content script saved!");
 			
@@ -1589,8 +1632,11 @@
 			if(selectedContentScript == "")
 				return;
 			
-			if (!contentScriptSaved())
-				return;
+			if (!contentScriptSaved(true))
+				if (confirm("Script is modified. Do you want to save first?"))
+					saveContentScript();
+				else
+					return;
 			
 			var newName = "";
 			
@@ -1599,7 +1645,7 @@
 				if (!newName)
 					return;	
 						
-				name = name.replace(/^\s*/, "").replace(/\s*$/, "");
+				newName = newName.trim();
 				if (checkDuplicateContentScript(newName)) {
 					alert("A script with the given name already exists. Please change a name.");
 				} else {
@@ -1609,10 +1655,25 @@
 				
 			var key = "$cs-" + selectedContentScript;
 			var data = localStorage[key];
-			localStorage["$cs-"+newName] = data;
+			var lsd = JSON.parse(data);
+			var script = lsd.script;
+			var name = selectedContentScript;
+			
+			//var commentRegExp = "(\\/\\*([\\s\\S]*?)\\*\\/|([^:]|^)\\/\\/(.*)$)";
+			script = script.replace(new RegExp("(define\\s*\\(\\s*['`\"]#)"+name+"(['`\"])"), '$1'+newName+'$2');
+			script = script.replace(new RegExp("((\\brun\\s*\\(\\s*\\[[^\\]]*)['`\"]#)"+name+"(['`\"][^\\]]*\\]\\s*,)", "g"), '$1'+newName+'$3')
+			
+			lsd.script = script;
+			editorDynScript.setValue(script);
+			
+			localStorage["$cs-"+newName] = JSON.stringify(lsd);
 			delete localStorage[key];
 			
-			$(`#contentscript-menu > .jstbox[name='${selectedContentScript}'] .jsttitle .name`).text(newName);
+			$(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`).attr("name", newName)
+				.find(".jsttitle .name").text(newName);
+			selectedContentScript = newName;
+			
+			saveContentScript();
 			
 			updateContentScriptForContextMenu();
 		}
@@ -1780,13 +1841,18 @@
 			
 			selectedContentScript = name;
 			var value = localStorage["$cs-"+name];
+			try {
 			var data = JSON.parse(value);
+			} catch (exception) {
+				console.log(value);
+			}
 			
-			editDynScript.setValue(data.script);
+			editorDynScript.setValue(data.script);
 			$("#dcsgroup").val(data.group);
 			$("#dcstitle").val(data.title);
 			$("#dcsinclude").val(data.sfile);	
 			$("#dcsindex").val(data.index);
+			$("#dcsgencodebytemplate")[0].selectedIndex = 0;
 			
 			currentSavedStateDCS = data.script;
 			
@@ -1836,10 +1902,13 @@
 			return ++__index_cs;
 		}
 		
-		function contentScriptSaved() {			
+		function contentScriptSaved(noConfirm) {
 			//if(currentSavedStateDCS!=null) {
-				if(currentSavedStateDCS != editDynScript.getValue() ) {
-					return confirm("Content script changed! Discard?");
+				if(currentSavedStateDCS != editorDynScript.getValue() ) {
+					if (noConfirm)
+						return false;
+					else
+						return confirm("Content script changed! Discard?");
 				}
 			//}
 			
