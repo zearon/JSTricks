@@ -11,9 +11,30 @@
 /***************************************************
  *                 Sea.js Plugins                  *
  ***************************************************/
-  window.run = function(dependencys, callback) {
+  window.require = seajs.require;
+  window.run = 
+  seajs.run = function(dependencys, callback) {
+  	if (!callback)
+  		callback = function() {
+  			var arglen = arguments.length;
+  			for (var i = 0; i < arglen; ++ i) 
+  				console.log(arguments[i]);
+  		};
+  	
   	seajs.use(dependencys, callback);
   }
+  /*
+  window.clearCache = 
+  seajs.clearCache = function(ids) {
+  	var idlist = ids;
+  	if (typeof ids === "string")
+  		idlist = [ids];
+  	
+  	for (var i = 0; i < idlist.length; ++ i) {
+  		var mod = seajs.Module.get(seajs.Module.resolve(idlist[i]));
+  		mod.status = 0;
+  	}
+  }*/
   
   // Add some settings in meta data
   //console.log(meta_data);
