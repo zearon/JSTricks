@@ -374,6 +374,8 @@ function log(arg) {
 				var editor1Height = $("body").height() - $("#tabs-1 .CodeMirror-scroll").offset().top - 1;
 				$("#tabs-1 .CodeMirror-scroll").css("height", editor1Height);
 			});
+			
+			$(document).tooltip();
 		});//;
 		
 		function setupKeyEventHandler() {
@@ -506,15 +508,15 @@ function log(arg) {
 			var metadataSetting = JSON.parse(localStorage["meta"]);
 			if (!metadataSetting)
 				return;
-			sections = metadataSetting["sections"];
+			sections = metadataSetting["modules"];
 			for (var i=0; i < sections.length; ++ i) {
 				var section = sections[i];
-				var divID = "genUITab-" + section.title;				
-				$("#editor-script-gen-ui-title ul").append('<li class="tab-title" target="' + divID + '">' + section.title + '</li>');
+				var divID = "genUITab-" + section.moduleName;				
+				$("#editor-script-gen-ui-title ul").append('<li class="tab-title" module="' + section.moduleName + '" target="' + divID + '">' + section.title + '</li>');
 				$("#editor-script-gen-ui").append('<div id="'+divID+'" class="tab-pane"></div>');
 				var sectionDiv = $('#' + divID);
 				//sectionDiv.append('<div><h3 class="section-title" data="'+section.objName+' = Object.create">'+section.title+'<input type="text" value="'+section.title+'" style="display:none" /></h3></div>');
-				sectionDiv.append('<div style="display:inline; margin-right:5px;"><input class="add-script-btn init-script-btn" type="button" value="Init" data-require="'+section.className+'" data-obj="'+section.objName+'" data-code="" /></div>');
+				sectionDiv.append('<div style="display:inline; margin-right:5px;"><input class="add-script-btn init-script-btn" type="button" value="Init" data-require="'+section.moduleName+'" data-obj="'+section.objName+'" data-code="" /></div>');
 				for (var j=0; j < section.commands.length; ++ j) {
 					var command = section.commands[j];
 					var statementType = command.statement ? command.statement : "common";
@@ -550,7 +552,7 @@ function log(arg) {
 							}
 							
 							if (type == "domnode") {
-								element = '<input type="button" class="select-domnode-btn" style="float:none; display:inline; background-image:url(icons/target.jpg); background-size:contain"/> ';
+								element = '<input type="button" class="select-domnode-btn" title="Click to choose dom node." style="float:none; display:inline; background-image:url(icons/target.jpg); background-size:contain"/> ';
 								commandDiv.append(element);
 							} else if (type == "url") {
 								API_GetTabURL((function(inputIDStr) { return (function(url) {									
@@ -573,7 +575,9 @@ function log(arg) {
 			
 			$(".add-script-btn").attr("title", "Click button to add code in editor at current cursor place.").click(addScript);
 			$(".init-script-btn").click(addRequireFile);
-			$(".select-domnode-btn").click(startSelectingDomNode);
+			$(".select-domnode-btn").click(startSelectingDomNode).mouseenter(hightlightSelectorNode);
+			
+			$(`li.tab-title[module='${metadataSetting.active_module}']`).click();
 			
 			initScriptsUITabs();
 		}	
@@ -610,6 +614,13 @@ function log(arg) {
 			NS_node = $(this).prev();
 			var tabid = activeTabId[0];
 			var msg = {method: "NS-StartSelectingNode", tabid:activeTabId[0], controlid:NS_node.attr("id")};
+			API_SendMessageToTab(tabid, msg);
+		}
+		
+		function hightlightSelectorNode() {
+			var selector = $(this).prev().val();
+			var tabid = activeTabId[0];
+			var msg = {method: "HightlightSelectorNode", tabid:activeTabId[0], selector:selector};
 			API_SendMessageToTab(tabid, msg);
 		}
 		

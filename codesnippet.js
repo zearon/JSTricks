@@ -18,6 +18,5 @@ var codesnippit_showPopupInWebpage =
 	
 	if ({{hideDialog}})
 		$("#JST-POPUP-PINNED").parent().hide();
-	
 	});
 `

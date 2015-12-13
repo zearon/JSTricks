@@ -1,9 +1,13 @@
-seajs.use("jquery", function($) {
+seajs.use(["jquery", "selectbox"], function($, SelectionBox) {
 
 	var NS_switch = false;
 	var NS_styleName = "NS_SELECTED_NODE_2312356451321356453";
 	var NS_titleNode = "NS_nodeSelector";
 	var NS_editDialogContext = "{}";
+	var currentSelector = null;
+	var selectionBox = new SelectionBox();
+	var timer = null;
+	
 	// window.tabid is injected in bg.js on tab created and updated
 	/* 
 	var maxHeight = 0;
@@ -15,6 +19,8 @@ seajs.use("jquery", function($) {
 	chrome.runtime.onMessage.addListener(function(request, sender) {
 		if (request.method == "NS-StartSelectingNode") {
 			NS_startSelectingNode(request);
+		} else if (request.method == "HightlightSelectorNode") {
+			NS_hightlightNode(request.selector);
 		} else if (request.method == "SaveEditDialogContextRequest") {
 			NS_editDialogContext = request.context;
 			//console.log("Save edit dialog context:");
@@ -42,7 +48,8 @@ seajs.use("jquery", function($) {
 		$(`
 		<style>
 			.${NS_styleName} {
-				background-color: rgba(0,0,255,0.2);
+				//background-color: rgba(0,0,255,0.2);
+				border: 2px #3bff3b solid;
 			}
 			
 		</style>
@@ -55,6 +62,21 @@ seajs.use("jquery", function($) {
 		
 		// DEBUG
 		// NS_startSelectingNode();
+	}
+	
+	function NS_hightlightNode(selector) {
+		if (timer)
+			clearTimeout(timer);
+		
+		var nodes = $(selector);
+		if (nodes.length) {
+			console.log("Selected " + nodes.length + " nodes are: ", nodes);
+			selectionBox.highlight(nodes[0]);
+			
+			timer = setTimeout(function() { selectionBox.hide(); }, 5000);
+		} else {
+			console.log("The elector does'nt match any node.");
+		}
 	}
 	
 	function NS_startSelectingNode(request) {
@@ -77,37 +99,13 @@ seajs.use("jquery", function($) {
 		
 		var node = $(this);
 		NS_processNode(node);
-	/* 
-		var css = node.css("background-color");
-		node.css("background-color", bordercss);
-		console.log(elementBorderCss.slice(-1)[0]);
-		node.parent().css("background-color", elementBorderCss.slice(-1)[0]);
-		elementBorderCss.push(css);
-		
-		var position = node.offset();	
-		borderdiv.offset(position);
-		borderdiv.width(node.width());
-		borderdiv.height(node.height());
-	 */
-	
-	
 	}
 	
 	function NS_MouseOut() {
 		//console.log("Leaving node");
 		
 		var node = $(this).parent();
-		NS_processNode(node);
-	/* 
-		node.css("background-color", elementBorderCss.pop());
-		node.parent().css("background-color", bordercss);
-		
-		var position = node.offset();	
-		borderdiv.offset(position);
-		borderdiv.width(node.width());
-		borderdiv.height(node.height());
-	 */
-	
+		NS_processNode(node);	
 	}
 	
 	function NS_MouseClick(event) {
@@ -116,10 +114,13 @@ seajs.use("jquery", function($) {
 		event.preventDefault();
 		
 		NS_switch = false;
-		var nodestr = $("#" + NS_titleNode).text();
+		var nodestr = currentSelector.full; //$("#" + NS_titleNode).text();
+		setTimeout(function() { selectionBox.hide(); }, 5000);
 		
 		var iframe = $("#JST-POPUP-PINNED")[0];
 		iframe.contentWindow.postMessage({type:"NS-NodeSelected", tabid:window.tabid, controlid:NS_controlId, value:nodestr}, "*");
+	
+		$("#JST-POPUP-PINNED").closest(".ui-dialog").css("z-index", "2147483645");
 		$("#JST-POPUP-PINNED").parent().show();
 		
 		$("*").removeClass(NS_styleName);
@@ -131,27 +132,74 @@ seajs.use("jquery", function($) {
 	}
 	
 	function NS_processNode(node) {
-		$("*").removeClass(NS_styleName);
-		node.addClass(NS_styleName);
+		//$("*").removeClass(NS_styleName);
+		//node.addClass(NS_styleName);
 		
+		selectionBox.highlight(node[0]);
 		
-		var nodeName = node[0].nodeName;
-		var nodeObj = $(node);
-		var nodeID = nodeObj.attr("id");
-		var nodeClass = nodeObj.attr("class");
-		if (nodeID) {
-			nodeName = "#" + nodeID;
-		} else if (nodeClass) {
-			nodeClass = nodeClass.replace(NS_styleName, '').replace(/^\s+/, '').replace(/\s+$/, '');
-			if (nodeClass) {
-				var classNames = nodeClass.split(/\s+/)
-					.filter(function(str) { return str != ""; })
-					.map(function(str) { return "." + str; });
-				nodeName += classNames.join("");
-			}
-		}
+		var nodeName = getNodeSelectorStr(node);
+		
 		$("#" + NS_titleNode).offset(node.offset());
 		$("#" + NS_titleNode).text(nodeName);
+	}
+	
+	// node is a jquery node
+	function getNodeSelectorStr(node) {		
+		var args = {selectors: []};
+		maxLevel = 5;
+		
+		_getSelector(node, args, maxLevel);
+		var selector = args.selectors.join(" > ");
+		
+		currentSelector = {full:selector, simple:(args.selectors.slice(-1)[0])};
+		
+		return currentSelector.simple;
+	}
+	
+	function _getSelector(node, args, level) {
+		if (level <= 0 || node.length < 1)
+			return;
+			
+		var nodeName = "";
+		var tagName = node.prop("nodeName").toLowerCase();
+		var nodeID = node.attr("id");
+		var nodeClass = node.attr("class");
+		nodeClass = nodeClass ? $.trim( nodeClass.replace(NS_styleName, '') ) : "";
+		if (nodeID) {
+			nodeName = "#" + nodeID;
+			args.selectors.unshift(nodeName);
+			
+			return;
+		} 
+		
+		nodeName = tagName;		
+		if (nodeClass) {
+			var classNames = nodeClass.split(/\s+/)
+				.filter(function(str) { return str != ""; })
+				.map(function(str) { return "." + str; });
+			nodeName = tagName + classNames.join("");
+		}
+		
+		var parentNode = node.parent();
+		nodeName += getIndexSelector(node, parentNode);
+		
+		args.selectors.unshift(nodeName);
+		_getSelector(parentNode, args, level-1);
+	}
+	
+	function getIndexSelector(node, parentNode) {
+		var siblings = parentNode.children();
+		for (var i = 0; i < siblings.length; ++i) {
+			var _node = node[0], sibling = siblings[i];
+			var isNode = _node === sibling;
+			//console.log("check index at ", i, ",", isNode);
+			if (isNode) {
+				// :nth-child is CSS selector and is 1-based indexed
+				return ":nth-child(" + (i+1) + ")";
+			}
+		}
+		
+		return "";
 	}
 
 });

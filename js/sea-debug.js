@@ -339,7 +339,7 @@ else {
       node.getAttribute("src", 4)
   }
   //loaderPath = getScriptAbsoluteSrc(loaderScript)
-  loaderPath = chrome.runtime.getURL("js/sea.js");
+  loaderPath = chrome.runtime.getURL("sea.js");
   // When `sea.js` is inline, set loaderDir to current working directory
   loaderDir = dirname(loaderPath || cwd)
 }
@@ -910,6 +910,8 @@ Module.prototype.fetch = function(requestCache) {
 
     // Save meta data of anonymous module
     if (anonymousMeta) {
+      //DEBUG
+      //console.log("Anonymous Meta:", anonymousMeta, ", URI=", uri);
       Module.save(uri, anonymousMeta)
       anonymousMeta = null
     }
@@ -960,6 +962,7 @@ Module.define = function (id, deps, factory) {
       deps = undefined
     }
   }
+  
 
   // Parse dependencies according to the module factory code
   if (!isArray(deps) && isFunction(factory)) {
@@ -991,6 +994,9 @@ Module.define = function (id, deps, factory) {
   meta.uri ? Module.save(meta.uri, meta) :
     // Save information for "saving" work in the script onload event
     anonymousMeta = meta
+  
+  //DEBUG
+  // console.log("### DEFINING", id, " module. uri=", meta.uri, "Deps = ", deps, "Factory = ", factory.toString().replace(/\n[\s\S]*/, "") );
 }
 
 // Save meta data to cachedMods
@@ -1030,7 +1036,11 @@ Module.use = function (ids, callback, uri) {
     }
 
     if (callback) {
-      callback.apply(global, exports)
+      try {
+        callback.apply(global, exports)
+      } catch (ex) {
+        console.log(ex.stack);
+      }
     }
 
     delete mod.callback

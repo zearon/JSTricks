@@ -10,6 +10,27 @@
 /***************************************************
  *                 Sea.js Settings                 *
  ***************************************************/
+
+  // Add some settings in meta data
+  //console.log(meta_data);
+  var config;
+  if (meta_data && (config = meta_data["seajs.config"])) {
+  	seajs.config(config);
+  }
+  
+  // Add some default settings
+  seajs.config({
+  	"base": ("chrome-extension://" + chrome.runtime.id + "/js/"),
+  	"paths": {
+  	},
+    "alias": {
+      "jquery": "[AMD]jquery.js",  //"[AMD]jquery.sea.js", [CommonJS]
+      "jquery-ui": "[AMD]jquery-ui.js",
+      "selectbox": "selectionBox"
+    }
+  });
+  
+  // Export as global symbols
   window.require = seajs.require;
   window.run = 
   seajs.run = function(dependencys, callback) {
@@ -35,20 +56,6 @@
   	}
   }*/
   
-  // Add some settings in meta data
-  //console.log(meta_data);
-  var config;
-  if (meta_data && (config = meta_data["seajs.config"])) {
-  	seajs.config(config);
-  }
-  
-  // Add some default settings
-  seajs.config({
-    "alias": {
-      "jquery": "[AMD]jquery.js",  //"[AMD]jquery.sea.js"
-      "jquery-ui": "jquery-ui.js"
-    }
-  });
   
   
   
@@ -153,15 +160,28 @@
     function onXHRload(event) {
       var xhr = event.srcElement;
       if (xhr.readyState == 4 && xhr.status == 200) {
+      	var url = xhr.responseURL;
         var srcCode = xhr.responseText;
+        // console.log("Sea.js XHR finished loading: " + url);
         // console.log(xhr);
         
+        if (!moduleSpec)
+        	moduleSpec = "CMD"
         var debugstr = "";
         debugstr = DEBUG.on ? "console.log('Injected " + moduleSpec + " Module: " + uri + "');" : "";
+        
+//        var defineWrapper =
+/*****************************************************************************
+ *     CMD define function wrapper injecting uri as ID of anonymous module   *
+ *****************************************************************************/ 
+//``;        
         
         switch (moduleSpec) {
         case "AMD":
         	srcCode = 
+/***************************************************
+ *            AMD module wrapper              *
+ ***************************************************/ 
 `${debugstr}
 (function(global) {
 	var commentRegExp = /(\\/\\*([\\s\\S]*?)\\*\\/|([^:]|^)\\/\\/(.*)$)/mg;
@@ -183,6 +203,10 @@
 		if (!isArray(deps)) {
 				callback = deps;
 				deps = undefined;
+		}
+		
+		if (name == undefined) {
+			name = "amd://${url}";
 		}
 		
 		// CMD module factory
@@ -224,14 +248,64 @@ ${srcCode};
         	break;
         case "CommonJS":
         	srcCode = 
+/***************************************************
+ *            CommonJS module wrapper              *
+ ***************************************************/ 
 `${debugstr}
-define (function(require, exports, module) {
+define ("commonjs://${url}", function(require, exports, module) {
 	// A CommonJS module definition wrapper which provides exports and module symbols.
 	
 ${srcCode};
 	
 	// End of CommonJS module definition wrapper
 });
+`;
+        	break;
+        case "CMD":
+        	srcCode = 
+/***************************************************
+ *               CMD module wrapper                *
+ ***************************************************/ 
+`${debugstr}
+(function(global) {
+	// Provide a wrapper for define function to inject uri for anonymous modules.
+	var _define = typeof global !== "undefined" ? global.define : window.define;
+	function isFunction(it) { return Object.prototype.toString.call(it) === '[object Function]'; }
+	function isArray(it) { return Object.prototype.toString.call(it) === '[object Array]'; }
+	var define = function (id, deps, factory) {
+	  var argsLen = arguments.length;
+	
+	  // define(factory)
+	  if (argsLen === 1) {
+		factory = id;
+		id = undefined;
+	  }
+	  else if (argsLen === 2) {
+		factory = deps;
+	
+		// define(deps, factory)
+		if (isArray(id)) {
+		  deps = id;
+		  id = undefined;
+		}
+		// define(id, factory)
+		else {
+		  deps = undefined;
+		}
+	  }
+	  
+	  if (id == undefined) {
+		id = "${url}";
+	  }
+	  
+	  _define(id, deps, factory);
+	}
+
+// Start of CMD module definition wrapper		
+${srcCode};		
+// End of CMD module definition wrapper
+
+}) (this);
 `;
         	break;
         }

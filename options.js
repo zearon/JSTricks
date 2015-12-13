@@ -56,13 +56,13 @@
 		
 		var mapSiteScriptFunc = dummyMapSiteScriptFunc;
 
-		var selectedTitle = "";
-		
-		var scripts = ["js/jquery.js"];
-		
+		var selectedTitle = "";		
+		var scripts = ["js/jquery.js"];			
 		CodeMirror.commands.autocomplete = function(cm) {
 			CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);
 		}
+		
+		var defaultSettings = {};
 		
 		chrome.manifest = (function() {
 			var manifestObject = false;
@@ -495,8 +495,15 @@
 			
 			setupKeyEventHandler();
 			
+			// Find all nodes with class "togglePanel" , and add an event handler to toggle 
+			// those nodes with css selector matching the .togglePanel node's target attribute value.
 			$(".hide").hide();
-			$(".click-to-toggle-next-node").click(function() { $(this).next().toggle(); });
+			$(".togglePanel").attr("title", "Click to toggle display.").click(function(event) {
+				var target = $(this).attr("target");
+				if (target) {
+					$(target).toggle();
+				}				
+			});
 			
 			if (!localStorage["$setting.cloud-url"])
 				$(".cloudsave-setting").show();
@@ -504,9 +511,6 @@
 			$("#settings-release-notes-btn.empty").click(function() {
 				$("#settings-release-notes").load("releasenotes.html");
 				$(this).removeClass("empty");
-			});
-			$("#settings-release-notes-btn").click(function() {
-				$("#settings-release-notes").toggle();
 			});
 			
 			$("#logo").css({"width":128}).delay(10).animate({"width":48},function(){
@@ -673,6 +677,8 @@
 					//$('.settingNav .settingKey:eq(2)').click();
 				} catch (exception) {}
 			}
+			
+			$(document).tooltip();
 		});//;
 		
 		function loadMetaData() {
@@ -1033,12 +1039,17 @@
 		
 		function backup() {
 			var data = JSON.stringify(localStorage);
+			data = formatter.formatJson(data)
 			var link = $('#__UI_dialog__link');
 			link.attr('href', "data:text/plain;charset=UTF-8,"+encodeURIComponent(data));
 			link.attr('data-downloadurl', "text/plain:backup.json:"+"http://html5-demos.appspot.com/static/a.download.html");
 			link.innerHtml = "Download";
 			link.show();
 			link.click();
+			
+			if (localStorage["$setting.DEBUG"] == "true") {
+				backupInitialSettings();
+			}
 			
 			//var bb = new Blob([data], {type: 'text/plain'});
 			//var href = URL.createObjectURL(bb);
@@ -1066,6 +1077,108 @@
 				};
 				reader.readAsText(file);
 			}
+		}
+		
+		function backupInitialSettings(linknode) {
+			var settings = {};
+			settings["$setting.DEBUG"] = "false";
+			settings["$setting.enabled"] = "true";
+			settings["$setting.startuptab"] = "0";
+			$.extend(settings, defaultSettings);
+			for ( key in localStorage) {
+				if (isSiteScriptName(key) || key == "Default" || key == "info") // info is the version
+					continue;
+					
+				if (key.startsWith("$cs-") && false)
+					continue;
+				
+				if (key.startsWith("$setting")) 
+					continue;
+				
+				settings[key] = localStorage[key];
+			}
+			settings["cacheCss"] = "";
+			settings["cacheScript"] = "";
+			
+			var data = JSON.stringify(settings);
+			data = formatter.formatJson(data)
+			var parent = $('#__UI_dialog__link').parent();
+			var link = $("<a download='init_settings.json' title='Click to download.' style='margin-left:15px; position: relative; top: 5px'>Download Init Setting</a>")
+				.insertAfter('#__UI_dialog__link');
+			link.attr('href', "data:text/plain;charset=UTF-8,"+encodeURIComponent(data));
+			link.attr('data-downloadurl', "text/plain:backup.json:"+"http://html5-demos.appspot.com/static/a.download.html");
+			link.show();
+			
+			console.log(data);
+			link.click();
+		}
+		
+		
+		function updateSettings() {
+			chrome.runtime.sendMessage({method:"UpdateSettings"});
+		}
+		
+		function initControlsRelatingToLocalStorage() {			
+			// Data loading and saving behavior are defined in initControlsRelatingToLocalStorage functions
+			// with specific class pattern on html elements.
+			/*
+			if (localStorage["$setting.cloud-url"])
+				$("#cloudsave-url").val(localStorage["$setting.cloud-url"]);
+			if (localStorage["$setting.cloud-path"])
+				$("#cloudsave-path").val(localStorage["$setting.cloud-path"]);
+			if (localStorage["$setting.cloud-key"])
+				$("#cloudsave-key").val(localStorage["$setting.cloud-key"]);
+			if (localStorage["$setting.cloud-lastsave"])
+				$("#cloudrestore-key").val(localStorage["$setting.cloud-lastsave"]);
+			*/
+			
+			$(".localstorage_itemvalue").each(function(ind, ele) {
+				var node = $(this);
+				var key = $(this).attr("target");
+				var defaultValue = $(this).attr("defaultvalue");
+				defaultSettings[key] = defaultValue;
+				
+				if (localStorage[key])
+					node.val(localStorage[key]);
+					
+				node.parents(".localstorage_item").first().find(".localstorage_saveitem").click(function() {
+					localStorage[key] = node.val();
+					showMessage("The setting is saved.");
+					updateSettings();
+				});
+				node.parents(".localstorage_item").first().find(".localstorage_resetitem").click(function() {
+					if (!confirm("Do you really want to set to default value: " + defaultValue + "?"))
+						return;
+					node.val(defaultValue);
+					localStorage[key] = defaultValue;
+					showMessage("The setting is set to default.");
+					updateSettings();
+				});
+			});
+			
+			$(".localstorage_saveall").click(function() {
+				$(this).parents(".localstorage_block").find(".localstorage_itemvalue").each(function(index, ele) {
+					var node = $(ele);
+					var target = node.attr('target');
+					var value = node.val();
+					localStorage[target] = value;
+				});
+				showMessage("All settings are saved.");
+				updateSettings();
+			});
+			$(".localstorage_resetall").click(function() {
+				if (!confirm("Do you really want to set all settings to default values?"))
+					return;
+				$(this).parents(".localstorage_block").find(".localstorage_itemvalue").each(function(index, ele) {
+					var node = $(ele);
+					var target = node.attr('target');
+					var value = node.attr('defaultvalue');
+					node.val(value);
+					localStorage[target] = value;
+				});
+				showMessage("All settings are set to default.");
+				updateSettings();
+			});
 		}
 				
 		
@@ -1313,6 +1426,7 @@
 		function cloudBackup() {
 			showMessage("Start backing configuration up in cloud.");	
 			var data = JSON.stringify(localStorage);
+			data = formatter.formatJson(data)
 			var filename = (new Date()).Format("yyyyMMdd-hhmmss");
 			// cloudsave.php?method=save&path=chrome-ext&key=file2&value=hello2323
 			cloudStoragePost({"method":"save", "key":filename, "value":data}, 
@@ -1474,72 +1588,6 @@
 				} else {
 					alert("Failed to delete the configuration. \n" + data.message);
 				}
-			});
-		}
-		
-		
-		function updateSettings() {
-			chrome.runtime.sendMessage({method:"UpdateSettings"});
-		}
-		
-		function initControlsRelatingToLocalStorage() {			
-			// Data loading and saving behavior are defined in initControlsRelatingToLocalStorage functions
-			// with specific class pattern on html elements.
-			/*
-			if (localStorage["$setting.cloud-url"])
-				$("#cloudsave-url").val(localStorage["$setting.cloud-url"]);
-			if (localStorage["$setting.cloud-path"])
-				$("#cloudsave-path").val(localStorage["$setting.cloud-path"]);
-			if (localStorage["$setting.cloud-key"])
-				$("#cloudsave-key").val(localStorage["$setting.cloud-key"]);
-			if (localStorage["$setting.cloud-lastsave"])
-				$("#cloudrestore-key").val(localStorage["$setting.cloud-lastsave"]);
-			*/
-			
-			$(".localstorage_itemvalue").each(function(ind, ele) {
-				var node = $(this);
-				var key = $(this).attr("target");
-				var defaultValue = $(this).attr("defaultvalue");
-				if (localStorage[key])
-					node.val(localStorage[key]);
-					
-				node.parents(".localstorage_item").first().find(".localstorage_saveitem").click(function() {
-					localStorage[key] = node.val();
-					showMessage("The setting is saved.");
-					updateSettings();
-				});
-				node.parents(".localstorage_item").first().find(".localstorage_resetitem").click(function() {
-					if (!confirm("Do you really want to set to default value: " + defaultValue + "?"))
-						return;
-					node.val(defaultValue);
-					localStorage[key] = defaultValue;
-					showMessage("The setting is set to default.");
-					updateSettings();
-				});
-			});
-			
-			$(".localstorage_saveall").click(function() {
-				$(this).parents(".localstorage_block").find(".localstorage_itemvalue").each(function(index, ele) {
-					var node = $(ele);
-					var target = node.attr('target');
-					var value = node.val();
-					localStorage[target] = value;
-				});
-				showMessage("All settings are saved.");
-				updateSettings();
-			});
-			$(".localstorage_resetall").click(function() {
-				if (!confirm("Do you really want to set all settings to default values?"))
-					return;
-				$(this).parents(".localstorage_block").find(".localstorage_itemvalue").each(function(index, ele) {
-					var node = $(ele);
-					var target = node.attr('target');
-					var value = node.attr('defaultvalue');
-					node.val(value);
-					localStorage[target] = value;
-				});
-				showMessage("All settings are set to default.");
-				updateSettings();
 			});
 		}
 		

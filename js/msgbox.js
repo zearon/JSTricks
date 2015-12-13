@@ -1,8 +1,12 @@
 //****************************************************
 //**             Message Box Utilities              **
 //****************************************************
-seajs.use("jquery", function($) {
-	window.log = log;
+//seajs.use("jquery", function($) {
+define(
+//"msgbox", 
+["jquery"], function(require, exports, module) {
+	var $ = require("jquery");
+	module.exports = window.log = log;
 	
 	var messageTimer = null;
 	var msgDivID = "jstmessage___eircksdfjkdfh";

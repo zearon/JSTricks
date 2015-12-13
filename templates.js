@@ -25,8 +25,9 @@ var template_content_script_module_object =
  * the module. The ID of dynamic content scripts should be the same with its name, except that it 
  * starts with a #. The other dependencies should be defined in "seajs.config" section of Meta Data (Global).
  */
-define("#{{name}}", ["jquery", "#LibBase"], function(require, exports, module) {
+define("#{{name}}", ["jquery", "msgbox", "#LibBase"], function(require, exports, module) {
   var $ = require("jquery");
+  var log = require("msgbox");  // log prints a message in console and show a message box.
   var libBase = require("#LibBase");
   
   function {{name}}() {
@@ -54,8 +55,9 @@ var template_content_script_module_simple =
  * the module. The ID of dynamic content scripts should be the same with its name, except that it 
  * starts with a #. The other dependencies should be defined in "seajs.config" section of Meta Data (Global).
  */
-define("#{{name}}", ["jquery"], function(require, exports, module) {
+define("#{{name}}", ["jquery", "msgbox"], function(require, exports, module) {
   var $ = require("jquery");
+  var log = require("msgbox");  // log prints a message in console and show a message box.
 
   /* Exported symbols. You can define exports.whatever here and after. */
   exports.do = function () {
