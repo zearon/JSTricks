@@ -366,10 +366,7 @@ function log(arg) {
 					if (setFocus) {
 						editor.focus();
 						// In popup page, focus is set to the first control on page load automatically, so a timeout is used.
-						setTimeout(function() {
-							editor.focus();
-							console.log("Set editor focus");
-						}, 100);
+						setTimeout(function() { editor.focus(); }, 100);
 					}
 				}
 				setSelectionInEditor(editor, true);

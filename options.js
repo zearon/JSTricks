@@ -1,27 +1,36 @@
-		// 对Date的扩展，将 Date 转化为指定格式的String 
-		// 月(M)、日(d)、小时(h)、分(m)、秒(s)、季度(q) 可以用 1-2 个占位符， 
-		// 年(y)可以用 1-4 个占位符，毫秒(S)只能用 1 个占位符(是 1-3 位的数字) 
-		// 例子： 
-		// (new Date()).Format("yyyy-MM-dd hh:mm:ss.S") ==> 2006-07-02 08:09:04.423 
-		// (new Date()).Format("yyyy-M-d h:m:s.S")      ==> 2006-7-2 8:9:4.18 
-		Date.prototype.Format = function(fmt) 
-		{ //author: meizz 
-		  var o = { 
-			"M+" : this.getMonth()+1,                 //月份 
-			"d+" : this.getDate(),                    //日 
-			"h+" : this.getHours(),                   //小时 
-			"m+" : this.getMinutes(),                 //分 
-			"s+" : this.getSeconds(),                 //秒 
-			"q+" : Math.floor((this.getMonth()+3)/3), //季度 
-			"S"  : this.getMilliseconds()             //毫秒 
-		  }; 
-		  if(/(y+)/.test(fmt)) 
-			fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length)); 
-		  for(var k in o) 
-			if(new RegExp("("+ k +")").test(fmt)) 
-		  fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length))); 
-		  return fmt; 
-		}
+	// 对Date的扩展，将 Date 转化为指定格式的String 
+	// 月(M)、日(d)、小时(h)、分(m)、秒(s)、季度(q) 可以用 1-2 个占位符， 
+	// 年(y)可以用 1-4 个占位符，毫秒(S)只能用 1 个占位符(是 1-3 位的数字) 
+	// 例子： 
+	// (new Date()).Format("yyyy-MM-dd hh:mm:ss.S") ==> 2006-07-02 08:09:04.423 
+	// (new Date()).Format("yyyy-M-d h:m:s.S")      ==> 2006-7-2 8:9:4.18 
+	Date.prototype.Format = function(fmt) 
+	{ //author: meizz 
+	  var o = { 
+		"M+" : this.getMonth()+1,                 //月份 
+		"d+" : this.getDate(),                    //日 
+		"h+" : this.getHours(),                   //小时 
+		"m+" : this.getMinutes(),                 //分 
+		"s+" : this.getSeconds(),                 //秒 
+		"q+" : Math.floor((this.getMonth()+3)/3), //季度 
+		"S"  : this.getMilliseconds()             //毫秒 
+	  }; 
+	  if(/(y+)/.test(fmt)) 
+		fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length)); 
+	  for(var k in o) 
+		if(new RegExp("("+ k +")").test(fmt)) 
+	  fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length))); 
+	  return fmt; 
+	}
+	
+	String.prototype.replaceAll = function(AFindText, ARepText) {
+		var raRegExp = new RegExp(AFindText.replace(
+			/([\(\)\[\]\{\}\^\$\+\-\*\?\.\"\'\|\/\\])/g, "\\$1"), "ig");
+		return this.replace(raRegExp, ARepText);
+	}
+	
+	function isArray(it) { return Object.prototype.toString.call(it) === '[object Array]'; }
+	function isFunction(it) { return Object.prototype.toString.call(it) === '[object Function]'; }
 
 	// jQuery UI Dialog: Double click dialog title bar to toggle dialog content
 	$(function() {
@@ -54,7 +63,8 @@
 		}
 
 		
-		var mapSiteScriptFunc = dummyMapSiteScriptFunc;
+		var mapSiteScriptFunc = dummyMapFunc;
+		var mapContentScriptFunc = dummyMapFunc;
 
 		var selectedTitle = "";		
 		var scripts = ["js/jquery.js"];			
@@ -99,7 +109,7 @@
 		}
 		function saveSiteScript()
 		{
-			if (mapSiteScriptFunc == mapPreviewReplacedSiteScript) {
+			if (mapSiteScriptFunc == findReplaceDialog_mapReplacedScript) {
 				saveDisabledForPreviewFunc();
 				return;
 			}
@@ -209,7 +219,10 @@
 			
 			return false;
 		}
-		function loadSiteScripts(contentFilter, contentType, nameFilter) {			
+		function isContentScriptName(v) {
+			return v.startsWith("$cs-");
+		}
+		function loadSiteScripts(filterOptions, contentType, nameFilter) {			
 			$("#menu").empty();
 			if(localStorage && localStorage.length != 0)
 			{
@@ -238,27 +251,40 @@
 						
 						var lsd = JSON.parse(localStorage[v]);
 						//console.log(lsd);
-						var addContentFlag = false;
-						if (!contentFilter) {
-							addContentFlag = true;
-						} else if (contentType) {
-							var content = "";
+						var addFlag = false, contentFlag = false, autostartFlag = true;
+						if (!filterOptions) {
+							addFlag = true;
+						} else {
+							var textPattern = filterOptions["pattern"];
+							var andorAutostart = filterOptions["andorAutostart"]; // and, or
+							var autostartValue = filterOptions["autostart"]; // true, false, any
+			
+							if (contentType) {
+								var content = "";
+									
+								if (contentType == "js") {
+									content = lsd.script;
+								} else if (contentType == "css") {
+									content = lsd.css;
+								} else if (contentType == "js+css") {
+									content = lsd.script + "\n" + lsd.css;
+								}
 								
-							if (contentType == "js") {
-								content = lsd.script;
-							} else if (contentType == "css") {
-								content = lsd.css;
-							} else if (contentType == "js+css") {
-								content = lsd.script + "\n" + lsd.css;
+								contentFlag = content.match(textPattern);
 							}
 							
-							if (contentFilter instanceof RegExp)
-								addContentFlag = content.match(contentFilter);
-							else if (typeof(contentFilter) === "string")
-								addContentFlag = content.indexOf(contentFilter) > -1;
+							if (autostartValue == "any")
+								autostartFlag = true;
+							else
+								autostartFlag = lsd.autostart ? autostartValue == "true" : autostartValue == "false";
+							
+							if (andorAutostart == "and")
+								addFlag = contentFlag && autostartFlag;
+							else
+								addFlag = contentFlag || autostartFlag;
 						}
 						
-						if (addContentFlag)
+						if (addFlag)
 							addMenuBox(v,lsd);
 						
 					} catch(e) {
@@ -475,7 +501,7 @@
 			$("#jssave").click(saveSiteScript);
 			$("#jsdelete").click(deleteRecord);	
 			$("#exportbtn").click(exportSettings);
-			$("#findReplaceDialogBtn").click(showFindReplaceDialog);
+			$(".findReplaceDialogBtn").click(showFindReplaceDialog);
 			$("input:button.textSizeUpBtn").click(function(){textSize(1)});
 			$("input:button.textSizeDownBtn").click(function(){textSize(-1)});				
 			$("#findDialog-findBtn").click(findReplaceDialog_find);
@@ -1041,6 +1067,8 @@
 		//
 		function changeAutostart() {
 			var autostart = document.getElementById("jscb").checked;
+			saveSiteScript();
+			
 			if (selectedTitle == "Default")
 				return;
 			/*			
@@ -1214,36 +1242,80 @@
 		// *******************************************************
 		// **               Find and Replace                    **
 		// *******************************************************
+		var findReplaceDialog_target = 0;
 		var findReplaceDialog_replaceKey = null;
-		function dummyMapSiteScriptFunc(s) {
+		var findReplaceDialog_opened = false;
+		var findReplaceDialog_inited = false;
+		function dummyMapFunc(s) {
 			return s;
 		}
 		
-		function mapPreviewReplacedSiteScript(s) {
-			var targetType	= findReplaceDialog_replaceKey["targetType"];
-			var pattern 	= findReplaceDialog_replaceKey["pattern"];
-			var replacement = findReplaceDialog_replaceKey["replacement"];
-			
-			var replaceScript = targetType.indexOf("js") > -1;
-			var replaceCss = targetType.indexOf("css") > -1;
-			
-			if (replaceScript)
-				s.script = s.script.replace(pattern, replacement);
-			
-			if (replaceCss)
-				s.css = s.css.replace(pattern, replacement);
-			
-			return s;
+		function findReplaceDialog_setMapFunc(func) {
+			switch(findReplaceDialog_target) {
+			case 0:
+				// Site scripts.
+				mapSiteScriptFunc = func;
+				break;
+			case 1:
+				// Content scripts.
+				mapContentScriptFunc = func;
+				break;
+			}
+		}
+		
+		function findReplaceDialog_getReplaceFunc() {
+			switch(findReplaceDialog_target) {
+			case 0:
+				// Site scripts.
+				return mapSiteScriptFunc = findReplaceDialog_mapReplacedScript;
+			case 1:
+				// Content scripts.
+				return mapContentScriptFunc = findReplaceDialog_mapReplacedScript;
+			}
 		}
 		
 		function showFindReplaceDialog() {
-			$("#findReplaceDialog").css("top","0px")
-				.dialog({
-					title: "Find and Replace (Double click to toggle)",
-					width: 340,
+			// If a find and search dialog is already opened, close it before open a new one.			
+			var dialogDiv = $("#findReplaceDialog");
+			if (findReplaceDialog_opened) {
+				findReplaceDialog_cancel();
+				dialogDiv.dialog("close");
+			}
+			
+			var target = $(this).attr("target");
+			switch(target) {
+			case "Site Scripts":
+				target = "Site Scripts";
+				findReplaceDialog_target = 0;
+				$(".findDialog-for-site-script").show();
+				break;
+			case "Content Scripts":
+				target = "Content Scripts";
+				findReplaceDialog_target = 1;
+				$(".findDialog-for-site-script").hide();
+				break;
+			}
+			$("#findDialog-target").text(target);
+			
+			if (findReplaceDialog_inited) {
+				dialogDiv.dialog("open");
+			} else {
+				findReplaceDialog_inited = true;
+				dialogDiv.css("top","0px").dialog({
+						title: "Find and Replace (Double click to toggle)",
+						width: 340,
+						
+						close: findReplaceDialog_cancel
+					});
+				$("#findDialog-findstring").change(function(event) {
+					var findstr = $("#findDialog-findstring").val() ;
+									// + String.fromCharCode(event.which);
 					
-					close: findReplaceDialog_cancel
+					if ($("#findDialog-replacement").val() == "")
+						$("#findDialog-replacement").val(findstr);
 				});
+			}
+			findReplaceDialog_opened = true;
 		}
 		
 		function findReplaceDialog_updateReplaceKey() {
@@ -1258,136 +1330,239 @@
 						
 			var pattern = $("#findDialog-findstring").val();
 			var method  = $("#findDialog-searchmethod")[0].selectedIndex;
-			if (method == 1) {			
-				var regexp_i = $("#findDialog-regex-i")[0].checked;
-				var regexp_g = $("#findDialog-regex-g")[0].checked;
-				var regexp_m = $("#findDialog-regex-m")[0].checked;
-				var flags = "";
-				if (regexp_i)
-					flags += "i";
-				if (regexp_g)
-					flags += "g";
-				if (regexp_m)
-					flags += "m";
-				
-				pattern = new RegExp(pattern, flags);
-				console.log(pattern);
-			}	
+			if (method == 0) {
+				// Search for strings
+				pattern = pattern.replace(/([\(\)\[\]\{\}\^\$\+\-\*\?\.\"\'\|\/\\])/g, "\\$1");
+			} else {
+			}
+			
+			var regexp_i = $("#findDialog-regex-i")[0].checked;
+			var regexp_g = $("#findDialog-regex-g")[0].checked;
+			var regexp_m = $("#findDialog-regex-m")[0].checked;
+			var flags = "";
+			if (regexp_i)
+				flags += "i";
+			if (regexp_g)
+				flags += "g";
+			if (regexp_m)
+				flags += "m";
+			
+			pattern = new RegExp(pattern, flags);
+			console.log(pattern);
 			
 			findReplaceDialog_replaceKey["targetType"] 	= targetType;
 			findReplaceDialog_replaceKey["pattern"]	 	= pattern;
 			findReplaceDialog_replaceKey["replacement"] = $("#findDialog-replacement").val();
+			findReplaceDialog_replaceKey["andorAutostart"] = $("#findDialog-andor-autostart").val(); // and, or
+			findReplaceDialog_replaceKey["autostart"] = $("#findDialog-filter-autostart").val(); // true, false, any
+			findReplaceDialog_replaceKey["containsDefaultScript"] = $("#findDialog-contains-default-script").val() == "true";
+			findReplaceDialog_replaceKey["setAutostart"] = $("#findDialog-set-autostart").val(); // true, false, unchanged
+			
+			
+			switch(findReplaceDialog_target) {
+			case 0:
+				// Site scripts.
+				break;
+			case 1:
+				// Content scripts
+				findReplaceDialog_replaceKey["targetType"] 	= "js";
+				findReplaceDialog_replaceKey["setAutostart"] = "unchanged";
+				break;
+			}
+		}
+		
+		function findReplaceDialog_refreshView(options) {
+			switch(findReplaceDialog_target) {
+			case 0:
+				// Site scripts.
+				findReplaceDialog_updateSiteScriptsView(options);
+				break;
+			case 1:
+				// Content scripts
+				findReplaceDialog_updateContentScriptsView(options);
+				break;
+			}
+		}
+		
+		function findReplaceDialog_performReplace() {
+			switch(findReplaceDialog_target) {
+			case 0:
+				// Site scripts.
+				findReplaceDialog_replaceSiteScripts();
+				break;
+			case 1:
+				// Content scripts
+				findReplaceDialog_replaceContentScripts();
+				break;
+			}		
 		}
 		
 		function findReplaceDialog_find() {
 			findReplaceDialog_updateReplaceKey();
 			
-			mapSiteScriptFunc = dummyMapSiteScriptFunc;
+			findReplaceDialog_setMapFunc(dummyMapFunc);
 			
 			// Refresh views
-			$("#tabs-sss .CodeMirror").css("background-color", "");
-			var site = selectedTitle;
-			loadSiteScripts(findReplaceDialog_replaceKey["pattern"], 
-				findReplaceDialog_replaceKey["targetType"], isSiteScriptName);
-			var selectedSiteMenu = $(`#site-list .jstbox[data-site='${site}']`).click();
-			if (selectedSiteMenu.length < 1)
-				$("#site-list .jstbox:first").click();
-			
-			if (findReplaceDialog_replaceKey["targetType"] == "js") {
-				$("#tabs-sss .tabs > ul li:nth(0)").click();
-			} else if (findReplaceDialog_replaceKey["targetType"] == "css") {
-				$("#tabs-sss .tabs > ul li:nth(1)").click();
-			}
+			findReplaceDialog_refreshView({reloadlist:true, filter:true, switcheditor:true, alerteditor:false});
 		}
 		
 		function findReplaceDialog_preview() {
 			findReplaceDialog_updateReplaceKey();
 			
-			mapSiteScriptFunc = mapPreviewReplacedSiteScript;
+			findReplaceDialog_setMapFunc(findReplaceDialog_getReplaceFunc());
 			
 			// Refresh views
-			$("#tabs-sss .CodeMirror").css("background-color", "#ffeeee");
+			findReplaceDialog_refreshView({reloadlist:true, filter:true, switcheditor:true, alerteditor:true});
+		}
+		
+		function findReplaceDialog_cancel() {	
+			findReplaceDialog_opened = false;
+			
+			// Reset replacement stuff	
+			findReplaceDialog_replaceKey = null;
+			findReplaceDialog_setMapFunc(dummyMapFunc);
+						
+			// Refresh views
+			findReplaceDialog_refreshView({reloadlist:true, filter:false, switcheditor:false, alerteditor:false});
+		}
+		
+		function findReplaceDiailog_do() {
+			findReplaceDialog_updateReplaceKey();
+			
+			// Do the replace work on every script.
+			findReplaceDialog_setMapFunc(dummyMapFunc);
+			findReplaceDialog_performReplace();
+							
+			// Refresh views			
+			findReplaceDialog_refreshView({reloadlist:false, filter:false, switcheditor:false, alerteditor:false});
+			
+			// Reset replacement stuff
+			findReplaceDialog_replaceKey = null;
+		}
+				
+		function findReplaceDialog_updateSiteScriptsView(options) {
+			// Reload site script list: only matching scripts or all scripts.
+			if (options.reloadlist)
+				if (options.filter) {
+					loadSiteScripts(findReplaceDialog_replaceKey, findReplaceDialog_replaceKey["targetType"],
+					  function(name) {
+					  	if (findReplaceDialog_replaceKey["containsDefaultScript"]) {
+							return isSiteScriptName(name) || name == "Default"; 
+					  	} else {
+							return isSiteScriptName(name); 
+					  	}
+					  } );
+				} else {
+					loadSiteScripts();
+				}
+			
+			// Select the script selected before. If none is selected, select the first script.
 			var site = selectedTitle;
-			loadSiteScripts(findReplaceDialog_replaceKey["pattern"], 
-				findReplaceDialog_replaceKey["targetType"], isSiteScriptName);
 			var selectedSiteMenu = $(`#site-list .jstbox[data-site='${site}']`).click();
 			if (selectedSiteMenu.length < 1)
 				$("#site-list .jstbox:first").click();
 			
-			if (findReplaceDialog_replaceKey["targetType"] == "js") {
-				$("#tabs-sss .tabs > ul li:nth(0)").click();
-			} else if (findReplaceDialog_replaceKey["targetType"] == "css") {
-				$("#tabs-sss .tabs > ul li:nth(1)").click();
+			// Switch editor to JS/CSS according to search target
+			if (options.switcheditor) {
+				if (findReplaceDialog_replaceKey["targetType"] == "js") {
+					$("#tabs-sss .tabs > ul li:eq(0)").click();
+				} else if (findReplaceDialog_replaceKey["targetType"] == "css") {
+					$("#tabs-sss .tabs > ul li:eq(1)").click();
+				}
+			}
+			
+			// Update some UI according to button pressed in find and replace dialog
+			if (options.alerteditor) {
+				$("#tabs-sss .CodeMirror").css("background-color", "#ffeeee");
+			} else {
+				$("#tabs-sss .CodeMirror").css("background-color", "");
 			}
 		}
 		
-		function findReplaceDialog_cancel() {		
-			findReplaceDialog_replaceKey = null;
-			mapSiteScriptFunc = dummyMapSiteScriptFunc;
-						
-			// Refresh views
-			$("#tabs-sss .CodeMirror").css("background-color", "");
-			var site = selectedTitle;
-			loadSiteScripts();
-			$(`#site-list .jstbox[data-site='${site}']`).click();
+		function findReplaceDialog_updateContentScriptsView(options) {
+			// Reload content script list: only matching scripts or all scripts.
+			if (options.reloadlist)
+				if (options.filter) {
+					loadAllContentScripts( {content:findReplaceDialog_replaceKey["pattern"]} );
+				} else {
+					loadAllContentScripts();
+				}
+			
+			// Select the script selected before. If none is selected, select the first script.
+			var name = selectedContentScript;
+			var selectedSiteMenu = $(`#contentscript-menu .jstbox[name='${name}']`).click();
+			if (selectedSiteMenu.length < 1)
+				$("#contentscript-menu .jstbox:first").click();
+			
+			// Update some UI according to button pressed in find and replace dialog
+			if (options.alerteditor) {
+				$("#tabs-dcs .CodeMirror").css("background-color", "#ffeeee");
+			} else {
+				$("#tabs-dcs .CodeMirror").css("background-color", "");
+			}
 		}
 		
-		function findReplaceDiailog_do() {
-			findReplaceDialog_replaceKey = null;
-			mapSiteScriptFunc = dummyMapSiteScriptFunc;
-			
-			// Do the replace work on every site script.			
-			findReplaceDialog_updateReplaceKey();
+		function findReplaceDialog_mapReplacedScript(s) {
 			var targetType	= findReplaceDialog_replaceKey["targetType"];
 			var pattern 	= findReplaceDialog_replaceKey["pattern"];
 			var replacement = findReplaceDialog_replaceKey["replacement"];
+			var setAutostart = findReplaceDialog_replaceKey["setAutostart"]; // true, false, unchanged
+			
+			var replaceScript = targetType.indexOf("js") > -1;
+			var replaceCss = targetType.indexOf("css") > -1;
+			
+			if (replaceScript)
+				s.script = s.script.replace(pattern, replacement);
+			
+			if (replaceCss)
+				s.css = s.css.replace(pattern, replacement);
+				
+			if (setAutostart != "unchanged")
+				setAutostart == "true" ? s.autostart = true : s.autostart = false;
+			
+			return s;
+		}
+		
+		function findReplaceDialog_replaceSiteScripts() {		
+			findReplaceDialog_updateReplaceKey();
 			
 			for(v in localStorage) {	
 				try {
-					if (!isSiteScriptName(v))
+					var isSiteScript = false;		
+					if (findReplaceDialog_replaceKey["containsDefaultScript"]) {
+						isSiteScript = isSiteScriptName(v) || v == "Default"; 
+					} else {
+						isSiteScript = isSiteScriptName(v); 
+					}
+					if (!isSiteScript)
 						continue;
 					
 					var lsd = JSON.parse(localStorage[v]);
-					
-					var flag = false;
-					var content = "";
+					findReplaceDialog_mapReplacedScript(lsd);
 						
-					if (targetType == "js") {
-						content = lsd.script;
-					} else if (targetType == "css") {
-						content = lsd.css;
-					} else if (targetType == "js+css") {
-						content = lsd.script + "\n" + lsd.css;
-					}
-					
-					if (pattern instanceof RegExp)
-						flag = content.match(pattern);
-					else if (typeof(pattern) === "string")
-						flag = content.indexOf(pattern) > -1;
-					
-					if (flag) {			
-						var replaceScript = targetType.indexOf("js") > -1;
-						var replaceCss = targetType.indexOf("css") > -1;
-						
-						if (replaceScript)
-							lsd.script = lsd.script.replace(pattern, replacement);
-						
-						if (replaceCss)
-							lsd.css = lsd.css.replace(pattern, replacement);
-						
-						localStorage[v] = JSON.stringify(lsd);
-						console.log("Replace script " + v);
-					}
+					localStorage[v] = JSON.stringify(lsd);
 				} catch(e) {
 					console.log(`Invalid! localStorage[${v}]=${localStorage[v]}`);
 				}
 			}
-							
-			// Refresh views			
-			$("#tabs-sss .CodeMirror").css("background-color", "");
-			var site = selectedTitle;
-			loadSiteScripts();
-			$(`#site-list .jstbox[data-site='${site}']`).click();
+		}
+		
+		function findReplaceDialog_replaceContentScripts() {	
+			findReplaceDialog_updateReplaceKey();
+			
+			for(v in localStorage) {	
+				try {
+					if (!isContentScriptName(v))
+						continue;
+					
+					var lsd = JSON.parse(localStorage[v]);
+					lsd = findReplaceDialog_mapReplacedScript(lsd);
+						
+					localStorage[v] = JSON.stringify(lsd);
+				} catch(e) {
+					console.log(`Invalid! localStorage[${v}]=${localStorage[v]}`);
+				}
+			}
 		}
 				
 		
@@ -1765,6 +1940,11 @@
 			
 			if(selectedContentScript == "")
 				return;
+				
+			if (mapContentScriptFunc == findReplaceDialog_mapReplacedScript) {
+				saveDisabledForPreviewFunc();
+				return;
+			}
 			
 			var key = "$cs-" + selectedContentScript;
 			var dcstitle = editorDynScript.getValue() ;
@@ -2003,26 +2183,42 @@
 			selectedContentScript = name;
 			var value = localStorage["$cs-"+name];
 			try {
-			var data = JSON.parse(value);
+				var data = JSON.parse(value);
 			} catch (exception) {
-				console.log(value);
+				console.error(value);
+				return;
 			}
+			
+			data = mapContentScriptFunc(data);
 			
 			$("#dcsgroup").val(data.group);
 			$("#dcstitle").val(data.title);
 			$("#dcsinclude").val(data.sfile);	
 			$("#dcsindex").val(data.index);
-			$("#dcsgencodebytemplate")[0].selectedIndex = 0;			
+			$("#dcsgencodebytemplate")[0].selectedIndex = 0;	
 			editorDynScript.setValue(data.script);
 			
 			currentSavedStateDCS = data.script;
 			editorDynScript.clearHistory();
 			
+			// Switch from Meat data editor to script editor.
+			$("#tabs-dcs .tabs > ul li:eq(0)").click();
+			
 			showMessage("Loaded content script: '" + name + "'!");
 		}
 		
-		function loadAllContentScripts() {
-			loadAllContentScripts_internal(true);
+		function loadAllContentScripts(filter) {
+			$("#contentscript-menu").empty();
+			
+			loadAllContentScripts_internal(function(s) {
+				// If filter is not given, load all content scripts.
+				if (!filter)
+					return true;
+				
+				// otherwise, only load content scripts whose script text matches the content filter.
+				var contentFilter = filter.content;
+				return s.script.match(contentFilter);
+			});
 		}
 		
 		function loadAllContentScripts_internal(addMenu, procItem) {
@@ -2044,8 +2240,14 @@
 				var item = keys[i];
 				var name = item['name'];
 				var key = "$cs-" + name;
-				if (addMenu)
-					addContentScriptMenu(item.name, item["index"], item['group']);
+				if (addMenu) {
+					var flag = addMenu;
+					if (isFunction(addMenu))
+						flag = addMenu(item);
+						
+					if (flag)
+						addContentScriptMenu(item.name, item["index"], item['group']);
+				}
 				
 				delete item['name'];
 				if (procItem)

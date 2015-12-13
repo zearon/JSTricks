@@ -96,7 +96,7 @@
 									<input id="jsdelete" type='button' value="Delete" />		
 								</div>
 								<div style="display:inline-block;">
-									<input id="findReplaceDialogBtn" type="button" value="Find and Replace" />
+									<input class="findReplaceDialogBtn" type="button" value="Find and Replace" target="Site Scripts" />
 								</div>
 								<div style="display:inline-block; float:right;">
 									<input type="button" value="+" class="textSizeUpBtn" />
@@ -129,26 +129,58 @@
 							</div>
 							
 							<div id="findReplaceDialog" style="display:none; ">
-								<div>Find:</div>
-								<div><textarea id="findDialog-findstring" style="width:100%" ></textarea></div>
-								<div>Replace with:</div>
-								<div><textarea id="findDialog-replacement" style="width:100%" ></textarea></div>
-								<div>Search for:
+								<div style="margin-bottom: 3px;"><span title="Tips: <br/>1. Search <b>\S+</b> in regex mode to find non-empty content.<br/>2. In regex mode, dot (.) does not match line break. Use <b>[\s\S]</b> to match any character." >
+								<b>Search as</b> </span>
+								<select id="findDialog-searchmethod" > 
+									<option>String</option>
+									<option>Regular Expression</option>
+								</select>
+								<span class="findDialog-for-site-script">in
 									<select id="findDialog-searchfor"> 
 										<option>Script</option>
 										<option>CSS</option>
 										<option>Both</option>
-									</select>
-								Search method: 
-								<select id="findDialog-searchmethod"> 
-									<option>String</option>
-									<option>Regexp</option>
-								</select>								
+									</select></span>
 								</div>
+								<div><textarea id="findDialog-findstring" style="width:100%" ></textarea></div>
 								<div> 
-									Case-insensitive:<input id="findDialog-regex-i" type="checkbox" />
-									Global:<input id="findDialog-regex-g" type="checkbox" />
-									Multiple Lines:<input id="findDialog-regex-m" type="checkbox" />
+									<span title="Ignore diference between lower case and upper case">Case-insensitive
+									<input id="findDialog-regex-i" type="checkbox" /></span>
+									<span title="Find all occurency instead of only the first one">Global
+									<input id="findDialog-regex-g" type="checkbox" checked /></span>
+									<span title="In regex (regular expression) mode, ^ and $ matches head and tail or every line instead of the whole string content">
+									Multiple Lines
+									<input id="findDialog-regex-m" type="checkbox" /></span>
+								</div>
+								<div class="findDialog-for-site-script" style="margin:5px 0px 0px 0px;">
+								Contains Default Script?
+								<select id="findDialog-contains-default-script">
+									<option value="true">Yes</option>
+									<option value="false">No</option>
+								</select> <br/>
+								</div>
+								<div class="findDialog-for-site-script" style="margin:3px 0px 10px 0px;">
+								<select id="findDialog-andor-autostart">
+									<option value="and">And</option>
+									<option value="or">OR</option>
+								</select>
+								Autostart status is
+								<select id="findDialog-filter-autostart">
+									<option value="any">Any</option>
+									<option value="true">Yes</option>
+									<option value="false">No</option>
+								</select>
+								</div>
+								<hr/>
+								<div title="Tips: <br/>1. In regex, $1, $2,..., $n can be used to represent the nth capture group defined within ().<br/>2. \s and \S match space (tab and line break) and non-space characters; \d and \D match digit (0-9) and non-digit characters; \b and \B match word boundary (but including none characters) and non-word-boundary." >
+								<b>Replace with:</b></div>
+								<div><textarea id="findDialog-replacement" style="width:100%" ></textarea></div>
+								<div class="findDialog-for-site-script">And set autostart to 
+								<select id="findDialog-set-autostart">
+									<option value="unchanged">Unchanged</option>
+									<option value="true">Yes</option>
+									<option value="false">No</option>
+								</select>
 								</div>
 								<hr/>
 								
@@ -157,7 +189,7 @@
 								<input type="button" id="" value="Replace" />
 								<input type="button" id="" value="Replace and Find" />
 								</div>
-								For All Site-Scripts:
+								For All <b><span id="findDialog-target">Site-Scripts</span></b>:
 								<div style="margin-top: 2px;">
 								<input type="button" id="findDialog-findBtn" value="Find" />
 								<input type="button" id="findDialog-previewBtn" value="Preview Replace" />
@@ -196,11 +228,12 @@
 									<td>
 										<input id="dcsinclude" type="text" style="width:98%;" />
 									</td>
-									<td style="width:150px; text-align:right;">
+									<td style="width:280px; text-align:right;">
 										Index: 
 										<input id="dcsindex" type="text" size="3" />
 										<input id="dcsindexup" type="button" value="⬆︎" />
-										<input id="dcsindexdown" type="button" value="⬇︎" />	
+										<input id="dcsindexdown" type="button" value="⬇︎" />
+										<input class="findReplaceDialogBtn" type="button" value="Find and Replace" target="Content Scripts" />
 									</td>
 								</tr></table>
 							</div>
