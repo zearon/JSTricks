@@ -1041,8 +1041,8 @@ Module.use = function (ids, callback, uri) {
       } catch (ex) {
         window.ERR__ = ex;
         var match = ex.stack.match(/at .*?:(\d+):(\d+)/);
-        console.error(ex.stack);
-        console.error(callback.toString());
+        //console.error(ex.stack);
+        console.error(ex.name + ":", ex.message, ". #Error is at line", match[1] + "\n" + callback.toString());
       }
     }
 

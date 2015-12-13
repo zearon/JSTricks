@@ -1,6 +1,6 @@
 var template_site_script = 
 `run(["jquery"], function($) {
-  function SiteScript() {
+  function SiteScript() {	// for website {{url}}
     <SELECTION_START>// YOUR CODE GOES HERE<SELECTION_END>
   }
   

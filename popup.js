@@ -201,7 +201,7 @@ function log(arg) {
 			var ta = document.getElementById("scriptText");
 			if(!localStorage[url])
 			{
-				ta.value = compile_template(template_site_script);
+				ta.value = compile_template(template_site_script, {url});
 				return "";
 			}
 			var lsd = JSON.parse(localStorage[url]);
@@ -606,7 +606,8 @@ function log(arg) {
 				$(".run-script-btn").attr("title", "Click button to <b style='color:red;'>insert</b> generated code.<br/>WARNING: <b>Disable Run Code Button</b> switch in options is turned on. Turn it off to <b>run</b> generated code on clicking this button.");
 			else
 				$(".run-script-btn").attr("title", "Click button to <b>run</b> generated code.");
-			$(".init-script-btn").click(addRequireFile);
+			$(".init-script-btn").click(addRequireFile)
+				.attr("title", "Click button to add module dependency.");
 			$(".select-domnode-btn").click(startSelectingDomNode).mouseenter(hightlightSelectorNode);
 			
 			$(`li.tab-title[module='${metadataSetting.active_module}']`).click();

@@ -226,6 +226,7 @@ function guid() {
 							INFO.debug = ${localStorage["$setting.DEBUG"]};
 							INFO.tabid = ${tabid};
 							INFO.taburl = "${url}";
+							INFO.msgboxOpacity = ${localStorage["$setting.misc_msgboxOpacity"]};
 							var meta_data = JSON.parse(decodeURIComponent("${encodeURIComponent(localStorage['meta'])}"));
 							var meta_data = JSON.parse(decodeURIComponent("${encodeURIComponent(localStorage['meta'])}"));
 						`, type:"js"},
