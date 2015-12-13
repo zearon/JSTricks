@@ -383,7 +383,8 @@
 			
 			currentSavedState = editorJs.getValue();
 			currentSavedStateCss = editorCss.getValue();
-			currentSavedStateMeta = editorMeta.getValue();
+			editorJs.clearHistory();
+			editorCss.clearHistory();
 			
 			showMessage("Loaded '"+v+"' site's trick!");
 		}
@@ -429,6 +430,29 @@
 		}
 		function filterSiteScriptShowAll() {
 			loadSiteScripts();
+		}
+		
+		 
+				
+		// Select <SELECTION_START><SELECTION_END> region
+		function setSelectionInEditor(editor, setFocus) {
+			var startTag = "<SELECTION_START>", endTag = "<SELECTION_END>";
+			var text = editor.getValue();
+			var startIndex = text.indexOf(startTag), endIndex = text.indexOf(endTag) - startTag.length;
+			text = text.replace(startTag, "").replace(endTag, "");
+			var startPos = editor.posFromIndex(startIndex), endPos = editor.posFromIndex(endIndex);
+			
+			editor.setValue(text);
+			editor.setSelection(startPos, endPos);
+			
+			if (setFocus) {
+				editor.focus();
+				// In popup page, focus is set to the first control on page load automatically, so a timeout is used.
+				setTimeout(function() {
+					editor.focus();
+					console.log("Set editor focus");
+				}, 100);
+			}
 		}
 		
 		var editorJs = null;
@@ -678,7 +702,11 @@
 				} catch (exception) {}
 			}
 			
-			$(document).tooltip();
+			$(document).tooltip({
+				content: function() {
+					return $(this).attr('title');
+				}
+			});
 		});//;
 		
 		function loadMetaData() {
@@ -1136,7 +1164,8 @@
 				var node = $(this);
 				var key = $(this).attr("target");
 				var defaultValue = $(this).attr("defaultvalue");
-				defaultSettings[key] = defaultValue;
+				if (!(defaultValue == undefined))
+					defaultSettings[key] = defaultValue;
 				
 				if (localStorage[key])
 					node.val(localStorage[key]);
@@ -1720,8 +1749,14 @@
 			var tmplName = this.value;
 			var tmpl = template_content_script_all[tmplName];
 			if (tmpl) {
-				var code = compile_template(tmpl, {name: selectedContentScript});
+				var context = {name: selectedContentScript, comments: {define: "", run: ""}};
+				if (localStorage["$setting.contentcripts_generateComments"] != "false") {
+					context.comments.define = template_content_script_comment_define;
+					context.comments.run = template_content_script_comment_run;
+				}
+				var code = compile_template(tmpl, context);
 				editorDynScript.setValue(code);
+				setSelectionInEditor(editorDynScript, true);
 			}
 		}
 		
@@ -1973,14 +2008,15 @@
 				console.log(value);
 			}
 			
-			editorDynScript.setValue(data.script);
 			$("#dcsgroup").val(data.group);
 			$("#dcstitle").val(data.title);
 			$("#dcsinclude").val(data.sfile);	
 			$("#dcsindex").val(data.index);
-			$("#dcsgencodebytemplate")[0].selectedIndex = 0;
+			$("#dcsgencodebytemplate")[0].selectedIndex = 0;			
+			editorDynScript.setValue(data.script);
 			
 			currentSavedStateDCS = data.script;
+			editorDynScript.clearHistory();
 			
 			showMessage("Loaded content script: '" + name + "'!");
 		}

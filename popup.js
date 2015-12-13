@@ -324,7 +324,7 @@ function log(arg) {
 					onChange  : function(){
 						cacheScript();
 					}
-				}); 	
+				}); 
 				editorCss = CodeMirror.fromTextArea(document.getElementById("scriptTextCss"), {
 					mode: 'text/css',
 					tabMode: 'indent',
@@ -350,7 +350,29 @@ function log(arg) {
 							save_options();
 						}			
 					}*/
-				}); 	
+				}); 
+				
+				// Select <SELECTION_START><SELECTION_END> region
+				function setSelectionInEditor(editor, setFocus) {
+					var startTag = "<SELECTION_START>", endTag = "<SELECTION_END>";
+					var text = editor.getValue();
+					var startIndex = text.indexOf(startTag), endIndex = text.indexOf(endTag) - startTag.length;
+					text = text.replace(startTag, "").replace(endTag, "");
+					var startPos = editor.posFromIndex(startIndex), endPos = editor.posFromIndex(endIndex);
+					
+					editor.setValue(text);
+					editor.setSelection(startPos, endPos);
+					
+					if (setFocus) {
+						editor.focus();
+						// In popup page, focus is set to the first control on page load automatically, so a timeout is used.
+						setTimeout(function() {
+							editor.focus();
+							console.log("Set editor focus");
+						}, 100);
+					}
+				}
+				setSelectionInEditor(editor, true);
 			
 				// Height adjusting 
 				//if (inExtensionPage) {
@@ -375,7 +397,11 @@ function log(arg) {
 				$("#tabs-1 .CodeMirror-scroll").css("height", editor1Height);
 			});
 			
-			$(document).tooltip();
+			$(document).tooltip({
+				content: function() {
+					return $(this).attr('title');
+				}
+			});
 		});//;
 		
 		function setupKeyEventHandler() {

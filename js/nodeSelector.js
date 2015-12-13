@@ -75,7 +75,7 @@ seajs.use(["jquery", "selectbox"], function($, SelectionBox) {
 			
 			timer = setTimeout(function() { selectionBox.hide(); }, 5000);
 		} else {
-			console.log("The elector does'nt match any node.");
+			console.log("The elector does not match any node.");
 		}
 	}
 	

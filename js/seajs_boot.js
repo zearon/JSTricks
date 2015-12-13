@@ -24,7 +24,7 @@
   	"paths": {
   	},
     "alias": {
-      "jquery": "[AMD]jquery.js",  //"[AMD]jquery.sea.js", [CommonJS]
+      "jquery": "[AMD]jquery.js",  //"[AMD]jquery.sea.js", "[CommonJS]jquery.sea.js"
       "jquery-ui": "[AMD]jquery-ui.js",
       "selectbox": "selectionBox"
     }
@@ -102,8 +102,6 @@
  ***************************************************/  
   // Define request plugin for local storage shchema
   seajs.on("request", function(data) {
-    //console.log("Requesting module: " + data.uri);
-    //console.log(data);
     
     if (! data.requestUri)
       return;
@@ -117,6 +115,8 @@
     	moduleSpec = "CommonJS";
     }
     
+    if (INFO && INFO.debug)
+    	console.debug("Requesting module: ", data.uri, "The requeste data is:", data);
     
     if (data.requestUri.startsWith("localstorage://")) {
       var name = data.requestUri.replace("localstorage://", "");
@@ -162,13 +162,13 @@
       if (xhr.readyState == 4 && xhr.status == 200) {
       	var url = xhr.responseURL;
         var srcCode = xhr.responseText;
-        // console.log("Sea.js XHR finished loading: " + url);
-        // console.log(xhr);
+        if (INFO && INFO.debug)
+        	console.debug("[Sea.js] XHR finished loading:", url, xhr);
         
         if (!moduleSpec)
         	moduleSpec = "CMD"
         var debugstr = "";
-        debugstr = DEBUG.on ? "console.log('Injected " + moduleSpec + " Module: " + uri + "');" : "";
+        debugstr = INFO.debug ? "console.log('Injected " + moduleSpec + " Module: " + uri + "');" : "";
         
 //        var defineWrapper =
 /*****************************************************************************
