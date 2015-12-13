@@ -497,7 +497,8 @@
 			$("#csscontentfilterbtn").click(filterSiteScriptByCSSContent);
 			$("#clearcontentfilterbtn").click(filterSiteScriptShowAll);
 			
-			$("#forjscb").click(changeAutostart);
+			//$("#forjscb").click(changeAutostart);
+			$("#jscb").change(changeAutostart);
 			$("#jssave").click(saveSiteScript);
 			$("#jsdelete").click(deleteRecord);	
 			$("#exportbtn").click(exportSettings);
@@ -697,25 +698,24 @@
 			loadMetaData();
 			
 			// Jump to tab if page=sitescripts is specified.
-			if (optionPageParams["page"]) {
-				switch (optionPageParams["page"]) {
-					case "sitescripts":
-						$("#toptabs > ul >li:nth(0)").click();
-						// jump to site if site=cn.bing.com is specified
-						if (optionPageParams["site"])
-							$(`div.jstbox[data-site='${optionPageParams["site"]}']`).click();
+			var tab = optionPageParams["tab"], item = optionPageParams["item"];
+			if (tab) {
+				$(`#toptabs > ul >li:eq(${tab})`).click();
+				switch (tab) {
+					case "0":
+						// jump to site if item=cn.bing.com is specified
+						if (item)
+							$(`div.jstbox[data-site='${item}']`).click();
 						break;
-					case "contentscripts":
-						$("#toptabs > ul >li:nth(1)").click();
-						// jump to script if name=Novel is specified
-						if (optionPageParams["name"])
-							$(`div.jstbox.contentScriptKey[name='${optionPageParams["name"]}']`).click();
+					case "1":
+						// jump to script if item=Novel is specified
+						if (item)
+							$(`div.jstbox.contentScriptKey[name='${item}']`).click();
 						break;
-					case "settings":
-						$("#toptabs > ul >li:nth(2)").click();
+					case "3":
 						// jump to section if section=Novel is specified
-						if (optionPageParams["section"])
-							$(`#settings-list .jstbox:nth(${optionPageParams["section"]})`).click();
+						if (item)
+							$(`.jstbox.settingKey[target='${item}']`).click();
 						break;
 				}
 			} else {
@@ -1066,31 +1066,33 @@
 		
 		//
 		function changeAutostart() {
-			var autostart = document.getElementById("jscb").checked;
-			saveSiteScript();
+			//var autostart = document.getElementById("jscb").checked;
+			//console.log(autostart);
 			
-			if (selectedTitle == "Default")
-				return;
-			/*			
-			if (autostart) {
-				// change from autostart to not autostart
-				//
-				// 	  $(main);		->		  main();
-				//	})(jQuery);		->		})(jQuery);
-				//
-				var srccode = editorJs.getValue();
-				var srccode = srccode.replace(/\$\s*\(\s*main\s*\)\s*;(\s*\}\s*\)\s*\(\s*jQuery\s*\)\s*;\s*)$/, "main();$1");
-				editorJs.setValue(srccode);
-			} else {
-				// change from not autostart to autostart
-				//
-				// 	  main();		->		  $(main);
-				//	})(jQuery);		->		})(jQuery);
-				//
-				var srccode = editorJs.getValue();
-				var srccode = srccode.replace(/main\s*\(\s*\)\s*;(\s*\}\s*\)\s*\(\s*jQuery\s*\)\s*;\s*)$/, "$(main);$1");
-				editorJs.setValue(srccode);
-			}	*/		
+			if (selectedTitle != "Default") {					
+				/*			
+				if (autostart) {
+					// change from autostart to not autostart
+					//
+					// 	  $(main);		->		  main();
+					//	})(jQuery);		->		})(jQuery);
+					//
+					var srccode = editorJs.getValue();
+					var srccode = srccode.replace(/\$\s*\(\s*main\s*\)\s*;(\s*\}\s*\)\s*\(\s*jQuery\s*\)\s*;\s*)$/, "main();$1");
+					editorJs.setValue(srccode);
+				} else {
+					// change from not autostart to autostart
+					//
+					// 	  main();		->		  $(main);
+					//	})(jQuery);		->		})(jQuery);
+					//
+					var srccode = editorJs.getValue();
+					var srccode = srccode.replace(/main\s*\(\s*\)\s*;(\s*\}\s*\)\s*\(\s*jQuery\s*\)\s*;\s*)$/, "$(main);$1");
+					editorJs.setValue(srccode);
+				}	*/	
+			}	
+			
+			saveSiteScript();
 		}
 		
 		function backup() {
@@ -1188,6 +1190,9 @@
 				$("#cloudrestore-key").val(localStorage["$setting.cloud-lastsave"]);
 			*/
 			
+			var refreshOnSaveAnOption = localStorage["$setting.misc_refreshOnSaveAnOption"] == "true";
+			var refreshOnSaveAllOptions = localStorage["$setting.misc_refreshOnSaveAllOptions"] == "true";
+			
 			$(".localstorage_itemvalue").each(function(ind, ele) {
 				var node = $(this);
 				var key = $(this).attr("target");
@@ -1202,6 +1207,8 @@
 					localStorage[key] = node.val();
 					showMessage("The setting is saved.");
 					updateSettings();
+					if (refreshOnSaveAnOption)
+						location.reload();
 				});
 				node.parents(".localstorage_item").first().find(".localstorage_resetitem").click(function() {
 					if (!confirm("Do you really want to set to default value: " + defaultValue + "?"))
@@ -1210,6 +1217,8 @@
 					localStorage[key] = defaultValue;
 					showMessage("The setting is set to default.");
 					updateSettings();
+					if (refreshOnSaveAnOption)
+						location.reload();
 				});
 			});
 			
@@ -1222,6 +1231,8 @@
 				});
 				showMessage("All settings are saved.");
 				updateSettings();
+				if (refreshOnSaveAllOptions)
+					location.reload();
 			});
 			$(".localstorage_resetall").click(function() {
 				if (!confirm("Do you really want to set all settings to default values?"))
@@ -1235,6 +1246,8 @@
 				});
 				showMessage("All settings are set to default.");
 				updateSettings();
+				if (refreshOnSaveAllOptions)
+					location.reload();
 			});
 		}
 				

@@ -327,6 +327,12 @@
 			border-top:white 1px solid;
 		}
 		
+		#tabs-options .editorPanel
+		{
+			margin-left: 0px;
+			overflow: auto;
+		}
+		
 		.hidableEditorArea
 		{
 			height:100%;

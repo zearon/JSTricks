@@ -10,6 +10,7 @@ var DEBUG = false;
 if (inExtensionPage && localStorage["$setting.DEBUG"] == "true")
 	DEBUG = true;
 var RUN_BUTTON_CODE = localStorage["$setting.DEBUG_runbuttoncode"] == "true";
+var DISABLE_RUN_BUTTON_CODE = localStorage["$setting.popupwindow_disableRunCodeButton"] != "false";
 	
 API_GetSelectedTab(function(tab) {
 	//console.log(tab);
@@ -271,7 +272,7 @@ function log(arg) {
 				editorCss.setValue( localStorage['cacheCss'] );
 		}
 		function editInOptionPage() {
-			window.open("chrome-extension://"+chrome.runtime.id+"/options.html?page=sitescripts&site="+tabSite, "OptionPage");
+			window.open("chrome-extension://"+chrome.runtime.id+"/options.html?tab=0&item="+tabSite, "OptionPage");
 		}
 		
 		var editor=null;
@@ -287,7 +288,7 @@ function log(arg) {
 			$("#showInDialogBtn").click(showInDialog);
 			$("#forjstcb").click(changeAutostart);
 			$("#enableDisableBtn").click(toggleExtension);
-			$("#optionsBtn").click(function() { window.open(chrome.runtime.getURL("options.html"), "OptionPage"); });
+			$("#optionsBtn").click(function() { window.open(chrome.runtime.getURL("options.html?tab=2"), "OptionPage"); });
 			
 			$("#jstcb").button({icons: {
 						primary: "ui-icon-locked"
@@ -549,12 +550,16 @@ function log(arg) {
 					var display = (j<1) || !command["args"] || (command.args.length<1) ? 'inline':'block';
 					//console.log(display);
 					
+					// If run is set to true, then the generated code will get run instead of inserted 
+					// into the script in editor.
+					var runClass = command["run"] == "true" ? " run-script-btn" : "";
+					
 					var code = command.code;
 					if (code) {
-						var element = `<div style="display:inline"><input class="add-script-btn" type="button" value="${command.title}" data-code="${command.code}" /></div>`
+						var element = `<div style="display:inline"><input class="add-script-btn${runClass}" type="button" value="${command.title}" data-code="${command.code}" /></div>`
 						sectionDiv.append(element);
 					} else {
-						var src = '<div style="display:'+display+'"><input class="add-script-btn" type="button" value="' + command.title + '" data-statement="' + statementType + '" data-func="'+section.objName+'.'+command.funcname+'" /></div>';
+						var src = `<div style="display:${display}"><input class="add-script-btn${runClass}" type="button" value="${command.title}" data-statement="${statementType}" data-func="${section.objName}.${command.funcname}" /></div>`;
 						var commandDiv = $(src).appendTo(sectionDiv);
 						for (var k=0; k < command.args.length; ++ k) {
 							var arg = command.args[k];
@@ -596,7 +601,11 @@ function log(arg) {
 				.css("max-height", ""+localStorage["$setting.popupwindow_genUIPanelMaxHeight"]+"px")
 				.append('<div id="genUITab-____Clear______" class="tab-pane"></div>');
 			
-			$(".add-script-btn").attr("title", "Click button to add code in editor at current cursor place.").click(addScript);
+			$(".add-script-btn").attr("title", "Click button to add generated code in editor at current cursor place.").click(addScript);
+			if (DISABLE_RUN_BUTTON_CODE)
+				$(".run-script-btn").attr("title", "Click button to <b style='color:red;'>insert</b> generated code.<br/>WARNING: <b>Disable Run Code Button</b> switch in options is turned on. Turn it off to <b>run</b> generated code on clicking this button.");
+			else
+				$(".run-script-btn").attr("title", "Click button to <b>run</b> generated code.");
 			$(".init-script-btn").click(addRequireFile);
 			$(".select-domnode-btn").click(startSelectingDomNode).mouseenter(hightlightSelectorNode);
 			
@@ -853,7 +862,8 @@ function log(arg) {
 			}
 			
 			if (stmt) {
-				if (RUN_BUTTON_CODE) {
+				var runCode = !DISABLE_RUN_BUTTON_CODE && btn.hasClass("run-script-btn");
+				if (RUN_BUTTON_CODE || runCode) {
 					console.log("run button code.");
 					runCodeSnippet(stmt);
 				} else {

@@ -28,6 +28,15 @@ function checkboxOnClick(info, tab) {
 
 }
 
+chrome.runtime.onMessage.addListener(function(request, sender) {
+	if (request.method == "UpdateSettings") {
+		optionValueChanged();
+	}
+});
+        
+        
+var preferencesMenuID;
+
 var scriptGroups = {};
 var scriptMenuDict = {};
 function scriptMenuClick(info, tab) {
@@ -46,6 +55,45 @@ function scriptMenuClick(info, tab) {
 	chrome.runtime.sendMessage({tabid: tab.id, method: "ExecuteContentScript", data: file});
 	
 	// chrome.tabs.executeScript(tab.id, {code:script});
+}
+
+var optionMenuDict = {};
+var optionMenuDictReverse = {};
+function optionMenuClick(info, tab) {
+	var menuID = info.menuItemId;
+	var optionKey = optionMenuDict[menuID];
+	
+	var optionValue = localStorage[optionKey] != "false";
+	// make it the opposite and then save.
+	localStorage[optionKey] = optionValue ? "false" : "true";
+	chrome.contextMenus.update(menuID, {checked:!optionValue});
+	
+	// call update settings defined in bg.js
+	updateSettings();
+}
+
+function createOptionMenu(title, keyInLocalStorage) {
+	var menuID = chrome.contextMenus.create(
+	  {"title": title, "parentId": preferencesMenuID, "type": "checkbox", "contexts":["all"],
+	   "onclick":optionMenuClick, "checked":("false" != localStorage[keyInLocalStorage])});
+	  
+	optionMenuDict[menuID] = keyInLocalStorage;
+	optionMenuDictReverse[keyInLocalStorage] = menuID;
+}
+
+function optionValueChanged() {
+	console.log("Option value changed");
+	for (key in optionMenuDictReverse) {
+		var menuID = optionMenuDictReverse[key];
+		var value = localStorage[key] != "false";
+		chrome.contextMenus.update(menuID, {checked:value});		
+	}
+}
+
+function createOptionMenus() {
+	createOptionMenu("Debug Mode", "$setting.DEBUG");
+	createOptionMenu("Run Code Mode", "$setting.DEBUG_runbuttoncode");
+	createOptionMenu("Disable Run-Code Buttons", "$setting.popupwindow_disableRunCodeButton");
 }
 
 function reloadBackroundPage(info, tab) {
@@ -86,7 +134,11 @@ function reloadBackroundPage(info, tab) {
         		}
         	}
         	
+        	// Create default menus
         	createDefaultMenus();
+        	
+        	// Create option menus
+        	createOptionMenus();
         }
         
         function initScriptConextMenu() {
@@ -155,15 +207,13 @@ function createDefaultMenus() {
 	}
 	*/
 	
-	chrome.contextMenus.create({"type": "separator"});
-	var preferences = chrome.contextMenus.create({"title": "Preferences"});
+	chrome.contextMenus.create({"type": "separator", "contexts":["all"]});
+	preferencesMenuID = chrome.contextMenus.create({"title": "Preferences", "contexts":["all"]});
 	
 	var menuReloadBackground = chrome.contextMenus.create(
-	  {"title": "Reload Background Page", "parentId": preferences, "type": "normal", "onclick":reloadBackroundPage});
-	var menuRefresh = chrome.contextMenus.create(
-	  {"title": "Update Context-Menu", "parentId": preferences, "type": "normal", "onclick":initScriptConextMenu});
-	var checkbox1 = chrome.contextMenus.create(
-	  {"title": "Enable Custom URL", "parentId": preferences, "type": "checkbox", "onclick":checkboxOnClick, "checked":true});
+	  {"title": "Reload Extension", "type": "normal", "contexts":["all"], "onclick":reloadBackroundPage});
+	//var menuRefresh = chrome.contextMenus.create(
+	//  {"title": "Update Context-Menu", "parentId": preferencesMenuID, "type": "normal", "onclick":initScriptConextMenu});
 	// console.log("checkbox1:" + checkbox1 + " checkbox2:" + checkbox2);
 }
 
