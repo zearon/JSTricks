@@ -1039,7 +1039,10 @@ Module.use = function (ids, callback, uri) {
       try {
         callback.apply(global, exports)
       } catch (ex) {
-        console.log(ex.stack);
+        window.ERR__ = ex;
+        var match = ex.stack.match(/at .*?:(\d+):(\d+)/);
+        console.error(ex.stack);
+        console.error(callback.toString());
       }
     }
 

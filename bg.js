@@ -84,7 +84,7 @@ function guid() {
             	
 				var autoloadFileList = [];
 				if( !localStorage[key] ) {
-					addNecessaryScriptsToHead(autoloadFileList);				
+					addNecessaryScriptsToHead(autoloadFileList, tabid, url);				
 					loadIncludeFiles(tabid, null, autoloadFileList, 0);
 					
 					return;
@@ -128,7 +128,7 @@ function guid() {
 						{name:"boot/jquery-init", code:"jQuery.noConflict();", type:"js"}, 
 						{name:"boot/msgbox", file:"js/msgbox.js", type:"js"}*/
 					);
-					addNecessaryScriptsToHead(autoloadFileList);
+					addNecessaryScriptsToHead(autoloadFileList, tabid, url);
 					
 					
 					// console.log("autoloadFiles:");
@@ -219,15 +219,17 @@ function guid() {
             }
         }
         
-        function addNecessaryScriptsToHead(autoloadFileList) {
+        function addNecessaryScriptsToHead(autoloadFileList, tabid, url) {
 			autoloadFileList.unshift(
 				{name:"boot/setMetaData", code:`
-							var DEBUG = new Object(); 
-							DEBUG.on = ${localStorage["$setting.DEBUG"]};
+							var INFO = new Object(); 
+							INFO.debug = ${localStorage["$setting.DEBUG"]};
+							INFO.tabid = ${tabid};
+							INFO.taburl = "${url}";
 							var meta_data = JSON.parse(decodeURIComponent("${encodeURIComponent(localStorage['meta'])}"));
 							var meta_data = JSON.parse(decodeURIComponent("${encodeURIComponent(localStorage['meta'])}"));
 						`, type:"js"},
-				{name:"boot/boot.js", file:"js/boot.js", type:"js"}, 
+				{name:"boot/boot.js", file:"js/seajs_boot.js", type:"js"}, 
 				{name:"boot/nodeSelector", file:"js/nodeSelector.js", type:"js"}
 			);
 			if (localStorage["Main"]) {
@@ -250,7 +252,9 @@ function guid() {
 				
 				if(dlsd.autostart) {
 					addContentScriptsToLoadList(autoloadFileList, dlsd.sfile);
-					autoloadFileList.push( {"name":"Site Script Default", "code":dlsd.script, "type":"js"} );
+					var code = "console.info('[Javascript Tricks] Default script is executing');";
+					code += dlsd.script;
+					autoloadFileList.push( {"name":"Site Script Default", "code":code, "type":"js"} );
 					
 					chrome.tabs.insertCSS(tabid, {code:dlsd.css, runAt:"document_start"});
 				} 
@@ -385,7 +389,12 @@ function guid() {
         chrome.tabs.onCreated.addListener(setTabID);
         chrome.tabs.onUpdated.addListener(setTabID);
         function setTabID(tabid) {
-        	chrome.tabs.executeScript(tabid, {"code":`window.tabid = ${tabid}; console.log("Chome Tab ID is: "+"${tabid}");`} );
+        	chrome.tabs.executeScript(tabid, {"code":`
+        		window.tabid = ${tabid};
+        		if (${DEBUG}) {
+        			console.info("Chome Tab ID is: "+"${tabid}");
+        		}
+        	`} );
         }
 
         function  changeIcon(tab)

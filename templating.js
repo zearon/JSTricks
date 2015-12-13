@@ -27,12 +27,11 @@ function expandObjectToDict(dict, obj, prefix) {
 		if (key == "__proto__")
 			continue;
 		
-		var value = obj[key];
+		var value = obj[key], newKey = key;
 		if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
-			if (parseInt(key) == NaN) {
+			if (isNaN(parseInt(key))) {
 				if (prefix) {
 					dict[prefix + '.' + key] = value;
-					dict[prefix + '["' + key + '"]'] = value;
 				} else {
 					dict[key] = value;
 				}
@@ -45,7 +44,8 @@ function expandObjectToDict(dict, obj, prefix) {
 				}
 			}
 		} else {
-			expandObjectToDict(dict, value, key);
+			expandObjectToDict(dict, value, 
+				prefix ? prefix + "." + key : key);
 		}
 	}
 }

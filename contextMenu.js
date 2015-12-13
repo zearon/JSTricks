@@ -42,7 +42,7 @@ function scriptMenuClick(info, tab) {
 	*/
 	console.log(info);
 	
-	chrome.tabs.executeScript(tab.id, {code:"var contextInfo = JSON.parse(decodeURIComponent('"+encodeURIComponent(JSON.stringify(info))+"'));"});
+	chrome.tabs.executeScript(tab.id, {code:"delete INFO.contextMenuInfo; INFO.contextMenuInfo = JSON.parse(decodeURIComponent('"+encodeURIComponent(JSON.stringify(info))+"'));"});
 	chrome.runtime.sendMessage({tabid: tab.id, method: "ExecuteContentScript", data: file});
 	
 	// chrome.tabs.executeScript(tab.id, {code:script});
