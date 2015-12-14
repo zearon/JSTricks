@@ -1,10 +1,10 @@
 var template_site_script = 
-`run(["jquery"], function($) {
+`run(["ready" /*,"jQuery"*/], function(ready /*,$*/) {
   function SiteScript() {	// for website {{url}}
     <SELECTION_START>// YOUR CODE GOES HERE<SELECTION_END>
   }
   
-  $(SiteScript);
+  ready(SiteScript);
 });
 `;
 
