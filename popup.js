@@ -1,7 +1,7 @@
 // Redirect chrome extension api invocations which are not accessible in content script
 // to background page.
 var inExtensionPage = typeof(chrome.tabs) !== "undefined";
-var activeTabId = [];
+var tabID = 0;
 var tabUrl = "";
 var tabSite = "";
 var API_CALLBACKS = {};
@@ -12,9 +12,31 @@ if (inExtensionPage && localStorage["$setting.DEBUG"] == "true")
 var RUN_BUTTON_CODE = localStorage["$setting.DEBUG_runbuttoncode"] == "true";
 var DISABLE_RUN_BUTTON_CODE = localStorage["$setting.popupwindow_disableRunCodeButton"] != "false";
 	
+
+// iframe.contentWindow.postMessage({ type: "RestoreEditDialogContextResponse", tabid:NS_tabid, context:NS_editDialogContext }, "*");
+// iframe.contentWindow.postMessage({type:"NS-NodeSelected", tabid:tabid, controlid:NS_controlId, context:NS_editDialogContext}, "*");
+window.addEventListener("message", function(event) {
+	//console.debug("Receive message posted:", event.data);
+	// We only accept messages from ourselves
+	if (event.data.tabid != tabID)
+		return;
+	
+	if (event.data.type == "RestoreEditDialogContextResponse") {
+		//console.log(event.data.context);
+		restoreEditDialogContext(event.data.context);
+	} else if (event.data.type == "NS-NodeSelected") {
+		onNodeSelected(event.data.controlid, event.data.value);
+	}
+}, false);
+		
+		
 API_GetSelectedTab(function(tab) {
-	//console.log(tab);
-	activeTabId[0] = tab.id;
+	try {
+		tabID = tab.id;
+		console.info("Tab.id is tab", tabID);
+	} catch (ex) {
+		console.error("Cannot get tab.id from tab", tab);
+	}
 	tabUrl = tab.url;
 	tabSite = tabUrl.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
 });
@@ -42,8 +64,7 @@ function API_SendRequest(method, arg, callback) {
 }
 chrome.runtime.onMessage.addListener(function(msg) {
 	if (msg && msg.MsgType == "chrome-ext-api-response") {
-		//console.log("chrome-ext-api-response for " + msg.method);
-		//console.log(msg);
+		//console.log("chrome-ext-api-response for", msg.method, msg);
 		
 		API_CALLBACKS[msg.id](JSON.parse(msg.arg));
 		delete API_CALLBACKS[msg.id];
@@ -75,7 +96,7 @@ function API_GetTabURL(callback) {
 // function callback() {...}
 function API_ExecuteScriptInTab(name, script, includes, callback) {
 	var data = {name:name, includes:includes, script:script};
-	var msg = {tabid:activeTabId[0], method:"ExecuteSiteScript", data:JSON.stringify(data)};
+	var msg = {tabid:tabID, method:"ExecuteSiteScript", data:JSON.stringify(data)};
 	//console.log(msg);
 	chrome.runtime.sendMessage(msg, callback);
 }
@@ -120,7 +141,7 @@ function log(arg) {
 				API_SetIcon({path:"icon24_disabled.png"});
 			} else {
 				// Enable
-				chrome.runtime.sendMessage({tabid:activeTabId[0], method: "JSTinjectScript"});
+				chrome.runtime.sendMessage({tabid:tabID, method: "JSTinjectScript"});
 				localStorage["$setting.enabled"] = "true";
 				API_SetIcon({path:"icon24.png"});
 			}
@@ -148,7 +169,7 @@ function log(arg) {
             
 				// Update status to let user know options were saved.
 				var status = document.getElementById("title");
-				status.innerHTML = "Options deleted. Please refresh the page.";
+				status.innerHTML = "Options deleted. <br/>Please refresh the page.";
 				setTimeout(function() {
 					status.innerHTML = "";
 				}, 2750);
@@ -297,6 +318,7 @@ function log(arg) {
 				
 			if (!inExtensionPage) {
 				$("#img-icon").hide();
+				$("#title").addClass("indialog");
 				$(".inExtensionPage").hide();
 				
 				API_GetSelectedTab(function(tab) {
@@ -378,7 +400,7 @@ function log(arg) {
 					// tabHeight = 500
 					var tabHeight = windowHeight - $("#editor-script-gen-ui-title").offset().top - 2;
 					$(".topeditorwrap").css("height", tabHeight);
-					$(".CodeMirror-scroll").css("height", tabHeight);
+					$(".CodeMirror-scroll, .CodeMirror-gutter").css("height", tabHeight);
 					
 					var editor1Height = windowHeight - $("#tabs-1 .CodeMirror-scroll").offset().top - 1;
 					$("#tabs-1 .CodeMirror-scroll").css("height", editor1Height);
@@ -507,7 +529,7 @@ function log(arg) {
 				chrome.tabs.executeScript(tabid, {"code": code});
 			});
  */
-			chrome.runtime.sendMessage({tabid: activeTabId[0], method:"InjectPopupPage", data:{hideDialog}});
+			chrome.runtime.sendMessage({tabid: tabID, method:"InjectPopupPage", data:{hideDialog}});
 			
 			window.close();
 		}
@@ -610,15 +632,19 @@ function log(arg) {
 				.attr("title", "Click button to add module dependency.");
 			$(".select-domnode-btn").click(startSelectingDomNode).mouseenter(hightlightSelectorNode);
 			
-			$(`li.tab-title[module='${metadataSetting.active_module}']`).click();
+			//console.log("active module is", `#genUITab-${metadataSetting.active_module}`);
+			//$(`li.tab-title[module='${metadataSetting.active_module}']`).addClass("selected");
+			//$(`.tab-pane`).hide();
+			//$(`#genUITab-${metadataSetting.active_module}`).show();
 			
-			initScriptsUITabs();
+			initScriptsUITabs(metadataSetting.active_module);
 		}	
 				
-		function initScriptsUITabs() {
+		function initScriptsUITabs(activeModule) {
 			$('.tabs').each(function(ind, el) {
 				var nav = $(el);
 				nav.find('.tab-pane:gt(0)').hide();
+				//nav.find('#genUITab-' + activeModule).show();
 				nav.find('.tab-title').click(function() {
 					nav.find('.tab-title').removeClass('selected');
 					$(this).addClass('selected');
@@ -627,6 +653,11 @@ function log(arg) {
 					$('#'+target).show()
 				});
 			});
+			
+			if (activeModule)
+				$(`li.tab-title[module='${activeModule}']`).click();
+			else
+				$(`li.tab-title:eq(0)`).click();
 		}
 		
 		// window.postMessage({type:"NS-NodeSelected", tabid:1157, controlid:"code-arg-0-5-0", value:"DIV.b_caption"}, "*");
@@ -645,20 +676,20 @@ function log(arg) {
 			}
 			
 			NS_node = $(this).prev();
-			var tabid = activeTabId[0];
-			var msg = {method: "NS-StartSelectingNode", tabid:activeTabId[0], controlid:NS_node.attr("id")};
+			var tabid = tabID;
+			var msg = {method: "NS-StartSelectingNode", tabid:tabID, controlid:NS_node.attr("id")};
 			API_SendMessageToTab(tabid, msg);
 		}
 		
 		function hightlightSelectorNode() {
 			var selector = $(this).prev().val();
-			var tabid = activeTabId[0];
-			var msg = {method: "HightlightSelectorNode", tabid:activeTabId[0], selector:selector};
+			var tabid = tabID;
+			var msg = {method: "HightlightSelectorNode", tabid:tabID, selector:selector};
 			API_SendMessageToTab(tabid, msg);
 		}
 		
 		function saveEditDialogContext() {
-			var tabid = activeTabId[0]; //tab.id;
+			var tabid = tabID; //tab.id;
 			var context = JSON.stringify(getEditDialogContext());
 			var msg = {method: "SaveEditDialogContextRequest", context:context };
 			API_SendMessageToTab(tabid, msg);
@@ -682,23 +713,6 @@ function log(arg) {
 				$("#"+key).val(context[key]);
 			}
 		}
-
-		// iframe.contentWindow.postMessage({ type: "RestoreEditDialogContextResponse", tabid:NS_tabid, context:NS_editDialogContext }, "*");
-		// iframe.contentWindow.postMessage({type:"NS-NodeSelected", tabid:tabid, controlid:NS_controlId, context:NS_editDialogContext}, "*");
-		window.addEventListener("message", function(event) {
-			//console.log("Receive message posted:");
-			//console.log(event.data);
-			// We only accept messages from ourselves
-			if (event.data.tabid != activeTabId[0])
-				return;
-			
-			if (event.data.type == "RestoreEditDialogContextResponse") {
-				//console.log(event.data.context);
-				restoreEditDialogContext(event.data.context);
-			} else if (event.data.type == "NS-NodeSelected") {
-				onNodeSelected(event.data.controlid, event.data.value);
-			}
-		}, false);
 
 		
 		// DEBUG: Move

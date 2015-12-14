@@ -1,5 +1,6 @@
 seajs.use(["jquery", "selectbox"], function($, SelectionBox) {
 
+	var tabid = INFO.tabid;
 	var NS_switch = false;
 	var NS_styleName = "NS_SELECTED_NODE_2312356451321356453";
 	var NS_titleNode = "NS_nodeSelector";
@@ -17,6 +18,7 @@ seajs.use(["jquery", "selectbox"], function($, SelectionBox) {
 	 */
 	
 	chrome.runtime.onMessage.addListener(function(request, sender) {
+		//console.log("INFO.tabid", INFO.tabid);
 		if (request.method == "NS-StartSelectingNode") {
 			NS_startSelectingNode(request);
 		} else if (request.method == "HightlightSelectorNode") {
@@ -36,15 +38,7 @@ seajs.use(["jquery", "selectbox"], function($, SelectionBox) {
 	
 	
 	
-	function NS_init() {
-		//console.log('initing node selector');
-		
-	/* 
-		elementBorderCss.push($("body").css("background-color"));
-		maxWidth = $("body").width();
-		maxHeight = $("body").height();
-	 */
-		
+	function NS_init() {		
 		$(`
 		<style>
 			.${NS_styleName} {
@@ -55,13 +49,9 @@ seajs.use(["jquery", "selectbox"], function($, SelectionBox) {
 		</style>
 		`).appendTo("body");
 		
-		// border:2px solid rgb(255,0,0); 
 		borderdiv = $(`
 			<span id='${NS_titleNode}' style='display:none; background-color: rgba(255,255,255,1); position:absolute; z-index:99999; font-size:10px' ></span>
 		`).appendTo("body");
-		
-		// DEBUG
-		// NS_startSelectingNode();
 	}
 	
 	function NS_hightlightNode(selector) {
@@ -118,7 +108,7 @@ seajs.use(["jquery", "selectbox"], function($, SelectionBox) {
 		setTimeout(function() { selectionBox.hide(); }, 5000);
 		
 		var iframe = $("#JST-POPUP-PINNED")[0];
-		iframe.contentWindow.postMessage({type:"NS-NodeSelected", tabid:window.tabid, controlid:NS_controlId, value:nodestr}, "*");
+		iframe.contentWindow.postMessage({type:"NS-NodeSelected", tabid:tabid, controlid:NS_controlId, value:nodestr}, "*");
 	
 		$("#JST-POPUP-PINNED").closest(".ui-dialog").css("z-index", "2147483645");
 		$("#JST-POPUP-PINNED").parent().show();

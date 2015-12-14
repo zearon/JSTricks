@@ -11,22 +11,27 @@ var template_site_script =
 var template_content_script_comment_run =
 `/* IF THIS SCRIPT ONLY DEFINES A MODULE, THIS FUNCTION CAN BE REMOVED.
  * 
- * run function defines an entry point. It takes two parameters. 
- * Parameter 1 is the dependency list of this module.
- * Parameter 2 is the function to to be called, and every dependency corresponds to a parameter of this function.
+ * run function defines the entry point of an execution. It takes two parameters. 
+ * Parameter 1 is the dependency list of this module. Each element in this lists is the ID
+ *             of a required module.
+ * Parameter 2 is a function to to be called when all dependencies are loaded, and every 
+ *             argument of the function is set with the value of exported symbol of the 
+ *             corresponding dependent module.
  */
 `;
 
 var template_content_script_comment_define =
-`/* DEFINES A MODULE. OTHER MODULES CAN 
+`/* DEFINE A MODULE. OTHER MODULES AND SCRIPTS CAN REQUIRE THIS MODULE.
+ * No more than ONE module should be defined in a content script.
  *
  * define function defines a module. It takes three parameters. 
  * Parameter 1 is the ID of this module.
  * Parameter 2 is the dependency list of this module.
- * parameter 3 is a factory function to create the module. 
+ * parameter 3 is a factory function to create exported symbols of this module. 
  * Note: The ID of dynamic content scripts should be the same with its name, except that 
  *       it starts with a #. The other dependencies should be defined in "seajs.config"  
- *       section of Meta Data (Global).
+ *       section of Meta Data (Global) or in Main site script (this script is hidden by
+ *       default and can be shown by turn on "Show Main script" switch in Options tab).
  */
 `;
 
@@ -56,6 +61,8 @@ var template_content_script_module_object =
     console.log(this);
   };
   
+  // The returned value is exported. 
+  // You can also use "module.exports = [whatever]" to export a symbol.
   return new {{name}}();
 });
 
@@ -68,7 +75,7 @@ var template_content_script_module_simple =
   var $ = require("jquery");
   var log = require("msgbox");  // log prints a message in console and show a message box.
 
-  /* Exported symbols. You can define exports.whatever here and after. */
+  /* Exported symbols. You can add exports.whatever here and after within this scope. */
   exports.do = function () {
     <SELECTION_START>// YOUR CODE GOES HERE<SELECTION_END>
     

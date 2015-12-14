@@ -1189,7 +1189,22 @@
 			if (localStorage["$setting.cloud-lastsave"])
 				$("#cloudrestore-key").val(localStorage["$setting.cloud-lastsave"]);
 			*/
-			
+			function setUIValue(node, value) {
+				if (node.is("span")) {
+					var target = node.attr("target");
+					$(`input:radio[name='${target}'][value='${value}']`)[0].checked = true; //.attr("checked", true);
+				} else {
+					node.val(value);
+				}
+			}
+			function getUIValue(node) {
+				if (node.is("span")) {
+					var target = node.attr("target");
+					return $(`input:radio[name='${target}']:checked`).val();
+				} else {
+					return node.val();
+				}
+			}
 			var refreshOnSaveAnOption = localStorage["$setting.misc_refreshOnSaveAnOption"] == "true";
 			var refreshOnSaveAllOptions = localStorage["$setting.misc_refreshOnSaveAllOptions"] == "true";
 			
@@ -1201,10 +1216,10 @@
 					defaultSettings[key] = defaultValue;
 				
 				if (localStorage[key])
-					node.val(localStorage[key]);
+					setUIValue(node, localStorage[key]);
 					
 				node.parents(".localstorage_item").first().find(".localstorage_saveitem").click(function() {
-					localStorage[key] = node.val();
+					localStorage[key] =  getUIValue(node);
 					showMessage("The setting is saved.");
 					updateSettings();
 					if (refreshOnSaveAnOption)
@@ -1213,7 +1228,7 @@
 				node.parents(".localstorage_item").first().find(".localstorage_resetitem").click(function() {
 					if (!confirm("Do you really want to set to default value: " + defaultValue + "?"))
 						return;
-					node.val(defaultValue);
+					setUIValue(node, defaultValue);
 					localStorage[key] = defaultValue;
 					showMessage("The setting is set to default.");
 					updateSettings();
@@ -1226,7 +1241,7 @@
 				$(this).parents(".localstorage_block").find(".localstorage_itemvalue").each(function(index, ele) {
 					var node = $(ele);
 					var target = node.attr('target');
-					var value = node.val();
+					var value =  getUIValue(node);
 					localStorage[target] = value;
 				});
 				showMessage("All settings are saved.");
@@ -1241,7 +1256,7 @@
 					var node = $(ele);
 					var target = node.attr('target');
 					var value = node.attr('defaultvalue');
-					node.val(value);
+					setUIValue(node, value);
 					localStorage[target] = value;
 				});
 				showMessage("All settings are set to default.");
@@ -2157,7 +2172,7 @@
 			
 			//console.log(groups);
 			
-			chrome.extension.sendRequest({method: "UpdateContextMenu", data:groups});
+			chrome.runtime.sendMessage({method: "UpdateContextMenu", data:groups});
 		}
 		
 		function addContentScriptMenu(name, index, group) {

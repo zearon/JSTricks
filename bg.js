@@ -6,9 +6,13 @@ function updateSettings() {
 
 function log() {
 	if (DEBUG) {
-		var arglen = arguments.length;
-		for (var i = 0; i < arglen; ++ i)
-			console.log(arguments[i]);
+		console.log.apply(console, arguments);
+	}
+}
+
+function debug_log() {
+	if (DEBUG) {
+		console.log.apply(console, arguments);
 	}
 }
 
@@ -28,7 +32,7 @@ function guid() {
 */
 		// Fix a chrome bug which mess up tab id for prerendered page
 		chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
-			console.log(`TAB-REPLACEMENT: Tab ${removedTabId} is replaced by tab ${addedTabId}`);
+			debug_log(`TAB-REPLACEMENT: Tab ${removedTabId} is replaced by tab ${addedTabId}`);
 			
 			processTab(addedTabId, "JSTinjectScript");
 		});
@@ -40,7 +44,7 @@ function guid() {
 				processTab(request.tabid, request.method, request.data);
         	} else {
 				chrome.tabs.query({active:true}, function(tabs) {
-					// console.log(`Current active tab is ${tabs[0].id}, title: ${tabs[0].title}, url:${tabs[0].url}`);
+					// debug_log(`Current active tab is ${tabs[0].id}, title: ${tabs[0].title}, url:${tabs[0].url}`);
 					
 					var tabid = (sender && sender.tab) ? sender.tab.id : undefined;
 					processTab(sender.tab.id, request.method, request.data);
@@ -50,11 +54,12 @@ function guid() {
         
         function processTab(tabid, requestMethod, requestData) {
 			chrome.tabs.get(tabid, function(tab) {
-				if (tab) {
-					// console.log(`[JScript Tricks] processing tab ${tab.id} title:${tab.title}, url:${tab.url}`);
-					processRequest(tab.id, tab.url, requestMethod, requestData);
+				if (chrome.runtime.lastError) {
+					// tab is not fetched successfully
+					console.error(`Tab ${tabid} does not exist`);
 				} else {
-					console.log(`Tab ${tabid} does not exist`);
+					// debug_log(`[JScript Tricks] processing tab ${tab.id} title:${tab.title}, url:${tab.url}`);
+					processRequest(tab.id, tab.url, requestMethod, requestData);
 				}
 			});
         }
@@ -67,7 +72,7 @@ function guid() {
 			
         	// Load _Main script as the entry-point of requireJS
         	if (requestMethod == "LoadMainScript") {        		
-            	console.log("[JScript Tricks] Load _Main script as the entry-point of requireJS");
+            	debug_log("[JScript Tricks] Load _Main script as the entry-point of requireJS");
         	}
         	
         	// Inject site-specific scripts on website loaded.
@@ -90,7 +95,7 @@ function guid() {
 					return;
 				}
             
-            	// console.log("[JScript Tricks] loading scripts for tab " + tabid + " " + url);
+            	// debug_log("[JScript Tricks] loading scripts for tab " + tabid + " " + url);
 				
 				// Inject injected.js file by inserting a <script> tag in document.
 				chrome.tabs.executeScript(tabid, {"code": `
@@ -126,13 +131,15 @@ function guid() {
 						{name:"boot/jquery", file:"js/jquery.sea.js", type:"js"}, 
 						{name:"boot/jquery-ui", file:"js/jquery-ui.js", type:"js"},  
 						{name:"boot/jquery-init", code:"jQuery.noConflict();", type:"js"}, 
+						{name:"boot/msgbox", file:"js/selectionBox.js", type:"js"},
+						{name:"boot/msgbox", file:"js/nodeSelector.js", type:"js"},
 						{name:"boot/msgbox", file:"js/msgbox.js", type:"js"}*/
 					);
 					addNecessaryScriptsToHead(autoloadFileList, tabid, url);
 					
 					
-					// console.log("autoloadFiles:");
-					// console.log(autoloadFileList);
+					// debug_log("autoloadFiles:");
+					// debug_log(autoloadFileList);
 				} catch(exception) {
 				}
 				
@@ -154,7 +161,7 @@ function guid() {
             // Invoked by RUN script or RUN selected script in popup window
             else if (requestMethod == "ExecuteSiteScript") {
             	var data = JSON.parse(requestData);
-            	//console.log(data);
+            	//debug_log(data);
             	var name = data.name;
             	var includes = data.includes;
             	var script = data.script;
@@ -197,7 +204,7 @@ function guid() {
             // Invoked by clicking show popup page in dialog button in popup window
             else if (requestMethod == "InjectPopupPage") {
 				var code = compile_template(codesnippit_showPopupInWebpage, requestData);
-				//console.log(code);
+				//debug_log(code);
 				chrome.tabs.executeScript(tabid, {"code": code});
             }
             
@@ -205,7 +212,7 @@ function guid() {
             else if (requestMethod == "ReInjectScript") {
 				var execs = requestData;
 				for (var i = 0; i < execs.length; ++ i) {
-					console.log("Reinjecting file: ", execs[i]);
+					debug_log("Reinjecting file: ", execs[i]);
 					chrome.tabs.executeScript(tabid, execs[i]);
 				}
             }
@@ -227,10 +234,9 @@ function guid() {
 							INFO.tabid = ${tabid};
 							INFO.taburl = "${url}";
 							INFO.msgboxOpacity = ${localStorage["$setting.misc_msgboxOpacity"]};
-							var meta_data = JSON.parse(decodeURIComponent("${encodeURIComponent(localStorage['meta'])}"));
-							var meta_data = JSON.parse(decodeURIComponent("${encodeURIComponent(localStorage['meta'])}"));
+							INFO.meta_data = JSON.parse(decodeURIComponent("${encodeURIComponent(localStorage['meta'])}"));
 						`, type:"js"},
-				{name:"boot/boot.js", file:"js/seajs_boot.js", type:"js"}, 
+				{name:"boot/seajs_boot", file:"js/seajs_boot.js", type:"js"}, 
 				{name:"boot/nodeSelector", file:"js/nodeSelector.js", type:"js"}
 			);
 			if (localStorage["Main"]) {
@@ -240,13 +246,13 @@ function guid() {
 						autoloadFileList.unshift({name:"boot/Main", code:mlsd.script, type:"js"});
 				} catch (exception) {
 					chrome.tabs.executeScript(tabid, {code: 'showMessage("Error occurs during loading Main script");'});
-					console.log(exception);
+					debug_log(exception);
 				}
 			}
         }
         
 		function loadDefaultScript(tabid, key, autoloadFileList) {
-			// console.log("Loading default script.");
+			// debug_log("Loading default script.");
 				
 			try {
 				var dlsd = JSON.parse(localStorage["Default"]);
@@ -263,7 +269,7 @@ function guid() {
 				loadSiteScript(tabid, key, autoloadFileList);
 			} catch (exception) {			
 				chrome.tabs.executeScript(tabid, {code: 'showMessage("Error occurs during loading Default script");'});
-				console.log(exception);
+				debug_log(exception);
 				//loadSiteScript(tabid, key);
 			}
 		}
@@ -299,7 +305,10 @@ function guid() {
 				return;
 			}
 			
-			console.log("Tab " + tabid + ": Injecting Content script " + file.name + " ...");
+			if (index == 0)
+				debug_log("------------------");
+				
+			debug_log("Tab " + tabid + ": Injecting Content script " + file.name + " ...");
 			var execDetail = {};
 			if (file["code"])
 				execDetail["code"] = file.code;
@@ -307,8 +316,8 @@ function guid() {
 				execDetail["file"] = file.file;
 			
 			var callNextInChain = function(result) {
-				//console.log("result of executing content script:");
-				//console.log(result);
+				//debug_log("result of executing content script:");
+				//debug_log(result);
 				if (index <autoloadFileList.length - 1)
 					loadIncludeFiles(tabid, callback, autoloadFileList, index + 1);
 				else
@@ -321,7 +330,7 @@ function guid() {
 			if (file["type"] == "css")
 				loadFunc = chrome.tabs.insertCSS;
 
-			// console.log(execDetail);
+			// debug_log(execDetail);
 			loadFunc(tabid, execDetail, callNextInChain);
 			
 			// Reduce memory leak
@@ -387,15 +396,26 @@ function guid() {
 
         });
         
-        chrome.tabs.onCreated.addListener(setTabID);
-        chrome.tabs.onUpdated.addListener(setTabID);
-        function setTabID(tabid) {
-        	chrome.tabs.executeScript(tabid, {"code":`
-        		window.tabid = ${tabid};
-        		if (${DEBUG}) {
-        			console.info("Chome Tab ID is: "+"${tabid}");
-        		}
-        	`} );
+        //chrome.tabs.onCreated.addListener(setTabID);
+        //chrome.tabs.onUpdated.addListener(setTabID);
+        function setTabID(arg) {
+			if (chrome.runtime.lastError) {
+				// tabid is not fetched successfully
+				console.error("Cannot get tabid on the created/updated tab.");
+			} else {
+				// in onCreated arg is Tab object, and in onUpdated arg is tabid
+				var tabid = arg.id ? arg.id : arg;
+				chrome.tabs.executeScript(tabid, {"code":`
+					window.tabid = ${tabid};
+					if (${DEBUG}) {
+						console.info("Chome Tab ID is: "+"${tabid}");
+					}
+				`}, function() {
+					if (chrome.runtime.lastError) {
+						console.error("Failed to inject INFO obj to tab due to", chrome.runtime.lastError.message);
+					}
+				} );
+        	}
         }
 
         function  changeIcon(tab)
@@ -432,7 +452,7 @@ function guid() {
 			try {
 				xhr.send();
 			} catch(e) {
-				console.log('Couldn\'t load manifest.json');
+				debug_log('Couldn\'t load manifest.json');
 			}
 
 			return manifestObject;
@@ -463,7 +483,7 @@ function guid() {
 			try {
 				xhr.send();
 			} catch(e) {
-				console.log('Couldn\'t load init_settings.json');
+				debug_log('Couldn\'t load init_settings.json');
 			}
 		}
 		

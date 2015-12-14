@@ -6,6 +6,24 @@
       });
   }
   
+  function log() {
+	  if (INFO.debug) {
+	  	var args = Array.prototype.slice.call(arguments);
+	  	args.unshift("[Sea.js]");
+	  	console.debug.apply(console, args);  
+	  	delete args;
+	  }
+  }
+  
+  
+/***************************************************
+ *               Sea.js Config Plugin              *
+ ***************************************************/  
+  // Define define plugin for local storage shchema
+  seajs.on("config", function(data) {
+	  log("0. Configuring Sea.js", data, "New config is", seajs.data);
+  });    
+  
   
 /***************************************************
  *                 Sea.js Settings                 *
@@ -14,7 +32,7 @@
   // Add some settings in meta data
   //console.log(meta_data);
   var config;
-  if (meta_data && (config = meta_data["seajs.config"])) {
+  if (INFO.meta_data && (config = INFO.meta_data["seajs.config"])) {
   	seajs.config(config);
   }
   
@@ -84,21 +102,31 @@
     		data.uri = "commonjs://" + data.uri.replace("[CommonJS]", "");
     }
     
-    //console.log(data);
+    if (data.uri)
+    	log("1. Resolving module id", data.id, "to uri", data.uri);
   });
-  
+
   
 /***************************************************
  *               Sea.js Load Plugin                *
  ***************************************************/  
   // Define load plugin for local storage shchema
   seajs.on("load", function(data) {
-    //console.log("Loading module: " + data);
+    log("2. Loading module:", data.length > 0 ? data.join("\n") : "[empty]");
+  });
+
+  
+/***************************************************
+ *               Sea.js Fetch Plugin               *
+ ***************************************************/  
+  // Define load plugin for local storage shchema
+  seajs.on("fetch", function(data) {
+    log("3. Fetching module:", data);
   });
   
   
 /***************************************************
- *            Sea.js Resolve Plugin                *
+ *            Sea.js Request Plugin                *
  ***************************************************/  
   // Define request plugin for local storage shchema
   seajs.on("request", function(data) {
@@ -116,7 +144,7 @@
     }
     
     if (INFO && INFO.debug)
-    	console.debug("Requesting module: ", data.uri, "The requeste data is:", data);
+    	log("4. Requesting module: ", data.uri, "The requeste data is:", data);
     
     if (data.requestUri.startsWith("localstorage://")) {
       var name = data.requestUri.replace("localstorage://", "");
@@ -162,8 +190,7 @@
       if (xhr.readyState == 4 && xhr.status == 200) {
       	var url = xhr.responseURL;
         var srcCode = xhr.responseText;
-        if (INFO && INFO.debug)
-        	console.debug("[Sea.js] XHR finished loading:", url, xhr);
+        log("4# Module", url, "finished loading:", xhr);
         
         if (!moduleSpec)
         	moduleSpec = "CMD"
@@ -233,6 +260,8 @@
 			
 		// Call the Sea.js define function.
 		global.define(name, deps, cmd_module_factory);
+		
+		delete define;
 	}
 	
 	// Pretend to be an AMD environment.
@@ -305,6 +334,8 @@ ${srcCode};
 ${srcCode};		
 // End of CMD module definition wrapper
 
+	delete define;
+	delete _define;
 }) (this);
 `;
         	break;
@@ -330,6 +361,32 @@ ${srcCode};
     xhr.send();
   }
   
+  
+/***************************************************
+ *               Sea.js Define Plugin              *
+ ***************************************************/  
+  // Define define plugin for local storage shchema
+  seajs.on("define", function(data) {
+	  log("5. Defining module", data.id, " module. uri=", data.uri, "deps = ", data.deps, data.factory ? "" : ", factory is [empty]" );
+  });  
+  
+  
+/***************************************************
+ *               Sea.js Exec Plugin                *
+ ***************************************************/  
+  // Define define plugin for local storage shchema
+  seajs.on("exec", function(data) {
+	  log("5. Excuting module", data.id, data );
+  });     
+  
+  
+/***************************************************
+ *               Sea.js Error Plugin               *
+ ***************************************************/  
+  // Define define plugin for local storage shchema
+  seajs.on("error", function(data) {
+	  log("#. ERROR:", data);
+  });  
   
   chrome.runtime.onMessage.addListener(function(request, sender) {
       if (request.method == "InjectModuleResponse") {
