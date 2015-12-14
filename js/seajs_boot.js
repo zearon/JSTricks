@@ -95,9 +95,6 @@
     if (data.id.startsWith("#")) {
       data.uri = "localstorage://" + data.id.slice(1);
     }
-    else if (data.id == "ready") {
-      data.uri = "ready://document";
-    }
     
     else {
     	data.uri = seajs.resolve(data.id);

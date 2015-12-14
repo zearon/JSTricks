@@ -150,9 +150,9 @@ function log(arg) {
 		
 		function setEnableDisableBtnImage() {
 			if (localStorage["$setting.enabled"] == "true") {
-				$("#enableDisableBtn").css("background", "url('icons/disable.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b))");
+				$("#enableDisableBtn").css("background", "url('img/disable.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b))");
 			} else {
-				$("#enableDisableBtn").css("background", "url('icons/enable.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b))");
+				$("#enableDisableBtn").css("background", "url('img/enable.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b))");
 			}
 		}
 
@@ -557,12 +557,13 @@ function log(arg) {
 			sections = metadataSetting["modules"];
 			for (var i=0; i < sections.length; ++ i) {
 				var section = sections[i];
-				var divID = "genUITab-" + section.moduleName;				
+				var divID = "genUITab-" + section.moduleName.replace("#", "");	
+				var title = "Click button to add module dependency. Other buttons cannot work properly without adding module dependency.";			
 				$("#editor-script-gen-ui-title ul").append(`<li class="tab-title tab-level tab-path-0-${i}" tab-path="tab-path-0-${i}" module="${section.moduleName}" target="${divID}">${section.title}</li>`);
 				$("#editor-script-gen-ui").append('<div id="'+divID+'" class="tab-pane"></div>');
 				var sectionDiv = $('#' + divID);
 				//sectionDiv.append('<div><h3 class="section-title" data="'+section.objName+' = Object.create">'+section.title+'<input type="text" value="'+section.title+'" style="display:none" /></h3></div>');
-				sectionDiv.append('<div style="display:inline; margin-right:5px;"><input class="add-script-btn init-script-btn" type="button" value="Init" data-require="'+section.moduleName+'" data-obj="'+section.objName+'" data-code="" /></div>');
+				sectionDiv.append(`<div style="display:inline; margin-right:5px;"><input class="add-script-btn init-script-btn" type="button" value="Init" title="${title}" data-module="${section.moduleName}" data-obj="${section.objName}" data-code="" /></div>`);
 				for (var j=0; j < section.commands.length; ++ j) {
 					var command = section.commands[j];
 					var statementType = command.statement ? command.statement : "common";
@@ -575,13 +576,21 @@ function log(arg) {
 					// If run is set to true, then the generated code will get run instead of inserted 
 					// into the script in editor.
 					var runClass = command["run"] == "true" ? " run-script-btn" : "";
+					var tooltip = command.tooltip ? command.tooltip + "<br/>" : "";
+					title = command["run"] == "true" ? 
+						( DISABLE_RUN_BUTTON_CODE ?
+							"Click button to <b style='color:red;'>insert</b> generated code.<br/>WARNING: <b>Disable Run Code Button</b> switch in options is turned on. Turn it off to <b>run</b> generated code on clicking this button."
+							: "Click button to <b>run</b> generated code.<br/>It is unnecessary to click Init button."
+						) :
+						"Click button to add generated code in editor at current cursor place." ;
+					title = tooltip + title;
 					
 					var code = command.code;
 					if (code) {
-						var element = `<div style="display:inline"><input class="add-script-btn${runClass}" type="button" value="${command.title}" data-code="${command.code}" /></div>`
+						var element = `<div style="display:inline"><input class="add-script-btn${runClass}" type="button" value="${command.title}" title="${title}" data-module="${section.moduleName}" data-obj="${section.objName}" data-code="${command.code}" /></div>`
 						sectionDiv.append(element);
 					} else {
-						var src = `<div style="display:${display}"><input class="add-script-btn${runClass}" type="button" value="${command.title}" data-statement="${statementType}" data-func="${section.objName}.${command.funcname}" /></div>`;
+						var src = `<div style="display:${display}"><input class="add-script-btn${runClass}" type="button" value="${command.title}" title="${title}" data-module="${section.moduleName}" data-obj="${section.objName}" data-statement="${statementType}" data-func="${section.objName}.${command.funcname}" /></div>`;
 						var commandDiv = $(src).appendTo(sectionDiv);
 						for (var k=0; k < command.args.length; ++ k) {
 							var arg = command.args[k];
@@ -602,7 +611,7 @@ function log(arg) {
 							}
 							
 							if (type == "domnode") {
-								element = '<input type="button" class="select-domnode-btn" title="Click to choose dom node." style="float:none; display:inline; background-image:url(icons/target.jpg); background-size:contain"/> ';
+								element = '<input type="button" class="select-domnode-btn" title="Click to choose dom node." style="float:none; display:inline; background-image:url(img/target.jpg); background-size:contain"/> ';
 								commandDiv.append(element);
 							} else if (type == "url") {
 								API_GetTabURL((function(inputIDStr) { return (function(url) {									
@@ -623,13 +632,16 @@ function log(arg) {
 				.css("max-height", ""+localStorage["$setting.popupwindow_genUIPanelMaxHeight"]+"px")
 				.append('<div id="genUITab-____Clear______" class="tab-pane"></div>');
 			
-			$(".add-script-btn").attr("title", "Click button to add generated code in editor at current cursor place.").click(addScript);
+			$(".add-script-btn").click(addScript);
+/* 
 			if (DISABLE_RUN_BUTTON_CODE)
 				$(".run-script-btn").attr("title", "Click button to <b style='color:red;'>insert</b> generated code.<br/>WARNING: <b>Disable Run Code Button</b> switch in options is turned on. Turn it off to <b>run</b> generated code on clicking this button.");
 			else
-				$(".run-script-btn").attr("title", "Click button to <b>run</b> generated code.");
-			$(".init-script-btn").click(addRequireFile)
-				.attr("title", "Click button to add module dependency.");
+				$(".run-script-btn").attr("title", "Click button to <b>run</b> generated code.<br/>It is unnecessary to click Init button.");
+
+ */
+				
+			$(".init-script-btn").click(addRequireFile);
 			$(".select-domnode-btn").click(startSelectingDomNode).mouseenter(hightlightSelectorNode);
 			
 			//console.log("active module is", `#genUITab-${metadataSetting.active_module}`);
@@ -893,7 +905,9 @@ function log(arg) {
 				var runCode = !DISABLE_RUN_BUTTON_CODE && btn.hasClass("run-script-btn");
 				if (RUN_BUTTON_CODE || runCode) {
 					console.log("run button code.");
-					runCodeSnippet(stmt);
+					var module = btn.attr("data-module");
+					var obj = btn.attr("data-obj");
+					runCodeOnRunButtonClicked(stmt, module, obj);
 				} else {
 					var code = editor.getValue();
 					code += stmt;
@@ -908,21 +922,22 @@ function log(arg) {
 		
 		function addRequireFile() {
 			var node = $(this);
-			var className = node.attr("data-require");
+			var className = node.attr("data-module");
 			var objName = node.attr("data-obj");
 			
 			var code = editor.getValue();
+			//var pattern = /(\s*run[\s\S]*?)(\],\s*function\s*\(.*)(\)\s*\{[\s\S]*)/;
 			var pattern = /(\s*run[\s\S]*?)(\],\s*function\s*\(.*)(\)\s*\{[\s\S]*)/;
 			var match = code.match(pattern);
 			
-			if (match[1] && match[1].indexOf('"#'+className+'"') > -1) {
+			if (match[1] && match[1].indexOf('"'+className+'"') > -1) {
 				// Remove dependency
-				match[1] = match[1].replace(new RegExp(',\\s*\\"#'+className+'\\"'), '');
+				match[1] = match[1].replace(new RegExp(',\\s*\\"'+className+'\\"'), '');
 				match[2] = match[2].replace(new RegExp(',\\s*'+objName), '');
 				code = match[1] + match[2] + match[3];
 			} else {
 				// Add dependency
-				code = `${match[1]}, "#${className}"${match[2]}, ${objName}${match[3]}`;
+				code = `${match[1]}, "${className}"${match[2]}, ${objName}${match[3]}`;
 			}
 			//code = code.replace(pattern, '$1, "#'+className+'"$2'+', '+objName+'$3');
 			editor.setValue(code);
@@ -948,4 +963,13 @@ function log(arg) {
 //			requireInput.val(requireFilesText);
 //		
 		
+		}
+		
+		function runCodeOnRunButtonClicked(codesnippet, moduleName, objName) {
+			//var header = editor.getValue().match(/\s*(run[\s\S]*?function\s*\(.*\)\s*\{)/)[1];    // The first line of the script in edit
+			//var wrappedCode = header + "\n" + codesnippet + "\n});";
+			var wrappedCode = `run(["${moduleName}"], function(${objName}) {\n${codesnippet}\n});`;
+			
+			console.log(wrappedCode);
+			execute("Selected site script", wrappedCode, editorCss.getSelection());
 		}

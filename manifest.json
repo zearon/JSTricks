@@ -14,6 +14,7 @@
 	} ],
 	"web_accessible_resources": [
 		"js/jquery.js", "js/jquery-ui.js", "js/dialogextend.js", "js/msgbox.js", "js/nodeSelector.js", "js/selectionBox.js",
+		"js/domReady.js", 
 		"injected.js", "popup.js", "popup.html", "options.js", "options.html"],
 	"description": "Add your own JavaScript (powered by JQuery) and/or CSS to any page to trick it!",
 	"icons": {

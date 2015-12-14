@@ -15,10 +15,13 @@
 	<script src="lib/javascript-hint.js"></script>    
 	<script src="lib/simple-hint.js"></script>    
     <script src="mode/javascript/javascript.js"></script>    
-	<script src="mode/css/css.js"></script>    
+	<script src="mode/css/css.js"></script>  
+	  
 	<script src="js/jquery.js" ></script>	
 	<script src="js/jquery-ui.js" ></script>	
 	<script src="js/jsformatter.js" ></script>
+	
+	<!-- script src="js/bootstrap-colorpicker.min.js" ></script -->	
 
 	<script src="usrlib/localStorageBackup.js"></script>
 	
@@ -30,6 +33,7 @@
     <link rel=stylesheet href="lib/codemirror.css">    
 	<link rel=stylesheet href="css/custom-theme/jquery-ui.css">   
 	<link rel=stylesheet href="css/custom-theme/jquery-ui-1.8.21.custom.css">   
+    <!-- link rel=stylesheet href="css/bootstrap-colorpicker.css" -->   
     <link rel="stylesheet" href="options.css"> 
 	<style>
 		
@@ -354,10 +358,24 @@
 								<tr>
 								<tr class="localstorage_item">
 									<td title='A decimal between 0 to 1 indicating the opacity of the message box shown by calling log (assigned by require("msgbox")) function in content scripts. 0 means totally transparent, and 1 means totally opaque.'>
-									Message Box Opacity</td>
-									<td><input type="text" class="localstorage_itemvalue" target="$setting.misc_msgboxOpacity" defaultvalue="0.8" value="0.8" size="7" /></td>
-									<td><input type="button" class="localstorage_saveitem" target="$setting.misc_msgboxOpacity" value="Save" /></td>
-									<td><input type="button" class="localstorage_resetitem" target="$setting.misc_msgboxOpacity" value="Set to Default" /></td>
+									Message Box: Opacity</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.builtin_selectionboxEdgeColormsgboxOpacity" defaultvalue="0.8" value="0.8" size="7" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_selectionboxEdgeColor_msgboxOpacity" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_selectionboxEdgeColormsgboxOpacity" value="Set to Default" /></td>
+								<tr>
+								<tr class="localstorage_item">
+									<td title='Pixel size value of the edge of selection box shown in webpage when Choose DOM Node buttons are clicked in popup window.'>
+									Selection Box: Edge Size</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.builtin_selectionboxEdgeSize" defaultvalue="3" value="3" size="7" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_selectionboxEdgeSize" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_selectionboxEdgeSize" value="Set to Default" /></td>
+								<tr>
+								<tr class="localstorage_item">
+									<td title='CSS color value of the edge of selection box shown in webpage when Choose DOM Node buttons are clicked in popup window.'>
+									Selection Box: Edge Color</td>
+									<td><input type="text" class="localstorage_itemvalue colorpicker" target="$setting.builtin_selectionboxEdgeColor" defaultvalue="#65f166" value="#65f166" size="7" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_selectionboxEdgeColor" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_selectionboxEdgeColor" value="Set to Default" /></td>
 								<tr>
 								
 								<tr>

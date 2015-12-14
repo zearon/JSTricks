@@ -129,6 +129,9 @@
     /** END OF PUBLIC API **/
 
 	window.domReady = domReady;
+	
+	// Define AMD module
+	define(function () { return domReady });
 
-    return domReady;
-});
+    // return domReady;
+}) ();

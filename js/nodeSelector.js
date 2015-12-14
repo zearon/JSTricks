@@ -4,6 +4,7 @@
 		handleExtensionMessages(request, sender);
 	});
 	
+	var NS_editDialogContext = "{}";
 	function handleExtensionMessages(request, sender) {
 		//console.log("INFO.tabid", INFO.tabid);
 		if (request.method == "SaveEditDialogContextRequest") {
@@ -45,14 +46,14 @@ define("nodeSelector", ["jquery", "selectbox"], function(require, exports, modul
 	
 	// window.tabid is injected in bg.js on tab created and updated
 	var tabid = INFO.tabid;
-	var inited = false;
+	var edgeSize = typeof INFO !== "undefined" ? INFO.settings.builtin_selectionboxEdgeSize : undefined;
+	var edgeColor = typeof INFO !== "undefined" ? INFO.settings.builtin_selectionboxEdgeColor : undefined;
+	var selectionBox = new SelectionBox(edgeSize, edgeColor);
 	
 	var NS_switch = false;
 	var NS_styleName = "NS_SELECTED_NODE_2312356451321356453";
 	var NS_titleNode = "NS_nodeSelector";
 	
-	var NS_editDialogContext = "{}";
-	var selectionBox = new SelectionBox();
 	var timer = null;
 	var currentSelector = null;
 	

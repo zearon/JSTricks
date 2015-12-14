@@ -1,8 +1,5 @@
 var DEBUG = false;
-updateSettings();
-function updateSettings() {
-	DEBUG = localStorage["$setting.DEBUG"] == "true";
-}
+var infoStr = "";
 
 function log() {
 	if (DEBUG) {
@@ -23,6 +20,28 @@ function guid() {
     });
 }
 
+function updateSettings() {
+	DEBUG = localStorage["$setting.DEBUG"] == "true";
+	var setting = {};
+	for ( key in localStorage) {
+		if (!key.startsWith("$setting.") || key.startsWith("$setting.cloud-")) 
+			continue;
+		
+		var shortKey = key.replace("$setting.", "");
+		
+		setting[shortKey] = localStorage[key];
+	}
+	
+	var INFO = { settings: setting, debug: DEBUG,
+		meta_data: JSON.parse(localStorage['meta']) };
+	
+	infoStr = encodeURIComponent(JSON.stringify(INFO));
+	
+	//if (DEBUG)
+		console.log("Settings are updated, and new INFO is", INFO);
+	//console.log("InfoStr is", infoStr);
+}
+		
 (function(global) {
 
 /* Several ways to inject a script into a web page:
@@ -86,6 +105,16 @@ function guid() {
             	} else {
             		chrome.browserAction.setIcon({path: "icon24.png"});
             	}
+				
+				// Inject injected.js file by inserting a <script> tag in document.
+				chrome.tabs.executeScript(tabid, {"code": `
+					function InjectCodeToOriginalSpace(src) {
+						var s = document.createElement('script');
+						s.setAttribute('src', src);
+						s.setAttribute('type', 'text/javascript');
+						(document.head||document.documentElement).appendChild(s);
+					}
+				`});
             	
 				var autoloadFileList = [];
 				if( !localStorage[key] ) {
@@ -99,15 +128,7 @@ function guid() {
 				
 				// Inject injected.js file by inserting a <script> tag in document.
 				chrome.tabs.executeScript(tabid, {"code": `
-					//(function() {
-					function InjectCodeToOriginalSpace(tagName, src) {
-						var s = document.createElement('script');
-						s.setAttribute('src', src);
-						s.setAttribute('type', 'text/javascript');
-						(document.head||document.documentElement).appendChild(s);
-					}
-					//InjectCodeToOriginalSpace("head", "chrome-extension://" + chrome.runtime.id + "/js/require.custom.js");
-					InjectCodeToOriginalSpace("head", "chrome-extension://" + chrome.runtime.id + "/injected.js");
+					InjectCodeToOriginalSpace("chrome-extension://" + chrome.runtime.id + "/injected.js");
 					//})();
 				`});
 				
@@ -209,10 +230,10 @@ function guid() {
             }
             
             // 
-            else if (requestMethod == "ReInjectScript") {
+            else if (requestMethod == "ExecuteJsCodeOrFile") {
 				var execs = requestData;
 				for (var i = 0; i < execs.length; ++ i) {
-					debug_log("Reinjecting file: ", execs[i]);
+					debug_log("Execute JS code or file: ", execs[i]);
 					chrome.tabs.executeScript(tabid, execs[i]);
 				}
             }
@@ -227,10 +248,7 @@ function guid() {
         }
         
         function addNecessaryScriptsToHead(autoloadFileList, tabid, url) {
-        	var context = {tabid: tabid, url:url, debug:localStorage["$setting.DEBUG"], 
-        		msgboxOpacity:localStorage["$setting.misc_msgboxOpacity"],
-        		metaDataURIComponent: encodeURIComponent(localStorage['meta']) };
-        	var setMetaDataCode = compile_template(codesnippet_onBootCode, context);
+        	var setMetaDataCode = codesnippet_getOnBootCode(tabid, url, infoStr);
         	// console.log(setMetaDataCode);
 			autoloadFileList.unshift(
 				{name:"boot/setMetaData", code:setMetaDataCode, type:"js"},/*
@@ -485,5 +503,7 @@ function guid() {
 			}
 		}
 		
+		
+		updateSettings();	
 		
 }) (this);

@@ -535,6 +535,8 @@
 			$("#dcsreindex").click(reindexContentScript);
 			$("#dcsupdatemenu").click(updateContentScriptForContextMenu);
 			
+			//$(".colorpicker").colorpicker();
+			
 			loadContentScriptTemplate();
 			loadAllContentScripts();
 			$(".navbar > *").scrollTop(0);

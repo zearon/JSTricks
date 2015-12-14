@@ -38,13 +38,14 @@ var template_content_script_comment_define =
 var template_content_script_run =
 `{{comments.run}}run(["jquery", "#{{name}}"], function($, obj) {
   // Call the do method defined in the module above.
-  obj.do();
+  obj.do_();
 });
 `;
 
 
 var template_content_script_module_object =
-`{{comments.define}}define("#{{name}}", ["jquery", "msgbox", "#LibBase"], function(require, exports, module) {
+`{{comments.define}}define("#{{name}}", ["ready", "jquery", "msgbox", "#LibBase"], function(require, exports, module) {
+  var ready = require("ready");	// ready(callback) registers callback as a DOMDocumentLoaded event listener. Remove it if you do not need it.
   var $ = require("jquery");
   var log = require("msgbox");  // log prints a message in console and show a message box.
   var libBase = require("#LibBase");
@@ -54,10 +55,10 @@ var template_content_script_module_object =
   }
   {{name}}.prototype = libBase;
     
-  {{name}}.prototype.do = function () {
+  {{name}}.prototype.do_ = function () {
     <SELECTION_START>// YOUR CODE GOES HERE<SELECTION_END>
   	
-    console.log("{{name}}.do() is invoked");
+    console.log("{{name}}.do_() is invoked");
     console.log(this);
   };
   
@@ -71,15 +72,16 @@ ${template_content_script_run}
 
 
 var template_content_script_module_simple =
-`{{comments.define}}define("#{{name}}", ["jquery", "msgbox"], function(require, exports, module) {
+`{{comments.define}}define("#{{name}}", ["ready", "jquery", "msgbox"], function(require, exports, module) {
+  var ready = require("ready");	// ready(callback) registers callback as a DOMDocumentLoaded event listener. Remove it if you do not need it.
   var $ = require("jquery");
   var log = require("msgbox");  // log prints a message in console and show a message box.
 
   /* Exported symbols. You can add exports.whatever here and after within this scope. */
-  exports.do = function () {
+  exports.do_ = function () {
     <SELECTION_START>// YOUR CODE GOES HERE<SELECTION_END>
     
-    console.log("{{name}}.do() is invoked");
+    console.log("{{name}}.do_() is invoked");
   };
 });
 
