@@ -1,5 +1,49 @@
-seajs.use(["jquery", "selectbox"], function($, SelectionBox) {
+(function() {
+	
+	chrome.runtime.onMessage.addListener(function(request, sender) {
+		handleExtensionMessages(request, sender);
+	});
+	
+	function handleExtensionMessages(request, sender) {
+		//console.log("INFO.tabid", INFO.tabid);
+		if (request.method == "SaveEditDialogContextRequest") {
+			NS_editDialogContext = request.context;
+			//console.log("Save edit dialog context:");
+			//console.log(NS_editDialogContext);
+		} else if (request.method == "RestoreEditDialogContextRequest") {
+			var iframe = $("#JST-POPUP-PINNED")[0];
+			iframe.contentWindow.postMessage({type:"RestoreEditDialogContextResponse", tabid:INFO.tabid, context:NS_editDialogContext}, "*");
+		} else if (request.method.startsWith("NS-")) {
+			lazyInit_HandleMessages(request, sender);
+		}
+	}
+	
+	/* If no Node selector related messages, which starts with NS-, do not load nodeSelector 
+	 * module which requires jquery indirectly. So for most websites that do not need any JS tricks,
+	 * the memory and CPU resources for one jquery script is saved.
+	 */
+	var handler = null;
+	function lazyInit_HandleMessages(request, sender) {
+		if (handler) {
+			console.info("Cached node selector handler.");
+			handler.handleMessages(request, sender);
+		} else {
+			console.info("Init node selector handler.");
+			run(["nodeSelector"], function(nodeSelector) {
+				nodeSelector.handleMessages(request, sender);
+				handler = nodeSelector;
+			});
+		}
+	}
 
+}) (this);
+
+
+define("nodeSelector", ["jquery", "selectbox"], function(require, exports, module) {
+	var $ = require("jquery");
+	var SelectionBox = require("selectbox");
+	
+	// window.tabid is injected in bg.js on tab created and updated
 	var tabid = INFO.tabid;
 	var inited = false;
 	
@@ -12,32 +56,13 @@ seajs.use(["jquery", "selectbox"], function($, SelectionBox) {
 	var timer = null;
 	var currentSelector = null;
 	
-	// window.tabid is injected in bg.js on tab created and updated
-	/* 
-	var maxHeight = 0;
-	var maxWidth = 0;
-	var elementBorderCss = [];
-	var bordercss = "rgba(255,0,0,0.05)";
-	 */
-	
-	chrome.runtime.onMessage.addListener(function(request, sender) {
-		handleExtensionMessages(request, sender);
-	});
-	
-	function handleExtensionMessages(request, sender) {
-		//console.log("INFO.tabid", INFO.tabid);
+	// Export handleMessages function
+	exports.handleMessages = function(request, sender) {
 		if (request.method == "NS-StartSelectingNode") {
 			NS_startSelectingNode(request);
-		} else if (request.method == "HightlightSelectorNode") {
+		} else if (request.method == "NS-HightlightSelectorNode") {
 			NS_hightlightNode(request.selector);
-		} else if (request.method == "SaveEditDialogContextRequest") {
-			NS_editDialogContext = request.context;
-			//console.log("Save edit dialog context:");
-			//console.log(NS_editDialogContext);
-		} else if (request.method == "RestoreEditDialogContextRequest") {
-			var iframe = $("#JST-POPUP-PINNED")[0];
-			iframe.contentWindow.postMessage({type:"RestoreEditDialogContextResponse", tabid:tabid, context:NS_editDialogContext}, "*");
-		}
+		}	
 	}
 	
 	//$(NS_init);

@@ -6,7 +6,11 @@
       });
   }
   
-  var debug = typeof INFO === "undefined" || INFO.debug;
+  var debug = false;
+  window.setSeajsBootDebug = function(isDebug) {
+  	debug = isDebug;
+  }
+  
   function log() {
 	  if (debug) {
 	  	var args = Array.prototype.slice.call(arguments);
