@@ -235,6 +235,9 @@ function guid() {
 							INFO.taburl = "${url}";
 							INFO.msgboxOpacity = ${localStorage["$setting.misc_msgboxOpacity"]};
 							INFO.meta_data = JSON.parse(decodeURIComponent("${encodeURIComponent(localStorage['meta'])}"));
+							if (INFO.debug) {
+								console.info("Tab id is ${tabid} and INFO object is ", INFO);
+							}
 						`, type:"js"},
 				{name:"boot/seajs_boot", file:"js/seajs_boot.js", type:"js"}, 
 				{name:"boot/nodeSelector", file:"js/nodeSelector.js", type:"js"}
