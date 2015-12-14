@@ -994,9 +994,6 @@ Module.define = function (id, deps, factory) {
   meta.uri ? Module.save(meta.uri, meta) :
     // Save information for "saving" work in the script onload event
     anonymousMeta = meta
-  
-  //DEBUG
-  // console.log("### DEFINING", id, " module. uri=", meta.uri, "Deps = ", deps, "Factory = ", factory.toString().replace(/\n[\s\S]*/, "") );
 }
 
 // Save meta data to cachedMods
@@ -1039,9 +1036,9 @@ Module.use = function (ids, callback, uri) {
       try {
         callback.apply(global, exports)
       } catch (ex) {
-        window.ERR__ = ex;
+        //window.ERR__ = ex;
         var match = ex.stack.match(/at .*?:(\d+):(\d+)/);
-        //console.error(ex.stack);
+        console.error(ex.stack);
         console.error(ex.name + ":", ex.message, ". #Error is at line", match[1] + "\n" + callback.toString());
       }
     }

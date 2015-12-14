@@ -6,6 +6,7 @@
     "$setting.popupwindow_disableRunCodeButton": "false",
     "$setting.sitescripts_showMainScript": "false",
     "$setting.contentcripts_generateComments": "true",
+    "$setting.misc_msgboxOpacity": "0.8",
     "$setting.misc_refreshOnSaveAnOption": "false",
     "$setting.misc_refreshOnSaveAllOptions": "true",
     "$setting.DEBUG_runbuttoncode": "false",
