@@ -7,7 +7,7 @@
 		"default_popup": "popup.html"
 	},
 	"content_scripts": [ {
-		"js": [ "js/sea-debug.js", "autoload.js"],
+		"js": [ "js/sea-debug.js", "js/seajs_boot.js", "autoload.js"],
 		"css": ["css/custom-theme/jquery-ui.css", "css/custom-theme/jquery-ui-fix.css"],
 		"matches": [ "http://*/*", "https://*/*", "file://*/*" ],
 		"run_at": "document_start"

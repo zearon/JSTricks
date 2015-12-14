@@ -1,13 +1,16 @@
 seajs.use(["jquery", "selectbox"], function($, SelectionBox) {
 
 	var tabid = INFO.tabid;
+	var inited = false;
+	
 	var NS_switch = false;
 	var NS_styleName = "NS_SELECTED_NODE_2312356451321356453";
 	var NS_titleNode = "NS_nodeSelector";
+	
 	var NS_editDialogContext = "{}";
-	var currentSelector = null;
 	var selectionBox = new SelectionBox();
 	var timer = null;
+	var currentSelector = null;
 	
 	// window.tabid is injected in bg.js on tab created and updated
 	/* 
@@ -18,6 +21,10 @@ seajs.use(["jquery", "selectbox"], function($, SelectionBox) {
 	 */
 	
 	chrome.runtime.onMessage.addListener(function(request, sender) {
+		handleExtensionMessages(request, sender);
+	});
+	
+	function handleExtensionMessages(request, sender) {
 		//console.log("INFO.tabid", INFO.tabid);
 		if (request.method == "NS-StartSelectingNode") {
 			NS_startSelectingNode(request);
@@ -31,14 +38,14 @@ seajs.use(["jquery", "selectbox"], function($, SelectionBox) {
 			var iframe = $("#JST-POPUP-PINNED")[0];
 			iframe.contentWindow.postMessage({type:"RestoreEditDialogContextResponse", tabid:tabid, context:NS_editDialogContext}, "*");
 		}
-	});
+	}
 	
-	$(NS_init);
-	
-	
+	//$(NS_init);
 	
 	
-	function NS_init() {		
+	
+	/*
+	function NS_init_selection_box() {		
 		$(`
 		<style>
 			.${NS_styleName} {
@@ -52,7 +59,7 @@ seajs.use(["jquery", "selectbox"], function($, SelectionBox) {
 		borderdiv = $(`
 			<span id='${NS_titleNode}' style='display:none; background-color: rgba(255,255,255,1); position:absolute; z-index:99999; font-size:10px' ></span>
 		`).appendTo("body");
-	}
+	} */
 	
 	function NS_hightlightNode(selector) {
 		if (timer)
@@ -74,7 +81,7 @@ seajs.use(["jquery", "selectbox"], function($, SelectionBox) {
 		console.log(request);
 		
 		
-		NS_switch = true;
+		//NS_switch = true;
 		NS_controlId = request.controlid;
 		$("#" + NS_titleNode).show();
 		$("#JST-POPUP-PINNED").parent().hide();
@@ -103,7 +110,7 @@ seajs.use(["jquery", "selectbox"], function($, SelectionBox) {
 		
 		event.preventDefault();
 		
-		NS_switch = false;
+		//NS_switch = false;
 		var nodestr = currentSelector.full; //$("#" + NS_titleNode).text();
 		setTimeout(function() { selectionBox.hide(); }, 5000);
 		

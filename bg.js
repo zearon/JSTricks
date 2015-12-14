@@ -227,19 +227,15 @@ function guid() {
         }
         
         function addNecessaryScriptsToHead(autoloadFileList, tabid, url) {
+        	var context = {tabid: tabid, url:url, debug:localStorage["$setting.DEBUG"], 
+        		msgboxOpacity:localStorage["$setting.misc_msgboxOpacity"],
+        		metaDataURIComponent: encodeURIComponent(localStorage['meta']) };
+        	var setMetaDataCode = compile_template(codesnippet_onBootCode, context);
+        	// console.log(setMetaDataCode);
 			autoloadFileList.unshift(
-				{name:"boot/setMetaData", code:`
-							var INFO = new Object(); 
-							INFO.debug = ${localStorage["$setting.DEBUG"]};
-							INFO.tabid = ${tabid};
-							INFO.taburl = "${url}";
-							INFO.msgboxOpacity = ${localStorage["$setting.misc_msgboxOpacity"]};
-							INFO.meta_data = JSON.parse(decodeURIComponent("${encodeURIComponent(localStorage['meta'])}"));
-							if (INFO.debug) {
-								console.info("Tab id is ${tabid} and INFO object is ", INFO);
-							}
-						`, type:"js"},
-				{name:"boot/seajs_boot", file:"js/seajs_boot.js", type:"js"}, 
+				{name:"boot/setMetaData", code:setMetaDataCode, type:"js"},/*
+				 // confiture seajs_boot.js injection manifest.json
+				{name:"boot/seajs_boot", file:"js/seajs_boot.js", type:"js"}, */
 				{name:"boot/nodeSelector", file:"js/nodeSelector.js", type:"js"}
 			);
 			if (localStorage["Main"]) {
@@ -278,8 +274,7 @@ function guid() {
 		}
 		
 		function loadSiteScript(tabid, key, autoloadFileList) {
-			if( localStorage[key] )
-			{
+			if( localStorage[key] ) {
 				var lsd = JSON.parse(localStorage[key]);
 				if(lsd.autostart) {
 					chrome.browserAction.setIcon({path: "icon24_auto.png"});
@@ -288,12 +283,12 @@ function guid() {
 						addContentScriptsToLoadList(autoloadFileList, lsd.sfile);
 					}
 					autoloadFileList.push( {"name":"Site Script " + key, "code":lsd.script, "type":"js"} );
-						
-					chrome.tabs.insertCSS(tabid,{code:lsd.css, runAt:"document_start"});
-					// Load all included files in chain.
-					loadIncludeFiles(tabid, null, autoloadFileList, 0);
 				}
 			}
+						
+			chrome.tabs.insertCSS(tabid,{code:lsd.css, runAt:"document_start"});
+			// Load all included files in chain.
+			loadIncludeFiles(tabid, null, autoloadFileList, 0);
 		}
 		
 		function emptyFunc() {};
