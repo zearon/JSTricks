@@ -6,8 +6,9 @@
       });
   }
   
+  var debug = typeof INFO === "undefined" || INFO.debug;
   function log() {
-	  if (INFO.debug) {
+	  if (debug) {
 	  	var args = Array.prototype.slice.call(arguments);
 	  	args.unshift("[Sea.js]");
 	  	console.debug.apply(console, args);  
@@ -28,7 +29,7 @@
 /***************************************************
  *                 Sea.js Settings                 *
  ***************************************************/
-
+/*
   // Add some settings in meta data
   //console.log(meta_data);
   var config;
@@ -47,7 +48,7 @@
       "selectbox": "selectionBox"
     }
   });
-  
+*/  
   // Export as global symbols
   window.require = seajs.require;
   window.run = 
@@ -143,8 +144,7 @@
     	moduleSpec = "CommonJS";
     }
     
-    if (INFO && INFO.debug)
-    	log("4. Requesting module: ", data.uri, "The requeste data is:", data);
+   	log("4. Requesting module: ", data.uri, "The requeste data is:", data);
     
     if (data.requestUri.startsWith("localstorage://")) {
       var name = data.requestUri.replace("localstorage://", "");
