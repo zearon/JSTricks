@@ -684,7 +684,7 @@ function log(arg) {
 		function hightlightSelectorNode() {
 			var selector = $(this).prev().val();
 			var tabid = tabID;
-			var msg = {method: "HightlightSelectorNode", tabid:tabID, selector:selector};
+			var msg = {method: "NS-HightlightSelectorNode", tabid:tabID, selector:selector};
 			API_SendMessageToTab(tabid, msg);
 		}
 		

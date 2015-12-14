@@ -36,6 +36,7 @@ var codesnippet_onBootCode =
 	INFO.meta_data = JSON.parse(decodeURIComponent("{{metaDataURIComponent}}"));
 	if (INFO.debug) {
 		console.info("Tab id is {{tabid}} and INFO object is ", INFO);
+		setSeajsBootDebug(true);
 	}
 	
 	// Add some settings in meta data
