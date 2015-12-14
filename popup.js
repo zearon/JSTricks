@@ -33,7 +33,7 @@ window.addEventListener("message", function(event) {
 API_GetSelectedTab(function(tab) {
 	try {
 		tabID = tab.id;
-		console.info("Tab.id is tab", tabID);
+		//console.info("Tab.id is tab", tabID);
 	} catch (ex) {
 		console.error("Cannot get tab.id from tab", tab);
 	}
@@ -558,7 +558,7 @@ function log(arg) {
 			for (var i=0; i < sections.length; ++ i) {
 				var section = sections[i];
 				var divID = "genUITab-" + section.moduleName;				
-				$("#editor-script-gen-ui-title ul").append('<li class="tab-title" module="' + section.moduleName + '" target="' + divID + '">' + section.title + '</li>');
+				$("#editor-script-gen-ui-title ul").append(`<li class="tab-title tab-level tab-path-0-${i}" tab-path="tab-path-0-${i}" module="${section.moduleName}" target="${divID}">${section.title}</li>`);
 				$("#editor-script-gen-ui").append('<div id="'+divID+'" class="tab-pane"></div>');
 				var sectionDiv = $('#' + divID);
 				//sectionDiv.append('<div><h3 class="section-title" data="'+section.objName+' = Object.create">'+section.title+'<input type="text" value="'+section.title+'" style="display:none" /></h3></div>');
@@ -696,22 +696,35 @@ function log(arg) {
 		}
 		
 		function getEditDialogContext() {
-			var context = {};
+			var context = {selectedTabs:[], controls:{}};
+			
 			$(".code-arg-value").each(function(index, ele) {
 				var node = $(this);
 				var id = this.id;
 				var value = node.val();
-				context[id] = value;
+				context.controls[id] = value;
 			});
+			
+			$("li.selected.tab-level").each(function(index, ele) {
+				context.selectedTabs.push($(ele).attr("tab-path"));
+			});
+			
 			return context;
 		}
 		
 		function restoreEditDialogContext(data) {
 			var context = JSON.parse(data);
-			//console.log(context);
-			for ( key in context) {
-				$("#"+key).val(context[key]);
+			console.log(context);
+			var controls = context.controls;
+			for ( key in controls) {
+				$("#"+key).val(controls[key]);
 			}
+			
+			var selectedTabs = context.selectedTabs;
+			if (selectedTabs)
+				for (var i = 0; i < selectedTabs.length; ++ i) {
+					$("li.tab-level." + selectedTabs[i]).click();
+				}
 		}
 
 		
