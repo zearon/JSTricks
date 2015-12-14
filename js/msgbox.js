@@ -51,7 +51,7 @@ define(["jquery"], function(require, exports, module) {
 				margin-left:-250px;
 				width:500px;
 				padding:0 10px;
-				opacity: ${INFO.msgboxOpacity};
+				opacity: ${INFO.settings.builtin_selectionboxEdgeColormsgboxOpacity};
 				background:rgba(247,223,29,1);
 				box-shadow:rgba(0,0,0,0.4) 0 3px 10px;
 				border-radius:0 0 5px 5px;

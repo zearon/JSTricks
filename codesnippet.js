@@ -21,19 +21,12 @@ var codesnippit_showPopupInWebpage =
 	});
 `
 
-
-
-//var context = {tabid: tabid, url:url, debug:localStorage["$setting.DEBUG"], 
-//        		msgboxOpacity:localStorage["$setting.misc_msgboxOpacity"],
-//        		metaDataURIComponent: encodeURIComponent(localStorage['meta']) };
+// Invoked by addNecessaryScriptsToHead() in bg.js
 var codesnippet_onBootCode = 
 `
-	var INFO = new Object(); 
-	INFO.debug = {{debug}};
+	var INFO = JSON.parse(decodeURIComponent("{{infoStr}}"));
 	INFO.tabid = {{tabid}};
 	INFO.taburl = "{{url}}";
-	INFO.msgboxOpacity = {{msgboxOpacity}};
-	INFO.meta_data = JSON.parse(decodeURIComponent("{{metaDataURIComponent}}"));
 	if (INFO.debug) {
 		console.info("Tab id is {{tabid}} and INFO object is ", INFO);
 		setSeajsBootDebug(true);
@@ -52,9 +45,16 @@ var codesnippet_onBootCode =
 	"paths": {
 	},
 	"alias": {
+	  "ready": "[AMD]domReady.js",
 	  "jquery": "[AMD]jquery.js",  //"[AMD]jquery.sea.js", "[CommonJS]jquery.sea.js"
 	  "jquery-ui": "[AMD]jquery-ui.js",
 	  "selectbox": "selectionBox"
 	}
 	});
 `
+
+function codesnippet_getOnBootCode(tabid, url, infoStr) {
+	var context = {tabid:tabid, url:url, infoStr:infoStr};
+    
+    return compile_template(codesnippet_onBootCode, context);
+}
