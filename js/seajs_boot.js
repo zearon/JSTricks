@@ -235,8 +235,6 @@
 		
 		if (name == undefined) {
 			name = "amd://${url}";
-		} else if (!name.startsWith("amd://")) {
-			name = "amd://" + name;
 		}
 		
 		// CMD module factory
