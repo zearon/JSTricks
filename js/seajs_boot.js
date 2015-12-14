@@ -191,7 +191,7 @@
       if (xhr.readyState == 4 && xhr.status == 200) {
       	var url = xhr.responseURL;
         var srcCode = xhr.responseText;
-        log("4# Module", url, "finished loading:", xhr);
+        log("4# Module at ", url, "finished loading:", xhr);
         
         if (!moduleSpec)
         	moduleSpec = "CMD"
@@ -235,6 +235,8 @@
 		
 		if (name == undefined) {
 			name = "amd://${url}";
+		} else if (!name.startsWith("amd://")) {
+			name = "amd://" + name;
 		}
 		
 		// CMD module factory
@@ -349,7 +351,7 @@ ${srcCode};
         chrome.runtime.sendMessage({method:"InjectModule", 
                                     data:JSON.stringify({name: uri, code: srcCode, callback: callbackID})});
       }
-    }
+    } // end of onXHRload
     
     function onTimeout(event) {
       onload(true);

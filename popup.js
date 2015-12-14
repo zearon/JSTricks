@@ -309,7 +309,7 @@ function log(arg) {
 			$("#showInDialogBtn").click(showInDialog);
 			$("#forjstcb").click(changeAutostart);
 			$("#enableDisableBtn").click(toggleExtension);
-			$("#optionsBtn").click(function() { window.open(chrome.runtime.getURL("options.html?tab=2"), "OptionPage"); });
+			$("#optionsBtn").click(function() { window.open(chrome.runtime.getURL("options.html"), "OptionPage"); });
 			
 			$("#jstcb").button({icons: {
 						primary: "ui-icon-locked"
