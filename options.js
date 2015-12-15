@@ -134,17 +134,17 @@
 			
 			run("save");
 		}
-		
+
 		function saveMetadata() {			
 			try {
 				var meta = editorMeta.getValue();
-				JSON.parse(meta);
+				//JSON.parse(meta);
+				jsonlint.parse(meta);
 				localStorage["meta"] = meta;
 				currentSavedStateMeta = editorMeta.getValue();
-			} catch (exception) {
-				console.log(exception);
-				if (confirm("Cannot save metadata. It is not valid JSON data.\nDo your want to open http://jsonlint.com/ to perform syntax check?"))
-					window.open("http://jsonlint.com/", "jsonlint");
+			} catch (ex) {
+				console.log(ex.message);
+				alert(ex.message);
 				return;
 			}
 			
@@ -559,6 +559,12 @@
 				if (target) {
 					$(target).toggle();
 				}				
+			});
+			
+			// jQuery UI accordion (like sections that can be collapsed and expanded.)
+			// The underlying HTML markup is a series of headers (H3 tags) and content divs so the content is usable without JavaScript.
+			$(".accordion").accordion({
+			  heightStyle: "fill"
 			});
 			
 			if (!localStorage["$setting.cloud-url"])

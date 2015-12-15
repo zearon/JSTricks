@@ -9,6 +9,7 @@ define(["jquery"], function(require, exports, module) {
 	var messageTimer = null;
 	var msgDivID = "jstmessage___eircksdfjkdfh";
 	var mode = parseInt(INFO.settings.builtin_msgboxPosition); // 0 for top, 1 for bottom
+	var displayTime = parseInt(INFO.settings.builtin_msgboxDisplayTime);
 	
 	function log(text, raw) {
 	  console.log(text);
@@ -24,7 +25,7 @@ define(["jquery"], function(require, exports, module) {
 		clearTimeout(messageTimer);
 		$message.stop().animate( getCssDisplayed() );
 		$message.append("<div>" + text + "</div>");
-		messageTimer = setTimeout(hideMsgBox,1750);	
+		messageTimer = setTimeout(hideMsgBox, displayTime);	
 		//console.log(text);
 	}
 	function keepMsgBox() {
