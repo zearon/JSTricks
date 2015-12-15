@@ -191,14 +191,23 @@ function updateSettings() {
             // in the two frames are different, but share a same DOM tree. For example (in content script):
             // chrome.runtime.sendMessage({tabid: INFO.tabid, method:"ExecuteJsCodeOrFile", data:"Test"}); // Test is the name of a content script.
             else if (requestMethod == "InjectContentScriptAsScriptNode"){
-				var csName = requestData;
+				var args = JSON.parse(requestData);
+				var csName = args.name;
+				var callbackID = args.callback ? args.callback : "";
+				
 				var script = null, text = localStorage["$cs-" + csName];
 				try {
 					script = JSON.parse(text).script;
 				} catch (ex) { return; }
 				
 				var dataUri = "data:text/javascript;charset=UTF-8," + encodeURIComponent(script);
-				chrome.tabs.executeScript(tabid, { code:`InjectCodeToOriginalSpace("${dataUri}")`} );
+				chrome.tabs.executeScript(tabid, { code:`
+					InjectCodeToOriginalSpace("${dataUri}", function() {
+						//console.log("Script ${csName} loaded.");
+						//console.log("__JSTricks_Messenger_OnScriptLoaded is", window["__JSTricks_Messenger_OnScriptLoaded"]);
+						window["__JSTricks_Messenger"].onScriptLoaded("${callbackID}");
+					});
+				`} );
             }
             
             // When settings are changed in options page (options.js), this message is sent to inform background page.

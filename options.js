@@ -2203,11 +2203,13 @@
 
 			var container = $("#contentscript-menu");
 			container.find("> .jstbox").removeClass("selected");
-			var node = $(`<div class="jstbox contentScriptKey selected" name="${name}" index="${index}">
+			var node = $(`<div class="jstbox contentScriptKey selected" name="${name}" title="${name}" index="${index}">
 					<div class="jsttitle" style="display:inline;font-variant:normal;position:relative;">
+						<nobr>
 						<span class="index">${index}</span>
 						<span>-</span>
 						<span class="name">${name}</span>
+						</nobr>
 						<div class="group">${group}/</div>
 					</div>
 				</div>
