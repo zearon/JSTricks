@@ -512,6 +512,7 @@
 					
 			$('#backupbtn').click(backup);
 			$('#restorebtn').click(restore);
+			$('#genInitSettingbtn').click(backupInitialSettings);
 			$("#cloudsave-savesettings").click(cloudStorageSaveSettings);
 			$('input:button.cloudbackup').click(cloudBackup);
 			$('input:button.cloudrestore').click(cloudRestore);
@@ -1099,17 +1100,13 @@
 		
 		function backup() {
 			var data = JSON.stringify(localStorage);
-			data = formatter.formatJson(data)
+			data = formatter.formatJson(data);
 			var link = $('#__UI_dialog__link');
 			link.attr('href', "data:text/plain;charset=UTF-8,"+encodeURIComponent(data));
 			link.attr('data-downloadurl', "text/plain:backup.json:"+"http://html5-demos.appspot.com/static/a.download.html");
 			link.innerHtml = "Download";
 			link.show();
 			link.click();
-			
-			if (localStorage["$setting.DEBUG"] == "true") {
-				backupInitialSettings();
-			}
 			
 			//var bb = new Blob([data], {type: 'text/plain'});
 			//var href = URL.createObjectURL(bb);
@@ -1139,7 +1136,7 @@
 			}
 		}
 		
-		function backupInitialSettings(linknode) {
+		function backupInitialSettings() {
 			var settings = {};
 			settings["$setting.DEBUG"] = "false";
 			settings["$setting.enabled"] = "true";
@@ -1160,17 +1157,19 @@
 			settings["cacheCss"] = "";
 			settings["cacheScript"] = "";
 			
-			var data = JSON.stringify(settings);
-			data = formatter.formatJson(data)
-			var parent = $('#__UI_dialog__link').parent();
-			var link = $("<a download='init_settings.json' title='Click to download.' style='margin-left:15px; position: relative; top: 5px'>Download Init Setting</a>")
-				.insertAfter('#__UI_dialog__link');
+			var data = JSON.stringify(settings), oldData = data;
+			data = formatter.formatJson(data);
+			var link = $('#__UI_dialog__link_init_setting');
 			link.attr('href', "data:text/plain;charset=UTF-8,"+encodeURIComponent(data));
 			link.attr('data-downloadurl', "text/plain:backup.json:"+"http://html5-demos.appspot.com/static/a.download.html");
 			link.show();
 			
 			console.log(data);
-			link.click();
+			link.off("click");
+			link.click(function() {
+				$("#settings-list .jstbox:eq(1)").click();
+				showConfiguration(oldData);
+			});
 		}
 		
 		
@@ -1718,7 +1717,7 @@
 			//cloudsave.php?method=load&path=chrome-ext&key=20151101-185152
 			cloudStoragePost({"method":"load", "key":key} , 
 			function(data) {
-				$("#settings-list .jstbox:eq(2)").click();
+				$("#settings-list .jstbox:eq(1)").click();
 				showConfiguration(data);
 			});
 		}

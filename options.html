@@ -552,6 +552,13 @@
 							Local storage backup file:
 							<input id="__LocalStorageFP__" type="file" title="Please select the backup file to restore" style="width:150px"/>
 							<input type="button" id="restorebtn" value="Restore" style='height:25px' />
+							
+							<div class="hide0">
+								<hr/>
+								<h2>Generate Initial Settings (only for development use)</h2>
+								<input type="button" id="genInitSettingbtn" value="Generate" style='height:25px' />
+								<a id="__UI_dialog__link_init_setting" download="init_settings.json" title="Click to download the backup file." style="display:none;position:relative;top:5px">Download</a>
+							</div>
 						</div>
 						<div id="settings-json-viewer" class="settingPanel">
 							<h3>JSON Viewer</h3><hr/>
