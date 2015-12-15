@@ -24,7 +24,7 @@ function updateSettings() {
 	DEBUG = localStorage["$setting.DEBUG"] == "true";
 	var setting = {};
 	for ( key in localStorage) {
-		if (!key.startsWith("$setting.") || key.startsWith("$setting.cloud-")) 
+		if (!key.startsWith("$setting.") || key.startsWith("$setting.cloud-") || key.startsWith("$settings.temp-") ) 
 			continue;
 		
 		var shortKey = key.replace("$setting.", "");
