@@ -1,5 +1,8 @@
 
 		html,body{margin:0;padding:0;background:#fefebb;font-family:Verdana;height:100%;font-size: 75%;min-width:850px;}
+		.ui-widget-content {
+			background: #efefba;
+		}
 		#page-title{
 			text-align:right;
 		}
