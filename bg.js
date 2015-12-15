@@ -117,14 +117,7 @@ function updateSettings() {
             	}
 				
 				// Inject a function to add <script> tag in document.
-				chrome.tabs.executeScript(tabid, {"code": `
-					function InjectCodeToOriginalSpace(src) {
-						var s = document.createElement('script');
-						s.setAttribute('src', src);
-						s.setAttribute('type', 'text/javascript');
-						(document.head||document.documentElement).appendChild(s);
-					}
-				`});
+				chrome.tabs.executeScript(tabid, {"code": codesnippet_addScriptNodeToDOM});
             	
 				var autoloadFileList = [];
 				var loadProperty = {necessaryAdded: false, autostartLibAdded: false, defaultAdded: false, siteAdded: false};
@@ -192,14 +185,32 @@ function updateSettings() {
 				}				
             }
             
-            // Invoked by clicking show popup page in dialog button in popup window
-            else if (requestMethod == "InjectPopupPage") {
-				var code = compile_template(codesnippit_showPopupInWebpage, requestData);
-				//debug_log(code);
-				chrome.tabs.executeScript(tabid, {"code": code});
+            // Invoked by request from content scripts to inject other content script as 
+            // a script node in DOM tree with Data URI. In this way, the injected script is
+            // executed in the top frame, instead of the extension frame. The window objects
+            // in the two frames are different, but share a same DOM tree. For example (in content script):
+            // chrome.runtime.sendMessage({tabid: INFO.tabid, method:"ExecuteJsCodeOrFile", data:"Test"}); // Test is the name of a content script.
+            else if (requestMethod == "InjectContentScriptAsScriptNode"){
+				var csName = requestData;
+				var script = null, text = localStorage["$cs-" + csName];
+				try {
+					script = JSON.parse(text).script;
+				} catch (ex) { return; }
+				
+				var dataUri = "data:text/javascript;charset=UTF-8," + encodeURIComponent(script);
+				chrome.tabs.executeScript(tabid, { code:`InjectCodeToOriginalSpace("${dataUri}")`} );
             }
             
-            // 
+            // When settings are changed in options page (options.js), this message is sent to inform background page.
+            else if (requestMethod == "UpdateSettings") {
+				updateSettings();
+            }
+            
+            // Invoked by DEBUG content script. Other script can send this message as well. For example:
+			// chrome.runtime.sendMessage( {tabid: INFO.tabid, method:"ExecuteJsCodeOrFile", data:[
+			//   { code: ` InjectCodeToOriginalSpace("${src}");`} ]
+			// } );
+			// data is a list of object, which has a code or file attribute that will be forwarded to chrome.tabs.executeScript function.
             else if (requestMethod == "ExecuteJsCodeOrFile") {
 				var execs = requestData;
 				for (var i = 0; i < execs.length; ++ i) {
@@ -208,10 +219,14 @@ function updateSettings() {
 				}
             }
             
-            else if (requestMethod == "UpdateSettings") {
-				updateSettings();
+            // Invoked by DEBUG content script.
+            else if (requestMethod == "InjectPopupPage") {
+				var code = compile_template(codesnippit_showPopupInWebpage, requestData);
+				//debug_log(code);
+				chrome.tabs.executeScript(tabid, {"code": code});
             }
             
+            // Invoked by DEBUG content script.
             else if (requestMethod == "ReloadBackroundPage") {
 				location.reload();
             }
