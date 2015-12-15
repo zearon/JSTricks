@@ -586,7 +586,11 @@ function log(arg) {
 					title = tooltip + title;
 					
 					var code = command.code;
-					if (code) {
+					if (command.loadModule == "true") {
+						var moduleName = command.moduleName, objName = command.objName;
+						var element = `<div style="display:inline"><input class="add-script-btn${runClass} init-script-btn" type="button" value="${command.title}" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-code="" /></div>`
+						sectionDiv.append(element);
+					} else if (code) {
 						var element = `<div style="display:inline"><input class="add-script-btn${runClass}" type="button" value="${command.title}" title="${title}" data-module="${section.moduleName}" data-obj="${section.objName}" data-code="${command.code}" /></div>`
 						sectionDiv.append(element);
 					} else {
@@ -726,7 +730,7 @@ function log(arg) {
 		
 		function restoreEditDialogContext(data) {
 			var context = JSON.parse(data);
-			console.log(context);
+			console.log("Restore dialog context:", context);
 			var controls = context.controls;
 			for ( key in controls) {
 				$("#"+key).val(controls[key]);
@@ -933,7 +937,7 @@ function log(arg) {
 			if (match[1] && match[1].indexOf('"'+className+'"') > -1) {
 				// Remove dependency
 				match[1] = match[1].replace(new RegExp(',\\s*\\"'+className+'\\"'), '');
-				match[2] = match[2].replace(new RegExp(',\\s*'+objName), '');
+				match[2] = match[2].replace(new RegExp(',\\s*'+objName.replace("$", "\\$")), '');
 				code = match[1] + match[2] + match[3];
 			} else {
 				// Add dependency
