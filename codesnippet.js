@@ -21,6 +21,17 @@ var codesnippit_showPopupInWebpage =
 	});
 `
 
+// Invoked in bg.js
+var codesnippet_addScriptNodeToDOM = 
+`
+	function InjectCodeToOriginalSpace(src) {
+		var s = document.createElement('script');
+		s.setAttribute('src', src);
+		s.setAttribute('type', 'text/javascript');
+		(document.head||document.documentElement).appendChild(s);
+	}
+`;
+
 // Invoked by addNecessaryScriptsToHead() in bg.js
 var codesnippet_onBootCode = 
 `

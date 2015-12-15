@@ -3,14 +3,53 @@
 <h3>Quick Start</h3>
 <div>
 	<h4>Brief Introduction</h4>
-	<p><a target="_blank"  href="https://chrome.google.com/webstore/detail/javascript-tricks/dpkgacdhagkgdhgmbfdhbmgdgnjibodb"><b>JavaScript Tricks</b></a> is a chrome extension that works as a user script library and allows you to create, edit, and manage all your user scripts. With this extension, your can make your user scripts automatically get executed when you open some websites, or even every website, or when you click on certain context menu items. </p>
-	<p>There are three item your can play with in this extension, 
-	The popup window, the context menu and the options page.</p>
-	<p>The popup window is the most frequent </p>
+	<p><a target="_blank"  href="https://chrome.google.com/webstore/detail/javascript-tricks/dpkgacdhagkgdhgmbfdhbmgdgnjibodb"><b>JavaScript Tricks</b></a> is a Chrome extension that works as a user script library and allows you to create, edit, and manage all your user scripts. With this extension, your can make your user scripts automatically get executed when you open some websites, or even every website, or when you click on certain context menu items. </p>
+	
+	<h4>Get Started</h4>
+	<p>1. Open a web site that you want to apply your user script, click on the extension icon on the Chrome toolbar. <br/>
+	2. In the popup window displayed, follow the comment, like // YOUR CODE GOES HERE, and edit your source code in the editor under JavaScript tab. You can save your work any time by pressing Ctrl+S (or Cmd+S on Mac). <br/>
+	3. If you want to inject some CSS styles, click on the CSS tab and edit your styles in the editor. <br/>
+	4. Click on the Autostart button, and then refresh the webpage, and your script will get executed when webpage loaded.</p>
+	<p>You can check the execution status by adding console.log(...) in your code and view the console in the development tools of Chrome. </p>
+	
+	
+	<h4>Code Generation</h4>
+	<p>In the popup window, there are three top level tabs, and under the JavaScript tab, there are a few second level tabs. The buttons in the tabs will help you generating some code snippets. Place the edit cursor at the place you want to insert the code in the editor, and click the button, the generated code will be inserted into your script. </p>
+	<p>Frequently used codes are wrapped into functions and organized as modules. Each well-configured module appears as a second level tab under JavaScript tab. In every module tab, there is a <b>Init</b> button, which initializes the modules in the script, and any amount of other buttons which call functions in the module. Some of these buttons are followed by several input fields, whose values are arguments of the generated code.</p>
+	<p>There are several built-in module shipped with this extension. Beside these modules, you can create your own module and configure them as code generation tools displayed in the popup window.</p>
+	
+	
+	<h4>Context Menu</h4>
+	<p>In the popup window, there are three top level tabs, and under the JavaScript tab, there are a few second level tabs. The buttons in the tabs will help you generating some code snippets. Place the edit cursor at the place you want to insert the code in the editor, and click the button, the generated code will be inserted into your script. </p>
+	
+	<p></p>
+	<pre>
+/* Line 11
+ *     run(["jquery", "#Novel"], function($, novel) { ... });
+ *   means this piece of script should import module jquery as symbol $ and 
+ *   dynamic content script named Novel as symbol novel respectively.
+ *
+ * Line 12 - 15 defines a function named main, which do the actual job.
+ * Line 17 uses jQuery to indicate that when the DOM tree of the web Page
+ *   is ready, call the main function.
+ */
+ 
+run(["jquery", "#Novel"], function($, novel) {
+  function main() {
+    novel.prefetch('a:contains(\'下一\'):eq(0)');
+    console.log("Done.");
+  }
+  
+  $(main);
+});
+				
+	</pre>
 </div>
 
 <h3>Scripts and Meta Data</h3>
-<div>22
+<div>
+	<h4>Utilizing Code Generation Tools</h4>
+	<p>1. Open a web site that yo</p>
 </div>
 
 <h3>User Interface</h3>

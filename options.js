@@ -566,7 +566,8 @@
 				// jQuery UI accordion (like sections that can be collapsed and expanded.)
 				// The underlying HTML markup is a series of headers (H3 tags) and content divs so the content is usable without JavaScript.
 				$(".accordion").accordion({
-				  heightStyle: "fill" /*auto, fill, content*/
+					collapsible: true,
+				  	heightStyle: "content" /*auto, fill, content*/
 				});
 			});
 			
