@@ -98,16 +98,15 @@ define(["jquery"], function(require, exports, module) {
 			{
 				position:fixed;
 				${getInitCSSStyle()}
-				left:50%;
-				margin-left:-250px;
-				width:500px;
+				left:calc( 50% - ${INFO.settings.builtin_msgboxWidth} / 2);
 				padding:0 10px;
+				width:${INFO.settings.builtin_msgboxWidth}; /* 500px */
 				font-family: "Microsoft YaHei";
-				opacity: ${INFO.settings.builtin_msgboxOpacity};
-				background:rgba(247,223,29,1);
+				opacity: ${INFO.settings.builtin_msgboxOpacity}; /* 0.8 */
 				box-shadow:rgba(0,0,0,0.4) 0 3px 10px;
 				border-radius:5px 5px 5px 5px;
-				border:1px solid rgba(147,123,19,1);
+				background:${INFO.settings.builtin_msgboxBgColor}; /* rgba(247,223,29,1), #F7DF1D */
+				border:${INFO.settings.builtin_msgboxExtraStyles}; /* 1px solid rgba(147,123,19,1) #937B13 */
 				border-top:0px;
 				z-index:2147483645;
 			}
@@ -126,7 +125,9 @@ define(["jquery"], function(require, exports, module) {
 	</style>
 	<div id="${msgDivID}" ></div>
 		`);
-		$('#'+msgDivID).hover(keepMsgBox, hideMsgBox);
+		$('#'+msgDivID).hover(keepMsgBox, function() {
+			messageTimer = setTimeout(hideMsgBox, displayTime);	
+		});
 	}
 			
 	$(function() {

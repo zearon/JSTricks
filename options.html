@@ -356,12 +356,19 @@
 								<tr>
 								
 								<tr>
-									<td colspan="4" class="" target="">
-									<h3>Build-in Scripts</h3></td>
+									<td colspan="4" class="togglePanel" target=".settings-msgbox" title="Click to toggle display">
+									<h3>Build-in Scripts - Message Box ...</h3></td>
 								<tr>
-								<tr class="localstorage_item">
+								<tr class="localstorage_item settings-msgbox hide">
+									<td title='Disaply time in milliseconds of the message box shown by calling log (assigned by require("msgbox")) function in content scripts.'>
+									Display Time (ms)</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.builtin_msgboxDisplayTime" defaultvalue="3750" value="3750" size="9" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_msgboxDisplayTime" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_msgboxDisplayTime" value="Set to Default" /></td>
+								<tr>
+								<tr class="localstorage_item settings-msgbox hide">
 									<td title='The position of the message box.'>
-									Message Box: Position</td>
+									Position</td>
 									<td><select class="localstorage_itemvalue" target="$setting.builtin_msgboxPosition" defaultvalue="1" >
 										<option value="0">Top</option>
 										<option value="1">Bottom</option>
@@ -369,30 +376,51 @@
 									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_msgboxPosition" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_msgboxPosition" value="Set to Default" /></td>
 								<tr>
-								<tr class="localstorage_item">
+								<tr class="localstorage_item settings-msgbox hide">
+									<td title='A css style string representing the width of the message box shown by calling log (assigned by require("msgbox")) function in content scripts.'>
+									Width</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.builtin_msgboxWidth" defaultvalue="500px" value="500px" size="9" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_msgboxWidth" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_msgboxWidth" value="Set to Default" /></td>
+								<tr>
+								<tr class="localstorage_item settings-msgbox hide">
 									<td title='A decimal between 0 to 1 indicating the opacity of the message box shown by calling log (assigned by require("msgbox")) function in content scripts. 0 means totally transparent, and 1 means totally opaque.'>
-									Message Box: Opacity</td>
+									Opacity</td>
 									<td><input type="text" class="localstorage_itemvalue" target="$setting.builtin_msgboxOpacity" defaultvalue="0.8" value="0.8" size="9" /></td>
 									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_msgboxOpacity" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_msgboxOpacity" value="Set to Default" /></td>
 								<tr>
-								<tr class="localstorage_item">
-									<td title='Disaply time in milliseconds of the message box shown by calling log (assigned by require("msgbox")) function in content scripts.'>
-									Message Box: Display Time (ms)</td>
-									<td><input type="text" class="localstorage_itemvalue" target="$setting.builtin_msgboxDisplayTime" defaultvalue="3750" value="3750" size="9" /></td>
-									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_msgboxDisplayTime" value="Save" /></td>
-									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_msgboxDisplayTime" value="Set to Default" /></td>
+								<tr class="localstorage_item settings-msgbox hide">
+									<td title='The backgound color of the message box shown by calling log (assigned by require("msgbox")) function in content scripts.'>
+									Background Color</td>
+									<td><input type="text" class="localstorage_itemvalue color" target="$setting.builtin_msgboxBgColor" defaultvalue="#F7DF1D" value="#F7DF1D" size="9" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_msgboxBgColor" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_msgboxBgColor" value="Set to Default" /></td>
 								<tr>
-								<tr class="localstorage_item">
+								<tr class="localstorage_item settings-msgbox hide">
+									<td title='Extra CSS style of the message box shown by calling log (assigned by require("msgbox")) function in content scripts.'>
+									Extra Styles</td>
+									<td><textarea class="localstorage_itemvalue" target="$setting.builtin_msgboxExtraStyles" defaultvalue="border:1px solid #937B13;" style="min-width:155px;" >border:1px solid #937B13;</textarea>
+									<br/>Color chooser <input type="text" class="color" value="#937B13" size="8" />
+									</td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_msgboxExtraStyles" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_msgboxExtraStyles" value="Set to Default" /></td>
+								<tr>
+								
+								<tr>
+									<td colspan="4" class="togglePanel" target=".settings-selectbox" title="Click to toggle display">
+									<h3>Build-in Scripts - Selection Box ...</h3></td>
+								<tr>
+								<tr class="localstorage_item settings-selectbox hide">
 									<td title='Pixel size value of the edge of selection box shown in webpage when Choose DOM Node buttons are clicked in popup window.'>
-									Selection Box: Edge Size</td>
+									Edge Size</td>
 									<td><input type="text" class="localstorage_itemvalue" target="$setting.builtin_selectionboxEdgeSize" defaultvalue="3" value="3" size="9" /></td>
 									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_selectionboxEdgeSize" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_selectionboxEdgeSize" value="Set to Default" /></td>
 								<tr>
-								<tr class="localstorage_item">
+								<tr class="localstorage_item settings-selectbox hide">
 									<td title='CSS color value of the edge of selection box shown in webpage when Choose DOM Node buttons are clicked in popup window.'>
-									Selection Box: Edge Color</td>
+									Edge Color</td>
 									<td><input type="text" class="localstorage_itemvalue color" target="$setting.builtin_selectionboxEdgeColor" defaultvalue="#65F166" value="#65F166" size="9" /></td>
 									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_selectionboxEdgeColor" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_selectionboxEdgeColor" value="Set to Default" /></td>
