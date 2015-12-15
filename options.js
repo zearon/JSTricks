@@ -561,19 +561,22 @@
 				}				
 			});
 			
-			// jQuery UI accordion (like sections that can be collapsed and expanded.)
-			// The underlying HTML markup is a series of headers (H3 tags) and content divs so the content is usable without JavaScript.
-			$(".accordion").accordion({
-			  heightStyle: "fill"
+			// Load the user manual page
+			$("#manual-content").load("userManual.html", function() {			
+				// jQuery UI accordion (like sections that can be collapsed and expanded.)
+				// The underlying HTML markup is a series of headers (H3 tags) and content divs so the content is usable without JavaScript.
+				$(".accordion").accordion({
+				  heightStyle: "fill" /*auto, fill, content*/
+				});
 			});
 			
 			if (!localStorage["$setting.cloud-url"])
 				$(".cloudsave-setting").show();
 			
-			$("#settings-release-notes-btn.empty").click(function() {
+			//$("#settings-release-notes-btn.empty").click(function() {
 				$("#settings-release-notes").load("releasenotes.html");
 				$(this).removeClass("empty");
-			});
+			//});
 			
 			$("#logo").css({"width":128}).delay(10).animate({"width":48},function(){
 				$(this).attr("src","icon48.png");
@@ -740,6 +743,7 @@
 			}
 			
 			$(document).tooltip({
+				tooltipClass: "tooltip",
 				content: function() {
 					return $(this).attr('title');
 				}
