@@ -24,10 +24,11 @@ var codesnippit_showPopupInWebpage =
 // Invoked in bg.js
 var codesnippet_addScriptNodeToDOM = 
 `
-	function InjectCodeToOriginalSpace(src) {
+	function InjectCodeToOriginalSpace(src, onload) {
 		var s = document.createElement('script');
 		s.setAttribute('src', src);
 		s.setAttribute('type', 'text/javascript');
+		if (onload) { s.onload = onload; }
 		(document.head||document.documentElement).appendChild(s);
 	}
 `;

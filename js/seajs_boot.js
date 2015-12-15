@@ -377,7 +377,7 @@ ${srcCode};
  ***************************************************/  
   // Define define plugin for local storage shchema
   seajs.on("exec", function(data) {
-	  log("5. Excuting module", data.id, data );
+	  log("6. Excuting module", data.id, data );
   });     
   
   
