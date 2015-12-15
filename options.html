@@ -468,6 +468,8 @@
 									<td colspan="4" style="border-top:solid 1px #bbbbbb; padding-top: 10px;">
 										<input type="button" class="localstorage_saveall" value="Save All" />
 										<input type="button" class="localstorage_resetall" value="All Set to Default" />
+										<div style="display:inline-block; width: 35px;"></div>
+										<input type="button" id="removeTempSettingsBtn" value="Remove Temporary Settings" />
 									</td>
 								</tr>
 							</table>
@@ -557,7 +559,7 @@
 								<hr/>
 								<h2>Generate Initial Settings (only for development use)</h2>
 								<input type="button" id="genInitSettingbtn" value="Generate" style='height:25px' />
-								<a id="__UI_dialog__link_init_setting" download="init_settings.json" title="Click to download the backup file." style="display:none;position:relative;top:5px">Download</a>
+								<a id="__UI_dialog__link_init_setting" download="init_settings.json" title="Click to download and view the init_settings.json file." style="display:none;position:relative;top:5px">Download and View</a>
 							</div>
 						</div>
 						<div id="settings-json-viewer" class="settingPanel">

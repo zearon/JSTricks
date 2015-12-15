@@ -525,6 +525,8 @@
 			$("#cloudsave-genkey").click(cloudStorageGenKey);
 			$("#show-cloudsave-src").click(showCloudStorageSrc);
 			
+			$("#removeTempSettingsBtn").click(removeTempSettings);
+			
 			$("#dcssave").click(save);
 			$("#dcsadd").click(addContentScript);
 			$("#dcsrename").click(renameContentScript);
@@ -1175,6 +1177,13 @@
 		
 		function updateSettings() {
 			chrome.runtime.sendMessage({method:"UpdateSettings"});
+		}
+		
+		function removeTempSettings() {
+			for (key in localStorage) {
+				if (key.startsWith("$setting.temp-"))
+					delete localStorage[key];
+			}
 		}
 		
 		function initControlsRelatingToLocalStorage() {			
