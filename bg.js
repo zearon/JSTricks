@@ -106,7 +106,7 @@ function updateSettings() {
             		chrome.browserAction.setIcon({path: "icon24.png"});
             	}
 				
-				// Inject injected.js file by inserting a <script> tag in document.
+				// Inject a function to add <script> tag in document.
 				chrome.tabs.executeScript(tabid, {"code": `
 					function InjectCodeToOriginalSpace(src) {
 						var s = document.createElement('script');
@@ -117,54 +117,14 @@ function updateSettings() {
 				`});
             	
 				var autoloadFileList = [];
-				if( !localStorage[key] ) {
-					addNecessaryScriptsToHead(autoloadFileList, tabid, url);				
-					loadIncludeFiles(tabid, null, autoloadFileList, 0);
-					
-					return;
-				}
-            
-            	// debug_log("[JScript Tricks] loading scripts for tab " + tabid + " " + url);
+				var loadProperty = {necessaryAdded: false, autostartLibAdded: false, defaultAdded: false, siteAdded: false};
 				
-				// Inject injected.js file by inserting a <script> tag in document.
-				chrome.tabs.executeScript(tabid, {"code": `
-					InjectCodeToOriginalSpace("chrome-extension://" + chrome.runtime.id + "/injected.js");
-					//})();
-				`});
+				addNecessaryScriptsForAllSiteToHead(tabid, url, autoloadFileList, loadProperty);
 				
-				var autoloadFiles = {}; var fileCount = 0;
-				autoloadFileList = [];
-				try {
-					var metadata = JSON.parse(localStorage["meta"]);
-					var include = metadata["include"];
-					// autoloadFiles["length"] = include.length;
-					for ( var i = 0; i < include.length; ++i) {
-						var fileName = "$cs-" + include[i];
-						var text = localStorage[fileName];
-						var data = JSON.parse(text);
-						autoloadFiles[data["index"]] = {"name":include[i], "code":data["script"], "type":"js"};
-						fileCount ++;
-					}
-					for (index in autoloadFiles) {
-						autoloadFileList.push(autoloadFiles[index]);
-					}
-					autoloadFileList.unshift(/*
-						{name:"boot/jquery", file:"js/jquery.sea.js", type:"js"}, 
-						{name:"boot/jquery-ui", file:"js/jquery-ui.js", type:"js"},  
-						{name:"boot/jquery-init", code:"jQuery.noConflict();", type:"js"}, 
-						{name:"boot/msgbox", file:"js/selectionBox.js", type:"js"},
-						{name:"boot/msgbox", file:"js/nodeSelector.js", type:"js"},
-						{name:"boot/msgbox", file:"js/msgbox.js", type:"js"}*/
-					);
-					addNecessaryScriptsToHead(autoloadFileList, tabid, url);
-					
-					
-					// debug_log("autoloadFiles:");
-					// debug_log(autoloadFileList);
-				} catch(exception) {
-				}
+				loadDefaultScript(tabid, key, autoloadFileList, loadProperty);
 				
-				loadDefaultScript(tabid, key, autoloadFileList);
+				delete autoloadFileList;
+				delete loadProperty;
             }
             
             // Invoked when content menues are clicked.
@@ -247,9 +207,14 @@ function updateSettings() {
             }
         }
         
-        function addNecessaryScriptsToHead(autoloadFileList, tabid, url) {
-        	var setMetaDataCode = codesnippet_getOnBootCode(tabid, url, infoStr);
-        	// console.log(setMetaDataCode);
+        function addNecessaryScriptsForAllSiteToHead(tabid, url, autoloadFileList, loadProperty) {
+        	if (loadProperty.necessaryAdded)
+        		return;
+        		
+        	loadProperty.necessaryAdded = true;
+        		
+			var setMetaDataCode = codesnippet_getOnBootCode(tabid, url, infoStr);
+			// console.log(setMetaDataCode);
 			autoloadFileList.unshift(
 				{name:"boot/setMetaData", code:setMetaDataCode, type:"js"},/*
 				 // confiture seajs_boot.js injection manifest.json
@@ -262,19 +227,21 @@ function updateSettings() {
 					if (mlsd.script)
 						autoloadFileList.unshift({name:"boot/Main", code:mlsd.script, type:"js"});
 				} catch (exception) {
-					chrome.tabs.executeScript(tabid, {code: 'showMessage("Error occurs during loading Main script");'});
+					chrome.tabs.executeScript(tabid, {code: 'console.error("Error occurs during loading Main script");'});
 					debug_log(exception);
 				}
 			}
         }
         
-		function loadDefaultScript(tabid, key, autoloadFileList) {
+		function loadDefaultScript(tabid, key, autoloadFileList, loadProperty) {		
 			// debug_log("Loading default script.");
-				
 			try {
 				var dlsd = JSON.parse(localStorage["Default"]);
 				
 				if(dlsd.autostart) {
+					loadProperty.defaultAdded = true;					
+					addScriptsForAutostartSite(tabid, key, autoloadFileList, loadProperty);
+					
 					addContentScriptsToLoadList(autoloadFileList, dlsd.sfile);
 					var code = "console.info('[Javascript Tricks] Default script is executing');";
 					code += dlsd.script;
@@ -283,31 +250,73 @@ function updateSettings() {
 					chrome.tabs.insertCSS(tabid, {code:dlsd.css, runAt:"document_start"});
 				} 
 				
-				loadSiteScript(tabid, key, autoloadFileList);
-			} catch (exception) {			
-				chrome.tabs.executeScript(tabid, {code: 'showMessage("Error occurs during loading Default script");'});
-				debug_log(exception);
+				loadSiteScript(tabid, key, autoloadFileList, loadProperty);
+			} catch (ex) {			
+				chrome.tabs.executeScript(tabid, {code: "console.error('Error occurs during loading Default script:', `" + ex.stack + "`);"});
+				debug_log(ex);
 				//loadSiteScript(tabid, key);
 			}
 		}
 		
-		function loadSiteScript(tabid, key, autoloadFileList) {
+		function loadSiteScript(tabid, key, autoloadFileList, loadProperty) {
 			if( localStorage[key] ) {
 				var lsd = JSON.parse(localStorage[key]);
 				if(lsd.autostart) {
+					loadProperty.siteAdded = true;					
+					addScriptsForAutostartSite(tabid, key, autoloadFileList, loadProperty);
+					
 					chrome.browserAction.setIcon({path: "icon24_auto.png"});
 					
 					if(lsd.sfile != "") {					
 						addContentScriptsToLoadList(autoloadFileList, lsd.sfile);
 					}
-					autoloadFileList.push( {"name":"Site Script " + key, "code":lsd.script, "type":"js"} );
+					
+					var code = "console.info('[Javascript Tricks] Site script is executing');";
+					code += lsd.script;
+					autoloadFileList.push( {"name":"Site Script " + key, "code":code, "type":"js"} );
 				}
+			
+				if (lsd.css)
+					chrome.tabs.insertCSS(tabid,{code:lsd.css, runAt:"document_start"});
 			}
-						
-			chrome.tabs.insertCSS(tabid,{code:lsd.css, runAt:"document_start"});
+			
 			// Load all included files in chain.
 			loadIncludeFiles(tabid, null, autoloadFileList, 0);
 		}
+        
+        function addScriptsForAutostartSite(tabid, url, autoloadFileList, loadProperty) {	
+        	if (loadProperty.autostartLibAdded)
+        		return;
+        		
+        	loadProperty.autostartLibAdded = true;
+        		
+			// Inject injected.js file by inserting a <script> tag in document.
+			chrome.tabs.executeScript(tabid, {"code": `
+				InjectCodeToOriginalSpace("chrome-extension://" + chrome.runtime.id + "/injected.js");
+			`});
+			
+			// Inject content scripts in include section of meta data.
+			var autoloadFiles = {}; var fileCount = 0;
+			try {
+				var metadata = JSON.parse(localStorage["meta"]);
+				var include = metadata["include"];
+				// autoloadFiles["length"] = include.length;
+				for ( var i = 0; i < include.length; ++i) {
+					var fileName = "$cs-" + include[i];
+					var text = localStorage[fileName];
+					var data = JSON.parse(text);
+					autoloadFiles[data["index"]] = {"name":include[i], "code":data["script"], "type":"js"};
+					fileCount ++;
+				}
+				for (index in autoloadFiles) {
+					autoloadFileList.push(autoloadFiles[index]);
+				}					
+				
+				// debug_log("autoloadFiles:");
+				// debug_log(autoloadFileList);
+			} catch(exception) {
+			}
+        }
 		
 		function emptyFunc() {};
         

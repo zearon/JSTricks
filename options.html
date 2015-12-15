@@ -357,11 +357,21 @@
 									<h3>Build-in Scripts</h3></td>
 								<tr>
 								<tr class="localstorage_item">
+									<td title='The position of the message box.'>
+									Message Box: Position</td>
+									<td><select class="localstorage_itemvalue" target="$setting.builtin_msgboxPosition" defaultvalue="0" >
+										<option value="0">Top</option>
+										<option value="1">Bottom</option>
+									</select></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_msgboxPosition" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_msgboxPosition" value="Set to Default" /></td>
+								<tr>
+								<tr class="localstorage_item">
 									<td title='A decimal between 0 to 1 indicating the opacity of the message box shown by calling log (assigned by require("msgbox")) function in content scripts. 0 means totally transparent, and 1 means totally opaque.'>
 									Message Box: Opacity</td>
-									<td><input type="text" class="localstorage_itemvalue" target="$setting.builtin_selectionboxEdgeColormsgboxOpacity" defaultvalue="0.8" value="0.8" size="7" /></td>
-									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_selectionboxEdgeColor_msgboxOpacity" value="Save" /></td>
-									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_selectionboxEdgeColormsgboxOpacity" value="Set to Default" /></td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.builtin_msgboxOpacity" defaultvalue="0.8" value="0.8" size="7" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_msgboxOpacity" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_msgboxOpacity" value="Set to Default" /></td>
 								<tr>
 								<tr class="localstorage_item">
 									<td title='Pixel size value of the edge of selection box shown in webpage when Choose DOM Node buttons are clicked in popup window.'>

@@ -1,5 +1,5 @@
 var template_site_script = 
-`run(["ready" /*,"jQuery"*/], function(ready /*,$*/) {
+`run(["ready"], function(ready) {
   function SiteScript() {	// for website {{url}}
     <SELECTION_START>// YOUR CODE GOES HERE<SELECTION_END>
   }
