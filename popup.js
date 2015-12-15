@@ -120,10 +120,11 @@ function API_SendMessageToTab(tabid, msg, callback) {
 	}
 }
 
-function log(arg) {
-	console.log(arg);
+function log() {
+	console.log.apply(console, arguments);
+	
 	if (DEBUG) {
-		API_SendRequest("ConsoleLog", arg);
+		API_SendRequest("ConsoleLog", arguments);
 	}
 }
 
@@ -637,13 +638,6 @@ function log(arg) {
 				.append('<div id="genUITab-____Clear______" class="tab-pane"></div>');
 			
 			$(".add-script-btn").click(addScript);
-/* 
-			if (DISABLE_RUN_BUTTON_CODE)
-				$(".run-script-btn").attr("title", "Click button to <b style='color:red;'>insert</b> generated code.<br/>WARNING: <b>Disable Run Code Button</b> switch in options is turned on. Turn it off to <b>run</b> generated code on clicking this button.");
-			else
-				$(".run-script-btn").attr("title", "Click button to <b>run</b> generated code.<br/>It is unnecessary to click Init button.");
-
- */
 				
 			$(".init-script-btn").click(addRequireFile);
 			$(".select-domnode-btn").click(startSelectingDomNode).mouseenter(hightlightSelectorNode);
@@ -670,10 +664,13 @@ function log(arg) {
 				});
 			});
 			
-			if (activeModule)
+			$(".tab-level").click(rememberSelectedTabs);
+			
+			if (activeModule) {
 				$(`li.tab-title[module='${activeModule}']`).click();
-			else
-				$(`li.tab-title:eq(0)`).click();
+			} else {
+				loadRememberedStatus();
+			}
 		}
 		
 		// window.postMessage({type:"NS-NodeSelected", tabid:1157, controlid:"code-arg-0-5-0", value:"DIV.b_caption"}, "*");
@@ -729,8 +726,11 @@ function log(arg) {
 		}
 		
 		function restoreEditDialogContext(data) {
-			var context = JSON.parse(data);
-			console.log("Restore dialog context:", context);
+			var context = data;
+			if (typeof data === "string")
+				context = JSON.parse(data);
+			
+			log("Restore popup window context:", context/*, "at", new Error().stack*/);
 			var controls = context.controls;
 			for ( key in controls) {
 				$("#"+key).val(controls[key]);
@@ -741,6 +741,29 @@ function log(arg) {
 				for (var i = 0; i < selectedTabs.length; ++ i) {
 					$("li.tab-level." + selectedTabs[i]).click();
 				}
+		}
+		
+		function rememberSelectedTabs() {
+			var context = getEditDialogContext();
+			context.controls = {};
+			var contextStr = JSON.stringify(context);
+			localStorage["$setting.temp-popupWindowContext"] = contextStr;
+			log("Remember popup window context", contextStr/*, "at", new Error().stack*/);
+		}
+		
+		function loadRememberedStatus() {
+			var context = localStorage["$setting.temp-popupWindowContext"];
+			var contextLoaded = false;
+			try {
+				restoreEditDialogContext(JSON.parse(context));
+				contextLoaded = true;
+			} catch (ex) {
+				log("Invalid context JSON:", context);
+			}
+			
+			if (!contextLoaded) {
+				$(`li.tab-title:eq(0)`).click();
+			}
 		}
 
 		

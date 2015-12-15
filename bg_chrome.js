@@ -79,7 +79,12 @@ function SendMessageToTab(tabid, method, id, arg) {
 }
 
 function ConsoleLog(tabid, method, id, arg) {
-	console.log(arg);
+	var argArray = [];
+	for (k in arg) {
+		argArray[k] = arg[k];
+	}
+	console.log.apply(console, argArray);
+	delete argArray;
 }
 
 })();

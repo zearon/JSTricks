@@ -66,27 +66,29 @@ function updateSettings() {
 					// debug_log(`Current active tab is ${tabs[0].id}, title: ${tabs[0].title}, url:${tabs[0].url}`);
 					
 					var tabid = (sender && sender.tab) ? sender.tab.id : undefined;
-					processTab(sender.tab.id, request.method, request.data);
+					processTab(tabid, request.method, request.data);
 				});
 			}
         });
         
         function processTab(tabid, requestMethod, requestData) {
-			chrome.tabs.get(tabid, function(tab) {
-				if (chrome.runtime.lastError) {
-					// tab is not fetched successfully
-					console.error(`Tab ${tabid} does not exist`);
-				} else {
-					// debug_log(`[JScript Tricks] processing tab ${tab.id} title:${tab.title}, url:${tab.url}`);
-					processRequest(tab.id, tab.url, requestMethod, requestData);
-				}
-			});
+        	// if tabid is undefined
+        	if (!tabid) {
+        		processRequest(undefined, undefined, requestMethod, requestData);
+        	} else {
+				chrome.tabs.get(tabid, function(tab) {
+					if (chrome.runtime.lastError) {
+						// tab is not fetched successfully
+						console.error(`Tab ${tabid} does not exist`);
+					} else {
+						// debug_log(`[JScript Tricks] processing tab ${tab.id} title:${tab.title}, url:${tab.url}`);
+						processRequest(tab.id, tab.url, requestMethod, requestData);
+					}
+				});
+			}
         }
         
-        function processRequest(tabid, url, requestMethod, requestData) {
-			var d = url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/); 
-			var key = d[1];
-					
+        function processRequest(tabid, url, requestMethod, requestData) {					
 			//chrome.browserAction.setIcon({path:"icon24_auto.png"});
 			
         	// Load _Main script as the entry-point of requireJS
@@ -96,6 +98,9 @@ function updateSettings() {
         	
         	// Inject site-specific scripts on website loaded.
             else if (requestMethod == "JSTinjectScript") {
+				var d = url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/); 
+				var key = d[1];
+				
             	if (localStorage["$setting.enabled"] === undefined)
             		localStorage["$setting.enabled"] = "true";
             		
