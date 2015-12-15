@@ -40,15 +40,17 @@
 }) (this);
 
 
-define("nodeSelector", ["jquery", "selectbox"], function(require, exports, module) {
+define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, exports, module) {
 	var $ = require("jquery");
 	var SelectionBox = require("selectbox");
+	var msgbox = require("msgbox");
 	
 	// window.tabid is injected in bg.js on tab created and updated
 	var tabid = INFO.tabid;
 	var edgeSize = typeof INFO !== "undefined" ? INFO.settings.builtin_selectionboxEdgeSize : undefined;
 	var edgeColor = typeof INFO !== "undefined" ? INFO.settings.builtin_selectionboxEdgeColor : undefined;
 	var selectionBox = new SelectionBox(edgeSize, edgeColor);
+	var autoScrollToSelectedNode = true;
 	
 	var NS_switch = false;
 	var NS_styleName = "NS_SELECTED_NODE_2312356451321356453";
@@ -56,6 +58,7 @@ define("nodeSelector", ["jquery", "selectbox"], function(require, exports, modul
 	
 	var timer = null;
 	var currentSelector = null;
+	var lastSelectedNodes = null;	
 	
 	// Export handleMessages function
 	exports.handleMessages = function(request, sender) {
@@ -66,17 +69,17 @@ define("nodeSelector", ["jquery", "selectbox"], function(require, exports, modul
 		}	
 	}
 	
-	//$(NS_init);
+	$(NS_init_selection_box);
 	
 	
 	
-	/*
+	
 	function NS_init_selection_box() {		
 		$(`
 		<style>
 			.${NS_styleName} {
 				//background-color: rgba(0,0,255,0.2);
-				border: 2px #3bff3b solid;
+				border: ${edgeSize}px ${edgeColor} solid;
 			}
 			
 		</style>
@@ -85,20 +88,48 @@ define("nodeSelector", ["jquery", "selectbox"], function(require, exports, modul
 		borderdiv = $(`
 			<span id='${NS_titleNode}' style='display:none; background-color: rgba(255,255,255,1); position:absolute; z-index:99999; font-size:10px' ></span>
 		`).appendTo("body");
-	} */
-	
+	}
+
 	function NS_hightlightNode(selector) {
 		if (timer)
 			clearTimeout(timer);
+			
+		if (lastSelectedNodes) {
+			lastSelectedNodes.removeClass(NS_styleName);
+			selectionBox.hide();
+		}
 		
 		var nodes = $(selector);
-		if (nodes.length) {
+		if (nodes.length) {			
+			msgbox("" + nodes.length + " nodes are selected.");
 			console.log("Selected " + nodes.length + " nodes are: ", nodes);
-			selectionBox.highlight(nodes[0]);
 			
-			timer = setTimeout(function() { selectionBox.hide(); }, 5000);
+			nodes.addClass(NS_styleName);
+			
+			var firstNode = nodes[0];
+			selectionBox.highlight(firstNode);
+			
+			if (autoScrollToSelectedNode) {
+				var top = $(firstNode).offset().top;
+				var windowHeight = $(window).height();
+				var scrollerPos = document.body.scrollTop;
+				console.log("top", top, "height", windowHeight);
+				if (top > windowHeight + scrollerPos) {
+					document.body.scrollTop = top - 100;
+				} else if (top < scrollerPos) {
+					document.body.scrollTop = top - 100;
+				}
+			}
+			
+			timer = setTimeout(function() { 
+				nodes.removeClass(NS_styleName);
+				selectionBox.hide(); 
+			}, 5000);
+			
+			lastSelectedNodes = nodes;
 		} else {
-			console.log("The elector does not match any node.");
+			lastSelectedNodes = null;
+			msgbox("The selector does not match any node.");
 		}
 	}
 	

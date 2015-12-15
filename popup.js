@@ -335,6 +335,7 @@ function log() {
 			restore_options(function(){
 				//run();
 				editor = CodeMirror.fromTextArea(document.getElementById("scriptText"), {
+					tabindex: 2,
 					mode: 'text/javascript',
 					tabMode: 'indent',
 					lineNumbers:true,
@@ -390,7 +391,7 @@ function log() {
 					if (setFocus) {
 						editor.focus();
 						// In popup page, focus is set to the first control on page load automatically, so a timeout is used.
-						setTimeout(function() { editor.focus(); }, 100);
+						setTimeout(function() { editor.focus(); }, 200);
 					}
 				}
 				setSelectionInEditor(editor, true);

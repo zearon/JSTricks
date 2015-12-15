@@ -24,8 +24,23 @@ function scriptMenuClick(info, tab) {
 	var script = JSON.parse(text)["script"];
 	*/
 	
-	chrome.tabs.executeScript(tab.id, {code:"delete INFO.contextMenuInfo; INFO.contextMenuInfo = JSON.parse(decodeURIComponent('"+encodeURIComponent(JSON.stringify(info))+"')); if (INFO.debug) { console.debug(INFO); }"});
-	chrome.runtime.sendMessage({tabid: tab.id, method: "ExecuteContentScript", data: file});
+	function execScriptInTab(tabid) {
+		chrome.tabs.executeScript(tabid, {code:'delete INFO.contextMenuInfo; INFO.contextMenuInfo = JSON.parse(decodeURIComponent("'+encodeURIComponent(JSON.stringify(info))+'")); if (INFO.debug) { console.debug(INFO); }'});
+		chrome.runtime.sendMessage({tabid: tabid, method: "ExecuteContentScript", data: file});
+	}
+	
+	if (tab.id >= 0) {
+		execScriptInTab(tab.id);
+	} else {		
+		chrome.tabs.query({active:true}, function(tabs) {
+			if (chrome.runtime.lastError) {
+				// cannot get current selected tab.
+			} else {
+				execScriptInTab(tabs[0].id);
+			}
+		});
+	}
+	
 	
 	// chrome.tabs.executeScript(tab.id, {code:script});
 }

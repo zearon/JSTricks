@@ -840,9 +840,13 @@ Module.prototype.exec = function () {
   // Exec factory
   var factory = mod.factory
 
+  try {
   var exports = isFunction(factory) ?
     factory(require, mod.exports = {}, mod) :
     factory
+  } catch (ex) {
+  	console.error("Error in module:", mod.id, "at", mod.uri, ex);
+  }
 
   if (exports === undefined) {
     exports = mod.exports
@@ -1036,10 +1040,10 @@ Module.use = function (ids, callback, uri) {
       try {
         callback.apply(global, exports)
       } catch (ex) {
-        //window.ERR__ = ex;
         var match = ex.stack.match(/at .*?:(\d+):(\d+)/);
-        console.error(ex.stack);
-        console.error(ex.name + ":", ex.message, ". #Error is at line", match[1] + "\n" + callback.toString());
+        var err = ex.name + " at line " + match[1] + ": " + ex.message
+        	+ "\n" + callback.toString() ;
+        console.error(err);
       }
     }
 

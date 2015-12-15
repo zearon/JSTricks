@@ -62,12 +62,17 @@ function updateSettings() {
         	if (request.tabid) {
 				processTab(request.tabid, request.method, request.data);
         	} else {
-				chrome.tabs.query({active:true}, function(tabs) {
-					// debug_log(`Current active tab is ${tabs[0].id}, title: ${tabs[0].title}, url:${tabs[0].url}`);
-					
-					var tabid = (sender && sender.tab) ? sender.tab.id : undefined;
-					processTab(tabid, request.method, request.data);
-				});
+				//chrome.tabs.query({active:true}, function(tabs) {
+				//	if (chrome.runtime.lastError) {
+				//		// tab is not fetched successfully
+				//		console.error("Cannot get selected tab.");
+				//	} else {
+				//		// debug_log(`Current active tab is ${tabs[0].id}, title: ${tabs[0].title}, url:${tabs[0].url}`);
+						
+						var tabid = (sender && sender.tab) ? sender.tab.id : undefined;
+						processTab(tabid, request.method, request.data);
+				//	}
+				//});
 			}
         });
         

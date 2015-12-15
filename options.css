@@ -3,6 +3,9 @@
 		.ui-widget-content {
 			background: #efefba;
 		}
+		.tooltip {
+			background: #ffffff;
+		}
 		#page-title{
 			text-align:right;
 		}
