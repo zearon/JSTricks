@@ -31,6 +31,19 @@ var codesnippet_addScriptNodeToDOM =
 		if (onload) { s.onload = onload; }
 		(document.head||document.documentElement).appendChild(s);
 	}
+	function InjectLinkElementToDom_____(rel, href) {
+		var s = document.createElement('link');
+		s.setAttribute('rel', rel);
+		s.setAttribute('href', href);
+		/*if (onload) { s.onload = onload; }*/
+		(document.head||document.documentElement).appendChild(s);
+	}
+	function AppendStyleNodeToDom_____(styles) {
+		var s = document.createElement('style');
+		s.innerHTML = styles;
+		/*if (onload) { s.onload = onload; }*/
+		(document.body||document.documentElement).appendChild(s);
+	}
 `;
 
 // Invoked by addNecessaryScriptsToHead() in bg.js
