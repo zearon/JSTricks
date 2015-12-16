@@ -310,8 +310,13 @@ function updateSettings() {
 					autoloadFileList.push( {"name":"Site Script " + key, "code":code, "type":"js"} );
 				}
 			
-				if (lsd.css)
-					chrome.tabs.insertCSS(tabid,{code:lsd.css, runAt:"document_start"});
+				if (lsd.css) {
+					//chrome.tabs.insertCSS(tabid,{code:lsd.css, runAt:"document_idle"});	
+					// This way, the css can override the styles built in the injected webpage				
+					chrome.tabs.executeScript(tabid, {"code": `
+						AppendStyleNodeToDom_____(decodeURIComponent("${encodeURIComponent(lsd.css)}"));
+					`});
+				}
 			}
 			
 			// Load all included files in chain.
