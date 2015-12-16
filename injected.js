@@ -29,15 +29,18 @@ function __JSTricks_Injected_enableRightClick() {
 	R("blur");
 }
 
+(function() {
+var domainMatch = location.href.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/); 
+__JSTricks_Injected_domain_name____ = domainMatch ? domainMatch[0] : "";
+delete domainMatch;
+
 // process received message sent in content script by
 // window.postMessage({ type: "JST-callMethod", func: "enableRightClick" }, "*");
 window.addEventListener("message", function(event) {
-  // console.log("Message received in injected.js: ", event);
-  // We only accept messages from ourselves
-  if (event.source != window)
-	return;
+  //console.log("Message received from", event.origin, "in injected.js: ", event, ". Current domain is", __JSTricks_Injected_domain_name____);
 
-  if (event.data.type && (event.data.type == "JST-callMethod")) {
+  // We only accept JST-callMethod messages from current page.
+  if (event.data && event.data.type == "JST-callMethod" && event.origin == __JSTricks_Injected_domain_name____) {
 	
 	var argArray = [], args = JSON.parse(event.data.args);
 	for (k in args) {
@@ -50,14 +53,15 @@ window.addEventListener("message", function(event) {
 		funcName = prefix + funcName;
 	}
 	var func = window[funcName];
-	console.log("Function name is", funcName, ", arguments are", argArray, "\nThe whole event is", event);
+	//console.log("Function name is", funcName, ", arguments are", argArray, "\nThe whole event is", event);
 	var returnValue = func.apply(this, argArray);
 	delete func;
 	
 	var returnValueStr = JSON.stringify(returnValue);
 	
 	var responseMsg = { type:"JST-callMethodResponse", func:event.data.func, callback:event.data.callback, returnValue:returnValueStr};
-	var domain = "*";
-	window.postMessage(responseMsg, domain);
+	window.postMessage(responseMsg, __JSTricks_Injected_domain_name____);
   }
 }, false);
+
+}) ();
