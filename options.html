@@ -108,7 +108,7 @@
 									<input id="jsdelete" type='button' value="Delete" />		
 								</div>
 								<div style="display:inline-block;">
-									<input class="findReplaceDialogBtn" type="button" value="Find and Replace" target="Site Scripts" />
+									<input class="findReplaceDialogBtn" type="button" value="Find and Replace" target="Site Scripts" style="width: 160px;" />
 								</div>
 								<div style="display:inline-block; float:right;">
 									<input type="button" value="+" class="textSizeUpBtn" />
@@ -240,12 +240,14 @@
 									<td>
 										<input id="dcsinclude" type="text" style="width:98%;" title="The names of one or more content scripts that should be loaded before this script.<br/>Can be multiple values seperated by commas." />
 									</td>
-									<td style="width:280px; text-align:right;">
+									<td style="width:380px; text-align:right;">
 										Index: 
 										<input id="dcsindex" type="text" size="3" title="A number representing the display order in context menu" />
 										<input id="dcsindexup" type="button" value="⬆︎" title="Move Up" />
 										<input id="dcsindexdown" type="button" value="⬇︎" title="Move Down" />
-										<input class="findReplaceDialogBtn" type="button" value="Find and Replace" target="Content Scripts" />
+										<input id="dcsrename" type='button' value="Rename" />		
+										<input id="dcssave" type='button' value="Save [Ctrl+S]" />
+										<input id="dcsdelete" type='button' value="Delete" />
 									</td>
 								</tr></table>
 							</div>
@@ -254,9 +256,7 @@
 									<select id="dcsgencodebytemplate" title="Choose a template to generate code. <br/>Code comment can be set omitted or not by changing 'Output Comments in Templates' switch in Options tab.">
 										<option value="">Code Template</option>
 									</select>
-									<input id="dcsrename" type='button' value="Rename" />		
-									<input id="dcssave" type='button' value="Save [Ctrl+S]" />
-									<input id="dcsdelete" type='button' value="Delete" />
+									<input class="findReplaceDialogBtn" type="button" value="Find and Replace" target="Content Scripts" />
 									<input type="button" value="+" class="textSizeUpBtn" >
 									<span class='textsizeval'>11px</span>
 									<input type="button" value="-" class="textSizeDownBtn">
