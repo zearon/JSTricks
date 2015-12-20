@@ -70,7 +70,11 @@ function optionValueChanged() {
 }
 
 function reloadBackroundPage(info, tab) {
-	window.location.reload();
+	//var id = chrome.runtime.id;
+	//chrome.management.setEnabled(id, false, function() {
+	//	// re-enable
+	//	chrome.management.setEnabled(id, true, function() {} );
+	//});
 }
 
 

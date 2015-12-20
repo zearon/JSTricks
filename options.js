@@ -125,25 +125,26 @@
 			var hid = $("#jshid").attr('checked');
 			var sf = $("#jsincludefile").val();
 			
-			if (!JSHINT(val, {}, {"run":false, "seajs":false, "define":false, "INFO":false})) {
-				console.log(JSHINT.data());
-				editorJs.setErrorLines(JSHINT.errors);			
-				showMessage("Error found in current site script!");
-				
-				return;
-			} else {
-				editorJs.clearSyntaxCheckHightlight();
-			}
-			
 			
             var tmp =  {"script": val, "autostart": autos, "hidden": hid , "sfile": sf, "css": cssval};
 			localStorage[key] = JSON.stringify(tmp);
 			currentSavedState = editorJs.getValue();
 			currentSavedStateCss = editorCss.getValue();
 			
-			showMessage("Script and CSS tricks saved!");
+			if (!checkScriptSyntax(val)) {
+				console.log(JSHINT.data());
+				editorJs.setErrorLines(JSHINT.errors);			
+				showMessage("Error found in current site script!");
+			} else {
+				editorJs.clearSyntaxCheckHightlight();
+				showMessage("Script and CSS tricks saved!");
+			}
 			
 			run("save");
+		}
+		
+		function checkScriptSyntax(source) {
+			return JSHINT(source, {"esversion":6}, {"run":false, "seajs":false, "define":false, "INFO":false});
 		}
 
 		function saveMetadata() {			
@@ -2023,16 +2024,6 @@
 			var sfile = $("#dcsinclude").val();
 			var index = $("#dcsindex").val();
 			
-			if (!JSHINT(dcstitle, {}, {"run":false, "seajs":false, "define":false, "INFO":false})) {
-				console.log(JSHINT.data());
-				editorDynScript.setErrorLines(JSHINT.errors);			
-				showMessage("Error found in current content script!");
-				
-				return;
-			} else {
-				editorDynScript.clearSyntaxCheckHightlight();
-			}
-			
             var tmp =  {"index":index, "group":group, "title":title, "sfile":sfile, "script": dcstitle};
 
 			localStorage[key] = JSON.stringify(tmp);
@@ -2043,9 +2034,17 @@
 			
 			currentSavedStateDCS = editorDynScript.getValue();
 			
-			showMessage("Content script saved!");
-			
 			updateContentScriptForContextMenu();
+			
+			if (!checkScriptSyntax(dcstitle)) {
+				console.log(JSHINT.data());
+				editorDynScript.setErrorLines(JSHINT.errors);			
+				showMessage("Error found in current content script!");
+			} else {
+				editorDynScript.clearSyntaxCheckHightlight();
+			
+				showMessage("Content script saved!");
+			}
 		}
 		
 		function renameContentScript() {
