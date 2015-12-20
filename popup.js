@@ -395,6 +395,10 @@ function log() {
 					}
 				}
 				setSelectionInEditor(editor, true);
+				
+				if (localStorage["$setting.popupwindow_displayRequiresField"] != "false") {
+					$("#jsincludefile-wrapper").show();
+				}
 			
 				// Height adjusting 
 				//if (inExtensionPage) {

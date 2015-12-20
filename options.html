@@ -327,6 +327,18 @@
 									<td><input type="button" class="localstorage_saveitem" target="$setting.popupwindow_disableRunCodeButton" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.popupwindow_disableRunCodeButton" value="Set to Default" /></td>
 								<tr>
+								<tr class="localstorage_item">
+									<td title="Display the requries field of the site script. <br/>The text (seperated by commas) specified in the requires filed indicates the names of content scripts that should be loaded before this site script is loaded. <br/>This is the old-style specification for script dependency, and is <b>ommited</b> by default with the new module management paradigm powered by Sea.js.">
+									Display Requires field</td>
+									<td>
+									<span class="localstorage_itemvalue" target="$setting.popupwindow_displayRequiresField" defaultvalue="false" >
+										<input type="radio" value="false" name="$setting.popupwindow_displayRequiresField" /><span class="option">No</span>
+										<input type="radio" value="true" name="$setting.popupwindow_displayRequiresField" /><span class="option">Yes</span>
+									<span>
+									</td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.popupwindow_displayRequiresField" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.popupwindow_displayRequiresField" value="Set to Default" /></td>
+								<tr>
 								
 								<tr>
 									<td colspan="4"><h3>Site-Specific Scripts</h3></td>
