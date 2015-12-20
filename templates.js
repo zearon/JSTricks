@@ -36,7 +36,7 @@ var template_content_script_comment_define =
 `;
 
 var template_content_script_run =
-`{{comments.run}}run(["jquery", "#{{name}}"], function($, obj) {
+`{{comments.run}}run(["#{{name}}"], function(obj) {
   // Call the do method defined in the module above.
   obj.do_();
 });

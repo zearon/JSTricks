@@ -131,12 +131,12 @@
 			currentSavedState = editorJs.getValue();
 			currentSavedStateCss = editorCss.getValue();
 			
+			editorDynScript.clearSyntaxCheckHightlight();
 			if (!checkScriptSyntax(val)) {
 				console.log(JSHINT.data());
-				editorJs.setErrorLines(JSHINT.errors);			
+				showJSSyntaxCheckReport(editorJs, JSHINT.data());		
 				showMessage("Error found in current site script!");
 			} else {
-				editorJs.clearSyntaxCheckHightlight();
 				showMessage("Script and CSS tricks saved!");
 			}
 			
@@ -144,17 +144,47 @@
 		}
 		
 		function checkScriptSyntax(source) {
-			return JSHINT(source, {"esversion":6}, {"run":false, "seajs":false, "define":false, "INFO":false});
+			return JSHINT(source, {"esversion":6, "expr":true}, 
+				{"console":false, "run":false, "seajs":false, "define":false, "INFO":false, "window":false, "document":false, "alert":false, "confirm":false, "prompt":false, "setTimeout":false,
+				"setInterval":false});
+		}
+		
+		function showJSSyntaxCheckReport(editor, data) {
+			var warnings = [];
+			var errors = data.errors.filter(function(err) {
+				if (err == null) {
+					return false;
+				} else if (err.raw === "Expected a conditional expression and instead saw an assignment.") {
+					return false;
+				} else if (err.raw === "Use '{a}' to compare with '{b}'.") {
+					warnings.push(err);
+					return false;
+				}
+				
+				return true;
+			 });
+			
+			editor.setErrorLines(errors);
+			
+			if (data.implieds) {
+				for (var i = 0; i < data.implieds.length; ++ i) {
+					var variable = data.implieds[i];
+					for (var j = 0; j < variable.line.length; ++ j) {
+						warnings.push( {line:variable.line[j], reason: `${variable.name} is undefined and thus considered as a global variable.`} );
+					}
+				}
+			}
+			editor.setWarningLines(warnings);
 		}
 
-		function saveMetadata() {			
+		function saveMetadata() {	
+			editorMeta.clearSyntaxCheckHightlight();		
 			try {
 				var meta = editorMeta.getValue();
 				//JSON.parse(meta);
 				jsonlint.parse(meta);
 				localStorage["meta"] = meta;
 				currentSavedStateMeta = editorMeta.getValue();
-				editorMeta.clearSyntaxCheckHightlight();
 			} catch (ex) {
 				console.log(ex.message);
 				var m = ex.message.match(/Parse error on line (\d+):\s*([\s\S]+)/);
@@ -2036,13 +2066,12 @@
 			
 			updateContentScriptForContextMenu();
 			
+			editorDynScript.clearSyntaxCheckHightlight();
 			if (!checkScriptSyntax(dcstitle)) {
 				console.log(JSHINT.data());
-				editorDynScript.setErrorLines(JSHINT.errors);			
+				showJSSyntaxCheckReport(editorDynScript, JSHINT.data());
 				showMessage("Error found in current content script!");
-			} else {
-				editorDynScript.clearSyntaxCheckHightlight();
-			
+			} else {			
 				showMessage("Content script saved!");
 			}
 		}
