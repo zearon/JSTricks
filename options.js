@@ -309,6 +309,10 @@
 							var textPattern = filterOptions["pattern"];
 							var andorAutostart = filterOptions["andorAutostart"]; // and, or
 							var autostartValue = filterOptions["autostart"]; // true, false, any
+							var name = filterOptions["name"];
+							
+							if (name && name != v)
+								continue;
 			
 							if (contentType) {
 								var content = "";
@@ -1454,6 +1458,8 @@
 			pattern = new RegExp(pattern, flags);
 			console.log(pattern);
 			
+			var searchRange = $("#findDialog-find-range").val();
+			
 			findReplaceDialog_replaceKey["targetType"] 	= targetType;
 			findReplaceDialog_replaceKey["pattern"]	 	= pattern;
 			findReplaceDialog_replaceKey["replacement"] = $("#findDialog-replacement").val();
@@ -1466,9 +1472,11 @@
 			switch(findReplaceDialog_target) {
 			case 0:
 				// Site scripts.
+				if (searchRange == "current") { findReplaceDialog_replaceKey["name"] = selectedTitle };
 				break;
 			case 1:
 				// Content scripts
+				if (searchRange == "current") { findReplaceDialog_replaceKey["name"] = selectedContentScript };
 				findReplaceDialog_replaceKey["targetType"] 	= "js";
 				findReplaceDialog_replaceKey["setAutostart"] = "unchanged";
 				break;
@@ -1587,7 +1595,10 @@
 			// Reload content script list: only matching scripts or all scripts.
 			if (options.reloadlist)
 				if (options.filter) {
-					loadAllContentScripts( {content:findReplaceDialog_replaceKey["pattern"]} );
+					//var filter = {content:findReplaceDialog_replaceKey["pattern"]};
+					//if (findReplaceDialog_replaceKey["name"] ) { filter.name = findReplaceDialog_replaceKey["name"]; }
+					//loadAllContentScripts(filter);
+					loadAllContentScripts(findReplaceDialog_replaceKey);
 				} else {
 					loadAllContentScripts();
 				}
@@ -1629,8 +1640,12 @@
 		
 		function findReplaceDialog_replaceSiteScripts() {		
 			findReplaceDialog_updateReplaceKey();
+			var name = findReplaceDialog_replaceKey["name"];
 			
 			for(v in localStorage) {	
+				if (name && name != v)
+					continue;
+					
 				try {
 					var isSiteScript = false;		
 					if (findReplaceDialog_replaceKey["containsDefaultScript"]) {
@@ -1653,8 +1668,12 @@
 		
 		function findReplaceDialog_replaceContentScripts() {	
 			findReplaceDialog_updateReplaceKey();
+			var name = findReplaceDialog_replaceKey["name"];
 			
-			for(v in localStorage) {	
+			for(v in localStorage) {
+				if (name && ("$cs-"+name) != v)
+					continue;
+					
 				try {
 					if (!isContentScriptName(v))
 						continue;
@@ -2330,9 +2349,12 @@
 				// If filter is not given, load all content scripts.
 				if (!filter)
 					return true;
+					
+				if (filter.name)
+					return s.name == filter.name;
 				
 				// otherwise, only load content scripts whose script text matches the content filter.
-				var contentFilter = filter.content;
+				var contentFilter = filter.pattern;
 				return s.script.match(contentFilter);
 			});
 		}
