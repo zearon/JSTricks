@@ -592,15 +592,16 @@ function log() {
 					title = tooltip + title;
 					
 					var code = command.code;
+					var moduleName = command.moduleName ? command.moduleName : section.moduleName;
+					var objName = command.objName ? command.objName : section.objName;
 					if (command.loadModule == "true") {
-						var moduleName = command.moduleName, objName = command.objName;
 						var element = `<div style="display:inline"><input class="add-script-btn${runClass} init-script-btn" type="button" value="${command.title}" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-code="" /></div>`
 						sectionDiv.append(element);
 					} else if (code) {
-						var element = `<div style="display:inline"><input class="add-script-btn${runClass}" type="button" value="${command.title}" title="${title}" data-module="${section.moduleName}" data-obj="${section.objName}" data-code="${command.code}" /></div>`
+						var element = `<div style="display:inline"><input class="add-script-btn${runClass}" type="button" value="${command.title}" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-code="${command.code}" /></div>`
 						sectionDiv.append(element);
 					} else {
-						var src = `<div style="display:${display}"><input class="add-script-btn${runClass}" type="button" value="${command.title}" title="${title}" data-module="${section.moduleName}" data-obj="${section.objName}" data-statement="${statementType}" data-func="${section.objName}.${command.funcname}" /></div>`;
+						var src = `<div style="display:${display}"><input class="add-script-btn${runClass}" type="button" value="${command.title}" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-statement="${statementType}" data-func="${section.objName}.${command.funcname}" /></div>`;
 						var commandDiv = $(src).appendTo(sectionDiv);
 						for (var k=0; k < command.args.length; ++ k) {
 							var arg = command.args[k];

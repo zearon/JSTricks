@@ -28,7 +28,10 @@ var codesnippet_addScriptNodeToDOM =
 		var s = document.createElement('script');
 		s.setAttribute('src', src);
 		s.setAttribute('type', 'text/javascript');
-		if (onload) { s.onload = onload; }
+		s.onload = function() {
+			console.log("Script is loaded: " + src);
+			if (onload) { onload.apply(this, arguments); }
+		};
 		(document.head||document.documentElement).appendChild(s);
 	}
 	function InjectLinkElementToDom_____(rel, href) {

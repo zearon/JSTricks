@@ -193,12 +193,17 @@ function updateSettings() {
             else if (requestMethod == "InjectContentScriptAsScriptNode"){
 				var args = JSON.parse(requestData);
 				var csName = args.name;
+				var code = args.code;
 				var callbackID = args.callback ? args.callback : "";
 				
 				var script = null, text = localStorage["$cs-" + csName];
-				try {
-					script = JSON.parse(text).script;
-				} catch (ex) { return; }
+				if (code) {
+					script = code;
+				} else {
+					try {
+						script = JSON.parse(text).script;
+					} catch (ex) { return; }
+				}
 				
 				var dataUri = "data:text/javascript;charset=UTF-8," + encodeURIComponent(script);
 				chrome.tabs.executeScript(tabid, { code:`
