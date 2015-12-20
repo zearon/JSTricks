@@ -209,6 +209,11 @@ function log() {
 			setTimeout(function() {
 				status.innerHTML = "";
 			}, 750);
+			
+			editor.clearSyntaxCheckHightlight();
+			var noErrorFound = checkScriptSyntax(tmpp.script);
+			showJSSyntaxCheckReport(editor, JSHINT.data());
+			console.log(JSHINT.data());	
 		}
 		// Restores select box state to saved value from localStorage.
 		function restore_options(callback) {
@@ -296,6 +301,54 @@ function log() {
 		function editInOptionPage() {
 			window.open("chrome-extension://"+chrome.runtime.id+"/options.html?tab=0&item="+tabSite, "OptionPage");
 		}
+		
+		
+		function checkScriptSyntax(source) {
+			return JSHINT(source, {"esversion":6, "expr":true, "indent":2}, 
+				{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, 
+				"INFO":false, "window":false, "document":false, "alert":false, "confirm":false, 
+				"prompt":false, "setTimeout":false, "setInterval":false, "location":false});
+		}
+		
+		function showJSSyntaxCheckReport(editor, data) {
+			var warnings = [];
+			var errors = data.errors ? data.errors.filter(function(err) {
+				if (err == null) {
+					return false;
+				} else if (err.raw === "Expected a conditional expression and instead saw an assignment.") {
+					return false;
+				} else if (err.raw === "Use '{a}' to compare with '{b}'.") {
+					warnings.push(err);
+					return false;
+				}
+				
+				return true;
+			 })
+			 : [];
+			
+			
+			if (data.implieds) {
+				for (var i = 0; i < data.implieds.length; ++ i) {
+					var variable = data.implieds[i];
+					for (var j = 0; j < variable.line.length; ++ j) {
+						warnings.push( {line:variable.line[j], reason: `${variable.name} is undefined and thus considered as a global variable.`} );
+					}
+				}
+			}
+			
+			var functions = data.functions ? data.functions.map(function(fn) {
+				var fnName = fn.name.replace("(empty)", "(anonymous)");
+				var params = fn.param ? fn.param.join(", ") : "";
+				fn.reason = "function " + fnName + "(" + params + ") <br/>from line " + fn.line + " to " + fn.last;
+				return fn;
+			}) 
+			: [];
+			
+			editor.setFunctionLines(functions);
+			editor.setWarningLines(warnings);
+			editor.setErrorLines(errors);
+		}
+		
 		
 		var editor=null;
 		var editorCss=null;

@@ -145,7 +145,7 @@
 		}
 		
 		function checkScriptSyntax(source) {
-			return JSHINT(source, {"esversion":6, "expr":true}, 
+			return JSHINT(source, {"esversion":6, "expr":true, "indent":2}, 
 				{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, 
 				"INFO":false, "window":false, "document":false, "alert":false, "confirm":false, 
 				"prompt":false, "setTimeout":false, "setInterval":false, "location":false});
@@ -167,7 +167,6 @@
 			 })
 			 : [];
 			
-			editor.setErrorLines(errors);
 			
 			if (data.implieds) {
 				for (var i = 0; i < data.implieds.length; ++ i) {
@@ -177,7 +176,18 @@
 					}
 				}
 			}
+			
+			var functions = data.functions ? data.functions.map(function(fn) {
+				var fnName = fn.name.replace("(empty)", "(anonymous)");
+				var params = fn.param ? fn.param.join(", ") : "";
+				fn.reason = "function " + fnName + "(" + params + ") <br/>from line " + fn.line + " to " + fn.last;
+				return fn;
+			}) 
+			: [];
+			
+			editor.setFunctionLines(functions);
 			editor.setWarningLines(warnings);
+			editor.setErrorLines(errors);
 		}
 
 		function saveMetadata() {	
