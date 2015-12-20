@@ -132,9 +132,10 @@
 			currentSavedStateCss = editorCss.getValue();
 			
 			editorDynScript.clearSyntaxCheckHightlight();
-			if (!checkScriptSyntax(val)) {
-				console.log(JSHINT.data());
-				showJSSyntaxCheckReport(editorJs, JSHINT.data());		
+			var noErrorFound = checkScriptSyntax(val);
+			showJSSyntaxCheckReport(editorJs, JSHINT.data());
+			console.log(JSHINT.data());		
+			if (!noErrorFound) {
 				showMessage("Error found in current site script!");
 			} else {
 				showMessage("Script and CSS tricks saved!");
@@ -145,13 +146,14 @@
 		
 		function checkScriptSyntax(source) {
 			return JSHINT(source, {"esversion":6, "expr":true}, 
-				{"console":false, "run":false, "seajs":false, "define":false, "INFO":false, "window":false, "document":false, "alert":false, "confirm":false, "prompt":false, "setTimeout":false,
-				"setInterval":false});
+				{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, 
+				"INFO":false, "window":false, "document":false, "alert":false, "confirm":false, 
+				"prompt":false, "setTimeout":false, "setInterval":false, "location":false});
 		}
 		
 		function showJSSyntaxCheckReport(editor, data) {
 			var warnings = [];
-			var errors = data.errors.filter(function(err) {
+			var errors = data.errors ? data.errors.filter(function(err) {
 				if (err == null) {
 					return false;
 				} else if (err.raw === "Expected a conditional expression and instead saw an assignment.") {
@@ -162,7 +164,8 @@
 				}
 				
 				return true;
-			 });
+			 })
+			 : [];
 			
 			editor.setErrorLines(errors);
 			
@@ -2067,10 +2070,11 @@
 			updateContentScriptForContextMenu();
 			
 			editorDynScript.clearSyntaxCheckHightlight();
-			if (!checkScriptSyntax(dcstitle)) {
+			var noErrorsFound = checkScriptSyntax(dcstitle);
+			showJSSyntaxCheckReport(editorDynScript, JSHINT.data());
+			showMessage("Error found in current content script!");
+			if (!noErrorsFound) {
 				console.log(JSHINT.data());
-				showJSSyntaxCheckReport(editorDynScript, JSHINT.data());
-				showMessage("Error found in current content script!");
 			} else {			
 				showMessage("Content script saved!");
 			}
@@ -2141,6 +2145,8 @@
 				$("#dcstitle").val("");
 				$("#dcsinclude").val("");						
 				$("#dcsindex").val("");
+				editorDynScript.setValue("");
+				currentSavedStateDCS = editorDynScript.getValue();
 			}
 			
 			updateContentScriptForContextMenu();
