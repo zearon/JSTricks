@@ -125,6 +125,17 @@
 			var hid = $("#jshid").attr('checked');
 			var sf = $("#jsincludefile").val();
 			
+			if (!JSHINT(val, {}, {"run":false, "seajs":false, "define":false, "INFO":false})) {
+				console.log(JSHINT.data());
+				editorJs.setErrorLines(JSHINT.errors);			
+				showMessage("Error found in current site script!");
+				
+				return;
+			} else {
+				editorJs.clearSyntaxCheckHightlight();
+			}
+			
+			
             var tmp =  {"script": val, "autostart": autos, "hidden": hid , "sfile": sf, "css": cssval};
 			localStorage[key] = JSON.stringify(tmp);
 			currentSavedState = editorJs.getValue();
@@ -142,9 +153,15 @@
 				jsonlint.parse(meta);
 				localStorage["meta"] = meta;
 				currentSavedStateMeta = editorMeta.getValue();
+				editorMeta.clearSyntaxCheckHightlight();
 			} catch (ex) {
 				console.log(ex.message);
-				alert(ex.message);
+				var m = ex.message.match(/Parse error on line (\d+):\s*([\s\S]+)/);
+				var line = parseInt(m[1]);
+				var reason = "<div style='font-family:monospace;'>" + m[2].replace(/\n/g, "<br/>") + "</div>"
+				var errors = [ {line, reason} ];
+				editorMeta.setErrorLines(errors);
+				
 				return;
 			}
 			
@@ -569,6 +586,10 @@
 					collapsible: true,
 				  	heightStyle: "content" /*auto, fill, content*/
 				});
+							
+				// DEBUG
+				if (optionPageParams["item2"])
+					$(`#manual-content h3:eq(${optionPageParams["item2"]})`).click();
 			});
 			
 			if (!localStorage["$setting.cloud-url"])
@@ -728,7 +749,7 @@
 							$(`div.jstbox.contentScriptKey[name='${item}']`).click();
 						break;
 					case "3":
-						// jump to section if section=Novel is specified
+						// jump to section if item=settings-manual is specified
 						if (item)
 							$(`.jstbox.settingKey[target='${item}']`).click();
 						break;
@@ -2001,6 +2022,16 @@
 			var title = $("#dcstitle").val();
 			var sfile = $("#dcsinclude").val();
 			var index = $("#dcsindex").val();
+			
+			if (!JSHINT(dcstitle, {}, {"run":false, "seajs":false, "define":false, "INFO":false})) {
+				console.log(JSHINT.data());
+				editorDynScript.setErrorLines(JSHINT.errors);			
+				showMessage("Error found in current content script!");
+				
+				return;
+			} else {
+				editorDynScript.clearSyntaxCheckHightlight();
+			}
 			
             var tmp =  {"index":index, "group":group, "title":title, "sfile":sfile, "script": dcstitle};
 
