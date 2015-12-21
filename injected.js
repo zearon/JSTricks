@@ -66,6 +66,8 @@ window.addEventListener("message", function(event) {
 	
 	var responseMsg = { type:"JST-injected-callMethodResponse", func:event.data.func, callback:event.data.callback, returnValue:returnValueStr};
 	window.postMessage(responseMsg, __JSTricks_Injected_domain_name____);
+  } else {
+  	console.log("Message received", event, " The data is", event.data);
   }
 }, false);
 
