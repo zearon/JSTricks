@@ -1,3 +1,6 @@
+.CodeMirror .CodeMirror-lines pre.CodeMirror-line-highlighted {
+  background: #DCD4FF;
+}
 
 .CodeMirror pre.CodeMirror-line-function {
   background: #CFFFCC url(img/function.png) no-repeat right;

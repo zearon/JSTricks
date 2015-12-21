@@ -40,7 +40,7 @@ window.addEventListener("message", function(event) {
   //console.log("Message received from", event.origin, "in injected.js: ", event, ". Current domain is", __JSTricks_Injected_domain_name____);
 
   // We only accept JST-callMethod messages from current page.
-  if (event.data && event.data.type == "JST-callMethod" && event.origin == __JSTricks_Injected_domain_name____) {
+  if (event.data && event.data.type == "JST-injected-callMethod" && event.origin == __JSTricks_Injected_domain_name____) {
 	
 	var argArray = [], args = null;
 	try {
@@ -64,7 +64,7 @@ window.addEventListener("message", function(event) {
 	
 	var returnValueStr = JSON.stringify(returnValue);
 	
-	var responseMsg = { type:"JST-callMethodResponse", func:event.data.func, callback:event.data.callback, returnValue:returnValueStr};
+	var responseMsg = { type:"JST-injected-callMethodResponse", func:event.data.func, callback:event.data.callback, returnValue:returnValueStr};
 	window.postMessage(responseMsg, __JSTricks_Injected_domain_name____);
   }
 }, false);
