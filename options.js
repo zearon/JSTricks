@@ -321,32 +321,36 @@
 							var autostartValue = filterOptions["autostart"]; // true, false, any
 							var name = filterOptions["name"];
 							
-							if (name && name != v)
-								continue;
-			
-							if (contentType) {
-								var content = "";
+							if (name) {
+								if (name != v)
+									continue;
+								else
+									addFlag = true;			
+							} else {
+								if (contentType) {
+									var content = "";
+										
+									if (contentType == "js") {
+										content = lsd.script;
+									} else if (contentType == "css") {
+										content = lsd.css;
+									} else if (contentType == "js+css") {
+										content = lsd.script + "\n" + lsd.css;
+									}
 									
-								if (contentType == "js") {
-									content = lsd.script;
-								} else if (contentType == "css") {
-									content = lsd.css;
-								} else if (contentType == "js+css") {
-									content = lsd.script + "\n" + lsd.css;
+									contentFlag = content.match(textPattern);
 								}
 								
-								contentFlag = content.match(textPattern);
+								if (autostartValue == "any")
+									autostartFlag = true;
+								else
+									autostartFlag = lsd.autostart ? autostartValue == "true" : autostartValue == "false";
+								
+								if (andorAutostart == "and")
+									addFlag = contentFlag && autostartFlag;
+								else
+									addFlag = contentFlag || autostartFlag;
 							}
-							
-							if (autostartValue == "any")
-								autostartFlag = true;
-							else
-								autostartFlag = lsd.autostart ? autostartValue == "true" : autostartValue == "false";
-							
-							if (andorAutostart == "and")
-								addFlag = contentFlag && autostartFlag;
-							else
-								addFlag = contentFlag || autostartFlag;
 						}
 						
 						if (addFlag)
