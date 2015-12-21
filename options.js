@@ -428,7 +428,8 @@
 			
 			var v = $(obj).text();
 			var lsd = JSON.parse(localStorage[v]);
-			lsd = mapSiteScriptFunc(lsd);
+			var mapOptions = {command:"HightlightMatchedText", editor:editorJs, editor2:editorCss};
+			mapSiteScriptFunc(lsd, mapOptions);
 			
 			if(lsd.script)
 				editorJs.setValue(lsd.script);
@@ -442,8 +443,14 @@
 				$("#jsincludefile").val(lsd.sfile);
 			else
 				$("#jsincludefile").val("");	
-				
-				
+			
+			
+			if (mapOptions.indexes) {
+				mapOptions.editor.hightlightLinesAtIndex(mapOptions.indexes);
+			}
+			if (mapOptions.indexes2) {
+				mapOptions.editor2.hightlightLinesAtIndex(mapOptions.indexes2);
+			}
 				
 				
 			selectedTitle = v;
@@ -1469,14 +1476,20 @@
 			if (regexp_m)
 				flags += "m";
 			
-			pattern = new RegExp(pattern, flags);
+			pattern = new RegExp("([\\s\\S]*?)" + pattern, flags);
+			
+			var replacement = $("#findDialog-replacement").val();
+			var replacementPattern = new RegExp("([\\s\\S]*?)" + 
+				replacement.replace(/([\(\)\[\]\{\}\^\$\+\-\*\?\.\"\'\|\/\\])/g, "\\$1"), flags);
+				
 			console.log(pattern);
 			
 			var searchRange = $("#findDialog-find-range").val();
 			
 			findReplaceDialog_replaceKey["targetType"] 	= targetType;
 			findReplaceDialog_replaceKey["pattern"]	 	= pattern;
-			findReplaceDialog_replaceKey["replacement"] = $("#findDialog-replacement").val();
+			findReplaceDialog_replaceKey["replacement"] = replacement;
+			findReplaceDialog_replaceKey["replacementPattern"] = replacementPattern;
 			findReplaceDialog_replaceKey["andorAutostart"] = $("#findDialog-andor-autostart").val(); // and, or
 			findReplaceDialog_replaceKey["autostart"] = $("#findDialog-filter-autostart").val(); // true, false, any
 			findReplaceDialog_replaceKey["containsDefaultScript"] = $("#findDialog-contains-default-script").val() == "true";
@@ -1526,7 +1539,7 @@
 		function findReplaceDialog_find() {
 			findReplaceDialog_updateReplaceKey();
 			
-			findReplaceDialog_setMapFunc(dummyMapFunc);
+			findReplaceDialog_setMapFunc(findReplaceDialog_mapFoundScript);
 			
 			// Refresh views
 			findReplaceDialog_refreshView({reloadlist:true, filter:true, switcheditor:true, alerteditor:false});
@@ -1631,23 +1644,86 @@
 			}
 		}
 		
-		function findReplaceDialog_mapReplacedScript(s) {
+		// Pattern is assigned in findReplaceDialog_updateReplaceKey
+		// and should be like /([\s\S]*?)msg/g in which msg is the content to be searched.
+		function getIndexesOfMatching(text, pattern) {	
+			// Find the first occurence
+			var match = text.match(pattern);
+			if (match == null)
+				return [];
+			
+			if (!pattern.global) {
+				return [ match[1].length ];
+			} else {
+				var flags = ""; flags += pattern.ignoreCase ? "i" : ""; flags += pattern.multiline ? "m" : "";
+				var newPattern = new RegExp(pattern.source, flags);
+				var newMatch = text.match(newPattern);
+				var offset = newMatch[0].length - newMatch[1].length;
+				console.log("offset is", offset);
+				
+				return match.map(function(text) { 
+					return text.length - offset; 
+				}).reduce(function(result, index) { 
+					result.push(index + result.slice(-1)[0]); 
+					return result;
+				}, [0]).slice(1);
+			}
+		}
+		
+		function getHighlightMatchingLinesInEditor(options, editor, text, pattern) {
+			if (!options || options.command !== "HightlightMatchedText")
+				return [];
+				
+			return getIndexesOfMatching(text, pattern);			
+		}
+		
+		// Invoked by loadContentScript and selectSite
+		function findReplaceDialog_mapFoundScript(s, options) {
+			var targetType	= findReplaceDialog_replaceKey["targetType"];
+			var pattern 	= findReplaceDialog_replaceKey["pattern"];
+			
+			var replaceScript = targetType.indexOf("js") > -1;
+			var replaceCss = targetType.indexOf("css") > -1;
+			
+			if (replaceScript) {
+				options.indexes = getHighlightMatchingLinesInEditor(options, options.editor, s.script, pattern);
+			}
+			
+			if (replaceCss) {
+				options.indexes2 = getHighlightMatchingLinesInEditor(options, options.editor2, s.css, pattern);
+			}
+							
+			return s;	
+		}
+		
+		// Invoked by loadContentScript and selectSite
+		// Also invoked by findReplaceDialog_replaceContentScripts and findReplaceDialog_replaceSiteScripts
+		function findReplaceDialog_mapReplacedScript(s, options) {
 			var targetType	= findReplaceDialog_replaceKey["targetType"];
 			var pattern 	= findReplaceDialog_replaceKey["pattern"];
 			var replacement = findReplaceDialog_replaceKey["replacement"];
+			var replacementPattern = findReplaceDialog_replaceKey["replacementPattern"];
 			var setAutostart = findReplaceDialog_replaceKey["setAutostart"]; // true, false, unchanged
 			
 			var replaceScript = targetType.indexOf("js") > -1;
 			var replaceCss = targetType.indexOf("css") > -1;
 			
-			if (replaceScript)
-				s.script = s.script.replace(pattern, replacement);
+			if (replaceScript) {
+				s.script = s.script.replace(pattern, "$1" + replacement);
+				options.indexes = getHighlightMatchingLinesInEditor(options, options.editor, s.script, replacementPattern);
+			}
 			
-			if (replaceCss)
-				s.css = s.css.replace(pattern, replacement);
+			if (replaceCss) {
+				s.css = s.css.replace(pattern, "$1" + replacement);
+				options.indexes2 = getHighlightMatchingLinesInEditor(options, options.editor2, s.css, replacementPattern);
+			}
 				
 			if (setAutostart != "unchanged")
 				setAutostart == "true" ? s.autostart = true : s.autostart = false;
+				
+			if (options && options.command == "HightlightMatchedText") {
+				var editor = options.editor, editor2 = options.editor2;
+			}
 			
 			return s;
 		}
@@ -1693,7 +1769,7 @@
 						continue;
 					
 					var lsd = JSON.parse(localStorage[v]);
-					lsd = findReplaceDialog_mapReplacedScript(lsd);
+					findReplaceDialog_mapReplacedScript(lsd);
 						
 					localStorage[v] = JSON.stringify(lsd);
 				} catch(e) {
@@ -2338,7 +2414,8 @@
 				return;
 			}
 			
-			data = mapContentScriptFunc(data);
+			var mapOptions = {command:"HightlightMatchedText", editor:editorDynScript};
+			data = mapContentScriptFunc(data, mapOptions);
 			
 			$("#dcsgroup").val(data.group);
 			$("#dcstitle").val(data.title);
@@ -2350,13 +2427,17 @@
 			currentSavedStateDCS = data.script;
 			editorDynScript.clearHistory();
 			
+			if (mapOptions.indexes) {
+				mapOptions.editor.hightlightLinesAtIndex(mapOptions.indexes);
+			}
+			
 			// Switch from Meat data editor to script editor.
 			$("#tabs-dcs .tabs > ul li:eq(0)").click();
 			
 			showMessage("Loaded content script: '" + name + "'!");
 		}
 		
-		function loadAllContentScripts(filter) {
+		function loadAllContentScripts(filter, options) {
 			$("#contentscript-menu").empty();
 			
 			loadAllContentScripts_internal(function(s) {
@@ -2369,7 +2450,10 @@
 				
 				// otherwise, only load content scripts whose script text matches the content filter.
 				var contentFilter = filter.pattern;
-				return s.script.match(contentFilter);
+				
+				// If searched text is /msg/g then /([\s\S]*?)msg/g should be used for searching
+				var match = s.script.match(contentFilter);
+				return match != null;
 			});
 		}
 		
