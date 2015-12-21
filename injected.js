@@ -42,7 +42,12 @@ window.addEventListener("message", function(event) {
   // We only accept JST-callMethod messages from current page.
   if (event.data && event.data.type == "JST-callMethod" && event.origin == __JSTricks_Injected_domain_name____) {
 	
-	var argArray = [], args = JSON.parse(event.data.args);
+	var argArray = [], args = null;
+	try {
+		args = JSON.parse(event.data.args);
+	} catch (ex) {
+		args = {};
+	}
 	for (k in args) {
 		argArray[k] = args[k];
 	}

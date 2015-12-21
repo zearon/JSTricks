@@ -36,7 +36,7 @@ var template_content_script_comment_define =
 `;
 
 var template_content_script_run =
-`{{comments.run}}run(["jquery", "#{{name}}"], function($, obj) {
+`{{comments.run}}run(["#{{name}}"], function(obj) {
   // Call the do method defined in the module above.
   obj.do_();
 });
@@ -88,6 +88,14 @@ var template_content_script_module_simple =
 ${template_content_script_run}
 `;
 
+var template_content_script_module_injected = 
+`function __JSTricks_Injected_{{name}}_func1(arg1, arg2) {
+  <SELECTION_START>// YOUR CODE GOES HERE. Sample code below.<SELECTION_END>
+  console.log("__JSTricks_Injected_{{name}}_func1 in Test is invoked with arguments", arguments);
+  return "RETURN VALUE of arg1 + arg2 =" + (arg1 + arg2);
+}
+`;
+
 
 var template_content_script_simple_run =
 `run(["jquery"], function($) {
@@ -98,5 +106,6 @@ var template_content_script_simple_run =
 var template_content_script_all = {
 	"Module - Object Style"	: template_content_script_module_object,
 	"Module - Simple Style"	: template_content_script_module_simple,
+	"Injected"				: template_content_script_module_injected,
 	"Simple Run"			: template_content_script_simple_run
 };

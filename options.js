@@ -125,17 +125,73 @@
 			var hid = $("#jshid").attr('checked');
 			var sf = $("#jsincludefile").val();
 			
+			
             var tmp =  {"script": val, "autostart": autos, "hidden": hid , "sfile": sf, "css": cssval};
 			localStorage[key] = JSON.stringify(tmp);
 			currentSavedState = editorJs.getValue();
 			currentSavedStateCss = editorCss.getValue();
 			
-			showMessage("Script and CSS tricks saved!");
+			editorDynScript.clearSyntaxCheckHightlight();
+			var noErrorFound = checkScriptSyntax(val);
+			showJSSyntaxCheckReport(editorJs, JSHINT.data());
+			console.log(JSHINT.data());		
+			if (!noErrorFound) {
+				showMessage("Error found in current site script!");
+			} else {
+				showMessage("Script and CSS tricks saved!");
+			}
 			
 			run("save");
 		}
+		
+		function checkScriptSyntax(source) {
+			return JSHINT(source, {"esversion":6, "expr":true, "indent":2}, 
+				{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, 
+				"INFO":false, "window":false, "document":false, "alert":false, "confirm":false, 
+				"prompt":false, "setTimeout":false, "setInterval":false, "location":false});
+		}
+		
+		function showJSSyntaxCheckReport(editor, data) {
+			var warnings = [];
+			var errors = data.errors ? data.errors.filter(function(err) {
+				if (err == null) {
+					return false;
+				} else if (err.raw === "Expected a conditional expression and instead saw an assignment.") {
+					return false;
+				} else if (err.raw === "Use '{a}' to compare with '{b}'.") {
+					warnings.push(err);
+					return false;
+				}
+				
+				return true;
+			 })
+			 : [];
+			
+			
+			if (data.implieds) {
+				for (var i = 0; i < data.implieds.length; ++ i) {
+					var variable = data.implieds[i];
+					for (var j = 0; j < variable.line.length; ++ j) {
+						warnings.push( {line:variable.line[j], reason: `${variable.name} is undefined and thus considered as a global variable.`} );
+					}
+				}
+			}
+			
+			var functions = data.functions ? data.functions.map(function(fn) {
+				var fnName = fn.name.replace("(empty)", "(anonymous)");
+				var params = fn.param ? fn.param.join(", ") : "";
+				fn.reason = "function " + fnName + "(" + params + ") <br/>from line " + fn.line + " to " + fn.last;
+				return fn;
+			}) 
+			: [];
+			
+			editor.setFunctionLines(functions);
+			editor.setWarningLines(warnings);
+			editor.setErrorLines(errors);
+		}
 
-		function saveMetadata() {			
+		function saveMetadata() {	
+			editorMeta.clearSyntaxCheckHightlight();		
 			try {
 				var meta = editorMeta.getValue();
 				//JSON.parse(meta);
@@ -144,7 +200,12 @@
 				currentSavedStateMeta = editorMeta.getValue();
 			} catch (ex) {
 				console.log(ex.message);
-				alert(ex.message);
+				var m = ex.message.match(/Parse error on line (\d+):\s*([\s\S]+)/);
+				var line = parseInt(m[1]);
+				var reason = "<div style='font-family:monospace;'>" + m[2].replace(/\n/g, "<br/>") + "</div>"
+				var errors = [ {line, reason} ];
+				editorMeta.setErrorLines(errors);
+				
 				return;
 			}
 			
@@ -258,6 +319,10 @@
 							var textPattern = filterOptions["pattern"];
 							var andorAutostart = filterOptions["andorAutostart"]; // and, or
 							var autostartValue = filterOptions["autostart"]; // true, false, any
+							var name = filterOptions["name"];
+							
+							if (name && name != v)
+								continue;
 			
 							if (contentType) {
 								var content = "";
@@ -569,6 +634,10 @@
 					collapsible: true,
 				  	heightStyle: "content" /*auto, fill, content*/
 				});
+							
+				// DEBUG
+				if (optionPageParams["item2"])
+					$(`#manual-content h3:eq(${optionPageParams["item2"]})`).click();
 			});
 			
 			if (!localStorage["$setting.cloud-url"])
@@ -728,7 +797,7 @@
 							$(`div.jstbox.contentScriptKey[name='${item}']`).click();
 						break;
 					case "3":
-						// jump to section if section=Novel is specified
+						// jump to section if item=settings-manual is specified
 						if (item)
 							$(`.jstbox.settingKey[target='${item}']`).click();
 						break;
@@ -1399,6 +1468,8 @@
 			pattern = new RegExp(pattern, flags);
 			console.log(pattern);
 			
+			var searchRange = $("#findDialog-find-range").val();
+			
 			findReplaceDialog_replaceKey["targetType"] 	= targetType;
 			findReplaceDialog_replaceKey["pattern"]	 	= pattern;
 			findReplaceDialog_replaceKey["replacement"] = $("#findDialog-replacement").val();
@@ -1411,9 +1482,11 @@
 			switch(findReplaceDialog_target) {
 			case 0:
 				// Site scripts.
+				if (searchRange == "current") { findReplaceDialog_replaceKey["name"] = selectedTitle };
 				break;
 			case 1:
 				// Content scripts
+				if (searchRange == "current") { findReplaceDialog_replaceKey["name"] = selectedContentScript };
 				findReplaceDialog_replaceKey["targetType"] 	= "js";
 				findReplaceDialog_replaceKey["setAutostart"] = "unchanged";
 				break;
@@ -1532,7 +1605,10 @@
 			// Reload content script list: only matching scripts or all scripts.
 			if (options.reloadlist)
 				if (options.filter) {
-					loadAllContentScripts( {content:findReplaceDialog_replaceKey["pattern"]} );
+					//var filter = {content:findReplaceDialog_replaceKey["pattern"]};
+					//if (findReplaceDialog_replaceKey["name"] ) { filter.name = findReplaceDialog_replaceKey["name"]; }
+					//loadAllContentScripts(filter);
+					loadAllContentScripts(findReplaceDialog_replaceKey);
 				} else {
 					loadAllContentScripts();
 				}
@@ -1574,8 +1650,12 @@
 		
 		function findReplaceDialog_replaceSiteScripts() {		
 			findReplaceDialog_updateReplaceKey();
+			var name = findReplaceDialog_replaceKey["name"];
 			
 			for(v in localStorage) {	
+				if (name && name != v)
+					continue;
+					
 				try {
 					var isSiteScript = false;		
 					if (findReplaceDialog_replaceKey["containsDefaultScript"]) {
@@ -1598,8 +1678,12 @@
 		
 		function findReplaceDialog_replaceContentScripts() {	
 			findReplaceDialog_updateReplaceKey();
+			var name = findReplaceDialog_replaceKey["name"];
 			
-			for(v in localStorage) {	
+			for(v in localStorage) {
+				if (name && ("$cs-"+name) != v)
+					continue;
+					
 				try {
 					if (!isContentScriptName(v))
 						continue;
@@ -2012,9 +2096,17 @@
 			
 			currentSavedStateDCS = editorDynScript.getValue();
 			
-			showMessage("Content script saved!");
-			
 			updateContentScriptForContextMenu();
+			
+			editorDynScript.clearSyntaxCheckHightlight();
+			var noErrorsFound = checkScriptSyntax(dcstitle);
+			showJSSyntaxCheckReport(editorDynScript, JSHINT.data());
+			showMessage("Error found in current content script!");
+			if (!noErrorsFound) {
+				console.log(JSHINT.data());
+			} else {			
+				showMessage("Content script saved!");
+			}
 		}
 		
 		function renameContentScript() {
@@ -2082,6 +2174,8 @@
 				$("#dcstitle").val("");
 				$("#dcsinclude").val("");						
 				$("#dcsindex").val("");
+				editorDynScript.setValue("");
+				currentSavedStateDCS = editorDynScript.getValue();
 			}
 			
 			updateContentScriptForContextMenu();
@@ -2265,9 +2359,12 @@
 				// If filter is not given, load all content scripts.
 				if (!filter)
 					return true;
+					
+				if (filter.name)
+					return s.name == filter.name;
 				
 				// otherwise, only load content scripts whose script text matches the content filter.
-				var contentFilter = filter.content;
+				var contentFilter = filter.pattern;
 				return s.script.match(contentFilter);
 			});
 		}

@@ -11,7 +11,8 @@
 	<script type="text/javascript" src="js/cryptojs/md5.js" ></script>	
 	<script type="text/javascript" src="js/cryptojs/pad-zeropadding.js" ></script>	
 
-	<script src="lib/codemirror.js"></script>    
+	<script src="lib/codemirror.js"></script>
+	<script src="lib/codemirror-syntax.js"></script>        
 	<script src="lib/javascript-hint.js"></script>    
 	<script src="lib/simple-hint.js"></script>    
     <script src="mode/javascript/javascript.js"></script>    
@@ -23,6 +24,7 @@
 	
 	<script src="js/jsonlint.js"></script>
 	<script src="lib/jscolor/jscolor.js"></script>   
+	<script src="lib/jshint/jshint.js"></script>   
 	
 	<!-- script src="js/bootstrap-colorpicker.min.js" ></script -->	
 
@@ -34,6 +36,7 @@
 	<script src="options.js"></script>
 	
     <link rel=stylesheet href="lib/codemirror.css">    
+    <link rel=stylesheet href="lib/codemirror-syntax.css">   
 	<link rel=stylesheet href="css/custom-theme/jquery-ui.css">   
 	<link rel=stylesheet href="css/custom-theme/jquery-ui-1.8.21.custom.css">   
     <!-- link rel=stylesheet href="css/bootstrap-colorpicker.css" -->   
@@ -88,7 +91,7 @@
 								<table class="toolbar-left">
 								<tr>
 									<td style="width: 200px;">Requires dynamic content script: </td>
-									<td><input id="jsincludefile" style="width:98%;" title="Can be multiple values seperated by commas" /></td>
+									<td><input id="jsincludefile" style="width:98%;" title="The names of one or more content scripts that should be loaded before this script.<br/>Can be multiple values seperated by commas." /></td>
 								</tr>
 								</table>
 							</div>
@@ -105,7 +108,7 @@
 									<input id="jsdelete" type='button' value="Delete" />		
 								</div>
 								<div style="display:inline-block;">
-									<input class="findReplaceDialogBtn" type="button" value="Find and Replace" target="Site Scripts" />
+									<input class="findReplaceDialogBtn" type="button" value="Find and Replace" target="Site Scripts" style="width: 160px;" />
 								</div>
 								<div style="display:inline-block; float:right;">
 									<input type="button" value="+" class="textSizeUpBtn" />
@@ -198,7 +201,12 @@
 								<input type="button" id="" value="Replace" />
 								<input type="button" id="" value="Replace and Find" />
 								</div>
-								For All <b><span id="findDialog-target">Site-Scripts</span></b>:
+								For  
+								<select id="findDialog-find-range">
+									<option value="current">Current</option>
+									<option value="all">All</option>
+								</select>
+								<b><span id="findDialog-target">Site-Scripts</span></b>:
 								<div style="margin-top: 2px;">
 								<input type="button" id="findDialog-findBtn" value="Find" />
 								<input type="button" id="findDialog-previewBtn" value="Preview Replace" />
@@ -227,22 +235,24 @@
 						<div id='editorScripts' class="hidableEditorArea" style='visibility:block;'>
 							<div class="toolbar" style="left:0; right:10px;" >
 								<table class="toolbar-left"><tr>
-									<td style="width:350px;">
+									<td style="width:355px;">
 										Group:
-										<input id="dcsgroup" type="text" size="10" />
+										<input id="dcsgroup" type="text" size="10" title="Name of group of which this script belongs to in the context menu" />
 										Title:
-										<input id="dcstitle" type="text" size="20" />
-										Include:
+										<input id="dcstitle" type="text" size="20" title="Text representing this script displayed as the menu item name in the context menu" />
+										Requires:
 									</td>
 									<td>
-										<input id="dcsinclude" type="text" style="width:98%;" />
+										<input id="dcsinclude" type="text" style="width:98%;" title="The names of one or more content scripts that should be loaded before this script.<br/>Can be multiple values seperated by commas." />
 									</td>
-									<td style="width:280px; text-align:right;">
+									<td style="width:380px; text-align:right;">
 										Index: 
-										<input id="dcsindex" type="text" size="3" />
-										<input id="dcsindexup" type="button" value="⬆︎" />
-										<input id="dcsindexdown" type="button" value="⬇︎" />
-										<input class="findReplaceDialogBtn" type="button" value="Find and Replace" target="Content Scripts" />
+										<input id="dcsindex" type="text" size="3" title="A number representing the display order in context menu" />
+										<input id="dcsindexup" type="button" value="⬆︎" title="Move Up" />
+										<input id="dcsindexdown" type="button" value="⬇︎" title="Move Down" />
+										<input id="dcsrename" type='button' value="Rename" />		
+										<input id="dcssave" type='button' value="Save [Ctrl+S]" />
+										<input id="dcsdelete" type='button' value="Delete" />
 									</td>
 								</tr></table>
 							</div>
@@ -251,9 +261,7 @@
 									<select id="dcsgencodebytemplate" title="Choose a template to generate code. <br/>Code comment can be set omitted or not by changing 'Output Comments in Templates' switch in Options tab.">
 										<option value="">Code Template</option>
 									</select>
-									<input id="dcsrename" type='button' value="Rename" />		
-									<input id="dcssave" type='button' value="Save [Ctrl+S]" />
-									<input id="dcsdelete" type='button' value="Delete" />
+									<input class="findReplaceDialogBtn" type="button" value="Find and Replace" target="Content Scripts" />
 									<input type="button" value="+" class="textSizeUpBtn" >
 									<span class='textsizeval'>11px</span>
 									<input type="button" value="-" class="textSizeDownBtn">
@@ -323,6 +331,18 @@
 									</td>
 									<td><input type="button" class="localstorage_saveitem" target="$setting.popupwindow_disableRunCodeButton" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.popupwindow_disableRunCodeButton" value="Set to Default" /></td>
+								<tr>
+								<tr class="localstorage_item">
+									<td title="Display the requries field of the site script. <br/>The text (seperated by commas) specified in the requires filed indicates the names of content scripts that should be loaded before this site script is loaded. <br/>This is the old-style specification for script dependency, and is <b>ommited</b> by default with the new module management paradigm powered by Sea.js.">
+									Display Requires field</td>
+									<td>
+									<span class="localstorage_itemvalue" target="$setting.popupwindow_displayRequiresField" defaultvalue="false" >
+										<input type="radio" value="false" name="$setting.popupwindow_displayRequiresField" /><span class="option">No</span>
+										<input type="radio" value="true" name="$setting.popupwindow_displayRequiresField" /><span class="option">Yes</span>
+									<span>
+									</td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.popupwindow_displayRequiresField" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.popupwindow_displayRequiresField" value="Set to Default" /></td>
 								<tr>
 								
 								<tr>
@@ -401,7 +421,7 @@
 								<tr class="localstorage_item settings-msgbox hide">
 									<td title='Extra CSS style of the message box shown by calling log (assigned by require("msgbox")) function in content scripts.'>
 									Extra Styles</td>
-									<td><textarea class="localstorage_itemvalue" target="$setting.builtin_msgboxExtraStyles" defaultvalue="border:1px solid #937B13;" style="min-width:155px;" >border:1px solid #937B13;</textarea>
+									<td><textarea class="localstorage_itemvalue" target="$setting.builtin_msgboxExtraStyles" defaultvalue="border:1px solid #937B13;" style="min-width:175px;" >border:1px solid #937B13;</textarea>
 									<br/>Color chooser <input type="text" class="color" value="#937B13" size="8" />
 									</td>
 									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_msgboxExtraStyles" value="Save" /></td>
@@ -641,8 +661,8 @@
 							to let me know.</p>
 							<p>
 							Several months ago, I searched the chrome web store and found <b>JScript Tricks</b> is very 
-							useful to me. When I start to use it, I feel some features are very necessary, such as setting
-							backup and restore, but Szamil does not update it any more. As a result, I start this project to 
+							close to what I want, so I download it and start to use it. But later, I found that some necessary features are lacking , such as 
+							configuration backup and restore, but Szamil does not update it any more. As a result, I start this project to 
 							extend the original JScript Tricks.
 							
 							</p>

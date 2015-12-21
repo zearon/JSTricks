@@ -209,6 +209,11 @@ function log() {
 			setTimeout(function() {
 				status.innerHTML = "";
 			}, 750);
+			
+			editor.clearSyntaxCheckHightlight();
+			var noErrorFound = checkScriptSyntax(tmpp.script);
+			showJSSyntaxCheckReport(editor, JSHINT.data());
+			console.log(JSHINT.data());	
 		}
 		// Restores select box state to saved value from localStorage.
 		function restore_options(callback) {
@@ -296,6 +301,54 @@ function log() {
 		function editInOptionPage() {
 			window.open("chrome-extension://"+chrome.runtime.id+"/options.html?tab=0&item="+tabSite, "OptionPage");
 		}
+		
+		
+		function checkScriptSyntax(source) {
+			return JSHINT(source, {"esversion":6, "expr":true, "indent":2}, 
+				{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, 
+				"INFO":false, "window":false, "document":false, "alert":false, "confirm":false, 
+				"prompt":false, "setTimeout":false, "setInterval":false, "location":false});
+		}
+		
+		function showJSSyntaxCheckReport(editor, data) {
+			var warnings = [];
+			var errors = data.errors ? data.errors.filter(function(err) {
+				if (err == null) {
+					return false;
+				} else if (err.raw === "Expected a conditional expression and instead saw an assignment.") {
+					return false;
+				} else if (err.raw === "Use '{a}' to compare with '{b}'.") {
+					warnings.push(err);
+					return false;
+				}
+				
+				return true;
+			 })
+			 : [];
+			
+			
+			if (data.implieds) {
+				for (var i = 0; i < data.implieds.length; ++ i) {
+					var variable = data.implieds[i];
+					for (var j = 0; j < variable.line.length; ++ j) {
+						warnings.push( {line:variable.line[j], reason: `${variable.name} is undefined and thus considered as a global variable.`} );
+					}
+				}
+			}
+			
+			var functions = data.functions ? data.functions.map(function(fn) {
+				var fnName = fn.name.replace("(empty)", "(anonymous)");
+				var params = fn.param ? fn.param.join(", ") : "";
+				fn.reason = "function " + fnName + "(" + params + ") <br/>from line " + fn.line + " to " + fn.last;
+				return fn;
+			}) 
+			: [];
+			
+			editor.setFunctionLines(functions);
+			editor.setWarningLines(warnings);
+			editor.setErrorLines(errors);
+		}
+		
 		
 		var editor=null;
 		var editorCss=null;
@@ -395,6 +448,10 @@ function log() {
 					}
 				}
 				setSelectionInEditor(editor, true);
+				
+				if (localStorage["$setting.popupwindow_displayRequiresField"] != "false") {
+					$("#jsincludefile-wrapper").show();
+				}
 			
 				// Height adjusting 
 				//if (inExtensionPage) {
@@ -588,15 +645,16 @@ function log() {
 					title = tooltip + title;
 					
 					var code = command.code;
+					var moduleName = command.moduleName ? command.moduleName : section.moduleName;
+					var objName = command.objName ? command.objName : section.objName;
 					if (command.loadModule == "true") {
-						var moduleName = command.moduleName, objName = command.objName;
 						var element = `<div style="display:inline"><input class="add-script-btn${runClass} init-script-btn" type="button" value="${command.title}" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-code="" /></div>`
 						sectionDiv.append(element);
 					} else if (code) {
-						var element = `<div style="display:inline"><input class="add-script-btn${runClass}" type="button" value="${command.title}" title="${title}" data-module="${section.moduleName}" data-obj="${section.objName}" data-code="${command.code}" /></div>`
+						var element = `<div style="display:inline"><input class="add-script-btn${runClass}" type="button" value="${command.title}" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-code="${command.code}" /></div>`
 						sectionDiv.append(element);
 					} else {
-						var src = `<div style="display:${display}"><input class="add-script-btn${runClass}" type="button" value="${command.title}" title="${title}" data-module="${section.moduleName}" data-obj="${section.objName}" data-statement="${statementType}" data-func="${section.objName}.${command.funcname}" /></div>`;
+						var src = `<div style="display:${display}"><input class="add-script-btn${runClass}" type="button" value="${command.title}" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-statement="${statementType}" data-func="${section.objName}.${command.funcname}" /></div>`;
 						var commandDiv = $(src).appendTo(sectionDiv);
 						for (var k=0; k < command.args.length; ++ k) {
 							var arg = command.args[k];

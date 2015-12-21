@@ -19,7 +19,7 @@
 		}
 	}
 	
-	/* If no Node selector related messages, which starts with NS-, do not load nodeSelector 
+	/* If no Node selector related messages received, which starts with NS-, do not load nodeSelector 
 	 * module which requires jquery indirectly. So for most websites that do not need any JS tricks,
 	 * the memory and CPU resources for one jquery script is saved.
 	 */
