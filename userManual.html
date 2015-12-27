@@ -58,7 +58,14 @@ run(["ready"], function(ready) {
 	<p>It is hidden in default, and can be displayed by turning on the "Show Main script" switch in the options tab. It is advised that this script should be hidden after any modification in case of operation mistakes.</p>
 	
 	<h4>Dynamic Content Scripts</h4>
-	<p>(to be completed)</p>
+	<p>Dynamic content script is a concept borrowed from Chrome which means the scripts are like the original content script concept in Chrome that could be injected in to target webpage, and "dynamic" suggests that they are editable, and not like the original content script concept in Chrome which is built in the extension as files and thus being unchangeable. </p>
+	<p>A dynamic content script, or content script in short hereafter, can be invoked in three ways:<br/>
+	1. invoked by context menu click.<br/>
+	2. implicitly invoked by the extension for every website on website loaded.<br/>
+	3. explicitly invoked by other site scripts.</p>
+	<p>A context menu item is automatically generated for each content script which is invoked when the menu item is clicked. The menu items are organized in two levels, the top level and a second level. The context menu item for a content script with an empty "group" attribute is put into the context menu in the top level, and the on</p>
+	<p></p>
+	<p></p>
 	
 	<h4>Loading Sequence of Scripts</h4>
 	<p>(to be completed)</p>
