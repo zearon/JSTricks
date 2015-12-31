@@ -267,6 +267,20 @@
 			clear:both;
 		}
 		
+		#dcsindexup {
+			position: relative;
+			top: 3px;
+			width: 26px;
+			background: url('img/arrow_up.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+		}
+		
+		#dcsindexdown {
+			position: relative;
+			top: 3px;
+			width: 26px;
+			background: url('img/arrow_down.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+		}
+		
 		#centercontainer
 		{
 			position:absolute;
