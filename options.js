@@ -2295,6 +2295,7 @@
 			localStorage[targetKey] = JSON.stringify(targetData);
 			localStorage[nodeKey] = JSON.stringify(nodeData);
 			
+			$("#dcsindex").val(targetIndex);
 			targetNode.attr("index", targetData["index"])
 				.find(".index").text(targetData["index"]);
 			node.detach().insertBefore(`#contentscript-menu > .jstbox[name='${targetName}']`)
@@ -2330,6 +2331,7 @@
 			localStorage[targetKey] = JSON.stringify(targetData);
 			localStorage[nodeKey] = JSON.stringify(nodeData);
 			
+			$("#dcsindex").val(targetIndex);
 			targetNode.attr("index", targetData["index"])
 				.find(".index").text(targetData["index"]);
 			node.remove().insertAfter(`#contentscript-menu > .jstbox[name='${targetName}']`)
