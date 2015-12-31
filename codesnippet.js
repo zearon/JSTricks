@@ -62,7 +62,8 @@ var codesnippet_addScriptNodeToDOM =
 		s.setAttribute('id', id);
 		s.innerHTML = DecorateStyleItems_____(styles);
 		//(document.body||document.documentElement).appendChild(s);
-		document.documentElement.insertBefore(s, document.documentElement.childNodes[1]);
+		//document.documentElement.insertBefore(s, document.documentElement.childNodes[1]);
+		document.documentElement.appendChild(s);
 	}
 `;
 
