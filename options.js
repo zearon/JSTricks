@@ -844,7 +844,7 @@
 		function setupKeyEventHandler() {
 			var mac_os = navigator.userAgent.indexOf("Mac OS") > -1;
 			if (mac_os)
-				$(":button[value='Save [Ctrl+S]']").val("Save [⌘+S]");
+				$(":button[value='Save [Ctrl+S]']").val("Save [⌘S]");
 
 			$("*").focus(function(event) {
 				focusNotOnMenuList = true;
