@@ -42,8 +42,13 @@ var codesnippet_addScriptNodeToDOM =
 		(document.head||document.documentElement).appendChild(s);
 	}
 	function DecorateStyleItems_____(style) {
-		return style.replace(/;/g, " !important;");
-				//	.replace(/([^;\s])(\s*\})/g, "$1 !important;$2");
+		return style.replace(/(\\S)(\\s*)(\\/\\*[\\s\\S]*?\\*\\/)?(\\s*\\})/g, function(s, g1, g2, g3, g4) {
+						if (g1==";")
+							return s;
+						else
+							return g1+";"+g2+(g3?g3:"")+g4;
+					})
+					.replace(/;/g, " !important;");
 	}
 	function AppendStyleNodeToDom_____(styles) {
 		var id = 'javascript-tricks';
