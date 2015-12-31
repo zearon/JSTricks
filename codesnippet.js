@@ -41,11 +41,23 @@ var codesnippet_addScriptNodeToDOM =
 		/*if (onload) { s.onload = onload; }*/
 		(document.head||document.documentElement).appendChild(s);
 	}
+	function DecorateStyleItems_____(style) {
+		return style.replace(/;/g, " !important;");
+				//	.replace(/([^;\s])(\s*\})/g, "$1 !important;$2");
+	}
 	function AppendStyleNodeToDom_____(styles) {
+		var id = 'javascript-tricks';
+		var os = document.getElementById(id);
+		if (os) {
+			os.parentNode.removeChild(os);
+		}
+		
 		var s = document.createElement('style');
-		s.innerHTML = styles;
-		/*if (onload) { s.onload = onload; }*/
-		(document.body||document.documentElement).appendChild(s);
+		s.setAttribute('type', 'text/css');
+		s.setAttribute('id', id);
+		s.innerHTML = DecorateStyleItems_____(styles);
+		//(document.body||document.documentElement).appendChild(s);
+		document.documentElement.insertBefore(s, document.documentElement.childNodes[1]);
 	}
 `;
 

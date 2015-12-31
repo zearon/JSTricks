@@ -101,7 +101,10 @@ function API_ExecuteScriptInTab(name, script, includes, callback) {
 	chrome.runtime.sendMessage(msg, callback);
 }
 
-function API_InsertCssInTab() {
+function API_InsertCssInTab(css) {
+	var data = [{code:`AppendStyleNodeToDom_____(decodeURIComponent("${encodeURIComponent(css)}"));`}];
+	var msg = {tabid:tabID, method:"ExecuteJsCodeOrFile", data:data};
+	chrome.runtime.sendMessage(msg);
 }
 
 function API_SetIcon(arg) {
@@ -214,6 +217,9 @@ function log() {
 			var noErrorFound = checkScriptSyntax(tmpp.script);
 			showJSSyntaxCheckReport(editor, JSHINT.data());
 			console.log(JSHINT.data());	
+			
+			//Inject CSS immediately
+			API_InsertCssInTab(tmpp.css);
 		}
 		// Restores select box state to saved value from localStorage.
 		function restore_options(callback) {
@@ -242,8 +248,9 @@ function log() {
 			$("#jstcb").button("refresh");
 		}
 		function execute(name, script, css) {
-			if(css != "")
+			if(css != "") {
 				chrome.tabs.insertCSS(null,{code:css});
+			}
 			
 			if(script != "") {
 				var includes = $("#jsincludefile").val();
