@@ -44,14 +44,14 @@ function API_SendResponse(tabid, method, id, arg) {
 }
 
 function GetTabURL(tabid, method, id, arg) {
-	chrome.tabs.query({active:true}, function(tabs) {
+	chrome.tabs.query({active:true, windowId:chrome.windows.WINDOW_ID_CURRENT}, function(tabs) {
 		var url = tabs[0].url;
 		API_SendResponse(tabid, method, id, url);
 	});
 }
 
 function GetSelectedTab(tabid, method, id, arg) {
-	chrome.tabs.query({active:true}, function(tabs) {
+	chrome.tabs.query({active:true, windowId:chrome.windows.WINDOW_ID_CURRENT}, function(tabs) {
 		var tab = tabs[0];
 		//console.log(tab);
 		API_SendResponse(tabid, method, id, tab);

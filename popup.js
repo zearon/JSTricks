@@ -74,7 +74,7 @@ chrome.runtime.onMessage.addListener(function(msg) {
 // function callback(tab) {...}
 function API_GetSelectedTab(callback) {
 	if (inExtensionPage) {
-		chrome.tabs.query({active:true}, function(tabs) {
+		chrome.tabs.query({active:true, windowId:chrome.windows.WINDOW_ID_CURRENT}, function(tabs) {
 			callback(tabs[0]);
 		});
 	} else {
@@ -85,7 +85,7 @@ function API_GetSelectedTab(callback) {
 // function callback(url) {...}
 function API_GetTabURL(callback) {
 	if (inExtensionPage) {
-		chrome.tabs.query({active:true}, function(tabs) {
+		chrome.tabs.query({active:true, windowId:chrome.windows.WINDOW_ID_CURRENT}, function(tabs) {
 			callback(tabs[0].url);
 		});
 	} else {
