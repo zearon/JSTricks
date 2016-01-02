@@ -132,6 +132,9 @@
 
 .CodeMirror-composing { border-bottom: 2px solid; }
 
+/* Styles for preview mode in find and replace */
+.cm-s-abcdef .CodeMirror.findReplacePreview { background-color: #ffeeee; }
+
 /* Default styles for common addons */
 
 div.CodeMirror span.CodeMirror-matchingbracket {color: #0f0;}
