@@ -20,7 +20,6 @@
 	  }
   }
   
-  
 /***************************************************
  *               Sea.js Config Plugin              *
  ***************************************************/  
@@ -196,7 +195,7 @@
         if (!moduleSpec)
         	moduleSpec = "CMD"
         var debugstr = "";
-        debugstr = INFO.debug ? "console.log('Injected " + moduleSpec + " Module: " + uri + "');" : "";
+        debugstr = (typeof INFO !== "undefined" && INFO.debug) ? "console.log('Injected " + moduleSpec + " Module: " + uri + "');" : "";
         
 //        var defineWrapper =
 /*****************************************************************************
@@ -343,11 +342,28 @@ ${srcCode};
         }
         
         // send code to background page to run
-        var callbackID = name + ":" + guid();
-        callbacks[callbackID] = onload;
-    
-        chrome.runtime.sendMessage({method:"InjectModule", 
-                                    data:JSON.stringify({name: uri, code: srcCode, callback: callbackID})});
+        if (typeof INFO !== "undefined" && INFO.desc == "Javascript Tricks") {
+		  var callbackID = name + ":" + guid();
+		  callbacks[callbackID] = onload;
+	
+		  chrome.runtime.sendMessage({method:"InjectModule", 
+									  data:JSON.stringify({name: uri, code: srcCode, callback: callbackID})});
+        } 
+        
+        // Add the srcCode as a script node with Data-URI.
+        else {
+          /*var s = document.createElement("script");
+          s.setAttribute("type", "text/javascript");
+          s.setAttribute("src", "data:text/javascript;charset=utf-8," + encodeURIComponent(srcCode));
+          s.onload = function () { 
+          	onload(false); // no error 
+          };
+          
+          (document.head || document.documentElement).appendChild(s);*/
+          
+          eval(srcCode);
+          onload(false);
+        }
       }
     } // end of onXHRload
     

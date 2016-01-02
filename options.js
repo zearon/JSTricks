@@ -67,10 +67,7 @@
 		var mapContentScriptFunc = dummyMapFunc;
 
 		var selectedTitle = "";		
-		var scripts = ["js/jquery.js"];			
-		CodeMirror.commands.autocomplete = function(cm) {
-			CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);
-		}
+		var scripts = ["js/jquery.js"];
 		
 		var defaultSettings = {};
 		
@@ -133,7 +130,6 @@
 			
 			editorDynScript.clearSyntaxCheckHightlight();
 			var noErrorFound = checkScriptSyntax(val);
-			showJSSyntaxCheckReport(editorJs, JSHINT.data());
 			console.log(JSHINT.data());		
 			if (!noErrorFound) {
 				showMessage("Error found in current site script!");
@@ -150,7 +146,7 @@
 				"INFO":false, "window":false, "document":false, "alert":false, "confirm":false, 
 				"prompt":false, "setTimeout":false, "setInterval":false, "location":false});
 		}
-		
+		/*
 		function showJSSyntaxCheckReport(editor, data) {
 			var warnings = [];
 			var errors = data.errors ? data.errors.filter(function(err) {
@@ -188,24 +184,19 @@
 			editor.setFunctionLines(functions);
 			editor.setWarningLines(warnings);
 			editor.setErrorLines(errors);
-		}
+		}*/
 
-		function saveMetadata() {	
-			editorMeta.clearSyntaxCheckHightlight();		
+		function saveMetadata() {
 			try {
 				var meta = editorMeta.getValue();
-				//JSON.parse(meta);
+				JSON.parse(meta);
 				jsonlint.parse(meta);
 				localStorage["meta"] = meta;
 				currentSavedStateMeta = editorMeta.getValue();
 			} catch (ex) {
-				console.log(ex.message);
-				var m = ex.message.match(/Parse error on line (\d+):\s*([\s\S]+)/);
-				var line = parseInt(m[1]);
-				var reason = "<div style='font-family:monospace;'>" + m[2].replace(/\n/g, "<br/>") + "</div>"
-				var errors = [ {line, reason} ];
-				editorMeta.setErrorLines(errors);
+				console.log(ex);
 				
+				showMessage("!!! Cannot save Metadata due to syntax error!");
 				return;
 			}
 			
@@ -679,68 +670,12 @@
 				if(ev.keyCode==112)
 					return false;
 			});
-			editorJs = generateEditor(document.getElementById("taedit"), {
-					mode: 'text/javascript',					
-					tabMode: 'indent',
-					lineNumbers:true,
-					matchBrackets :true,
-					extraKeys: {						
-						"Esc": function() {
-						  var scroller = editorJs.getScrollerElement();
-						  if (scroller.className.search(/\bCodeMirror-fullscreen\b/) !== -1) {
-							scroller.className = scroller.className.replace(" CodeMirror-fullscreen", "");
-							scroller.style.height = '';
-							scroller.style.width = '';
-							editorJs.refresh();
-						  }
-						},
-						"F1":function(){
-							openJQueryHelp();
-						},
-						"Ctrl-Space": "autocomplete"
-					},
-					onCursorActivity: function() {
-						if(hlLineJs!=null)
-							editorJs.setLineClass(hlLineJs, null, null);    
-							
-						hlLineJs = editorJs.getCursor().line;						
-						editorJs.setLineClass(hlLineJs, "activeline", "activeline");  
-						
-					}
-				}); 
-				
-				
-			
-			editorCss = generateEditor(document.getElementById("taeditcss"), {
-					mode: 'text/css',					
-					tabMode: 'indent',
-					lineNumbers:true,
-					matchBrackets :true,
-					extraKeys: {						
-						"Esc": function() {
-						  var scroller = editorCss.getScrollerElement();
-						  if (scroller.className.search(/\bCodeMirror-fullscreen\b/) !== -1) {
-							scroller.className = scroller.className.replace(" CodeMirror-fullscreen", "");
-							scroller.style.height = '';
-							scroller.style.width = '';
-							editorCss.refresh();
-						  }
-						},
-						"Ctrl-Space": "autocomplete"
-					},
-					onCursorActivity: function() {    
-						if(hlLineCss!=null)
-							editorCss.setLineClass(hlLineCss, null, null);    
-							
-						hlLineCss = editorCss.getCursor().line;						
-						editorCss.setLineClass(hlLineCss, "activeline", "activeline");  
-					}
-				}); 
-			
-			editorMeta = generateJSEditor("taeditmeta"); 				
-			editorDynScript = generateJSEditor("dyscriptedit"); 
-			editorJsonFile = generateJSEditor("json-file"); 
-			editorJsonObjectValue = generateJSEditor("json-file-obj"); 
+			editorJs = generateEditor("taedit", "text/javascript"); 
+			editorCss = generateEditor("taeditcss", "text/css"); 		
+			editorDynScript = generateEditor("dyscriptedit", "text/javascript"); 
+			editorMeta = generateEditor("taeditmeta", "application/json"); 		
+			editorJsonFile = generateEditor("json-file", "application/json"); 
+			editorJsonObjectValue = generateEditor("json-file-obj", "application/json"); 
 			
 			//line highlight
 			//hlLineJs = editorJs.setLineClass(0, "activeline");
@@ -830,6 +765,70 @@
 				}
 			});
 		});//;
+		/*
+		function generateEditor(node, options) {
+			options["onFocus"] = function() {
+				focusNotOnMenuList = true;
+			}
+			options["theme"] = "abcdef";
+			options["foldGutter"] = true;
+			options["syntaxCheck"] = {"esversion":6, "expr":true, "indent":2, "globals":
+			 	{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, 
+				"INFO":false, "window":false, "document":false, "alert":false, "confirm":false, 
+				"prompt":false, "setTimeout":false, "setInterval":false, "location":false} };
+    		options["gutters"] = ["CodeMirror-lint-markers", "CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+    
+			return CodeMirror.fromTextArea(node, options);
+		}*/
+		
+		function generateEditor(textareaID, mode, extraOptions) {
+			var options = {
+				mode: mode,					
+				tabMode: 'indent',
+				lineNumbers:true,
+				matchBrackets :true,
+				theme: "abcdef", //_yellow
+				foldGutter: true,
+				lint: {"esversion":6, "expr":true, "indent":2, "globals":
+						{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, 
+						"INFO":false, "window":false, "navigator":false, "document":false, "alert":false, "confirm":false, 
+						"prompt":false, "setTimeout":false, "setInterval":false, "location":false,
+						"localStorage":false, "FileReader":false} },
+				gutters: ["CodeMirror-lint-markers", "CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+				extraKeys: {						
+					"Esc": function() {
+					  var scroller = editorJs.getScrollerElement();
+					  if (scroller.className.search(/\bCodeMirror-fullscreen\b/) !== -1) {
+						scroller.className = scroller.className.replace(" CodeMirror-fullscreen", "");
+						scroller.style.height = '';
+						scroller.style.width = '';
+						editorJs.refresh();
+					  }
+					},
+					"F1":function(){
+						openJQueryHelp();
+					},
+					"Ctrl-Space": "autocomplete"
+				},
+				onCursorActivity: function() {
+					if(hlLineJs!=null)
+						editorJs.setLineClass(hlLineJs, null, null);    
+						
+					hlLineJs = editorJs.getCursor().line;						
+					editorJs.setLineClass(hlLineJs, "activeline", "activeline");  						
+				},
+				onFocus: function() {
+					focusNotOnMenuList = true;
+				}
+			};
+			if (extraOptions) {
+				for (var key in extraOptions) {
+					options[key] = extraOptions[key];
+				}
+			}
+			
+			return CodeMirror.fromTextArea(document.getElementById(textareaID), options); 
+		}
 		
 		function loadMetaData() {
 			var metadata = localStorage["meta"];			
@@ -904,45 +903,6 @@
 					console.log(container[0].scrollTop);
 				}
 			});
-		}
-		
-		function generateEditor(node, options) {
-			options["onFocus"] = function() {
-				focusNotOnMenuList = true;
-			}
-			return CodeMirror.fromTextArea(node, options);
-		}
-		
-		function generateJSEditor(textareaID) {
-			return generateEditor(document.getElementById(textareaID), {
-					mode: 'text/javascript',					
-					tabMode: 'indent',
-					lineNumbers:true,
-					matchBrackets :true,
-					extraKeys: {						
-						"Esc": function() {
-						  var scroller = editorJs.getScrollerElement();
-						  if (scroller.className.search(/\bCodeMirror-fullscreen\b/) !== -1) {
-							scroller.className = scroller.className.replace(" CodeMirror-fullscreen", "");
-							scroller.style.height = '';
-							scroller.style.width = '';
-							editorJs.refresh();
-						  }
-						},
-						"F1":function(){
-							openJQueryHelp();
-						},
-						"Ctrl-Space": "autocomplete"
-					},
-					onCursorActivity: function() {
-						if(hlLineJs!=null)
-							editorJs.setLineClass(hlLineJs, null, null);    
-							
-						hlLineJs = editorJs.getCursor().line;						
-						editorJs.setLineClass(hlLineJs, "activeline", "activeline");  
-						
-					}
-				}); 
 		}
 		
 		var hiddenOpt = true;
@@ -2180,7 +2140,7 @@
 			
 			editorDynScript.clearSyntaxCheckHightlight();
 			var noErrorsFound = checkScriptSyntax(dcstitle);
-			showJSSyntaxCheckReport(editorDynScript, JSHINT.data());
+			//showJSSyntaxCheckReport(editorDynScript, JSHINT.data());
 			showMessage("Error found in current content script!");
 			if (!noErrorsFound) {
 				console.log(JSHINT.data());

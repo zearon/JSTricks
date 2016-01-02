@@ -117,15 +117,15 @@
 			max-width:99%;
 			min-width:99%;
 			border-top:1px solid #666;
-			background:white;
+			/*background:white;*/
 			font-size:11px;
 		}
 		.CodeMirror,.CodeMirror-scroll{
 			height:100%;
-			background: white right top no-repeat;
-			background-size: contain;
+			/*background: white right top no-repeat;
+			background-size: contain;*/
 			
-		}
+		}/*
 		.CodeMirror-scroll{
 			background:rgba(255,255,255,0.5);
 			box-shadow:rgba(0,0,0,0.3) 0 0 20px inset;
@@ -145,7 +145,7 @@
 		}
 		.CodeMirror .activeline{
 			background:#eec;
-		}
+		}*/
 		
 		
 		label{

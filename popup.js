@@ -394,48 +394,15 @@ function log() {
 		
 			restore_options(function(){
 				//run();
-				editor = CodeMirror.fromTextArea(document.getElementById("scriptText"), {
-					tabindex: 2,
-					mode: 'text/javascript',
-					tabMode: 'indent',
-					lineNumbers:true,
-					matchBrackets :true,
-					/*extraKeys:{
-						"Ctrl-S":function(event){
-							save_options();
-							console.log(event);
-						}			
-					},*/
-					onChange  : function(){
-						cacheScript();
-					}
-				}); 
-				editorCss = CodeMirror.fromTextArea(document.getElementById("scriptTextCss"), {
-					mode: 'text/css',
-					tabMode: 'indent',
-					lineNumbers:true,
-					matchBrackets :true,
-					/*extraKeys:{
-						"Ctrl-S":function(){
-							save_options();
-						}			
-					},*/
-					onChange  : function(){
-						cacheCss();
-					}
-				});	
-				editorDemo = CodeMirror.fromTextArea(document.getElementById("demo-code"), {
-					mode: 'text/javascript',
-					tabMode: 'indent',
-					lineNumbers:true,
-					matchBrackets :true,
-					readOnly:true,
-					/*extraKeys:{
-						"Ctrl-S":function(){
-							save_options();
-						}			
-					}*/
-				}); 
+				editor = generateEditor("scriptText", "text/javascript", {
+					onChange: function() {  cacheScript();  }
+				});
+				editorCss = generateEditor("scriptTextCss", "text/css", {
+					onChange: function() {  cacheCss();  }
+				});
+				editorDemo = generateEditor("demo-code", "text/javascript", {
+					readOnly:true
+				});
 				
 				// Select <SELECTION_START><SELECTION_END> region
 				function setSelectionInEditor(editor, setFocus) {
@@ -466,7 +433,7 @@ function log() {
 					// tabHeight = 500
 					var tabHeight = windowHeight - $("#editor-script-gen-ui-title").offset().top - 2;
 					$(".topeditorwrap").css("height", tabHeight);
-					$(".CodeMirror-scroll, .CodeMirror-gutter").css("height", tabHeight);
+					$(".CodeMirror-scroll, .CodeMirror-gutters").css("height", tabHeight);
 					
 					var editor1Height = windowHeight - $("#tabs-1 .CodeMirror-scroll").offset().top - 1;
 					$("#tabs-1 .CodeMirror-scroll").css("height", editor1Height);
@@ -489,6 +456,45 @@ function log() {
 				}
 			});
 		});//;
+		
+		function generateEditor(textareaID, mode, extraOptions) {
+			var options = {
+				mode: mode,					
+				tabMode: 'indent',
+				lineNumbers:true,
+				matchBrackets :true,
+				theme: "abcdef", //_yellow
+				foldGutter: true,
+				lint: {"esversion":6, "expr":true, "indent":2, "globals":
+						{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, 
+						"INFO":false, "window":false, "navigator":false, "document":false, "alert":false, "confirm":false, 
+						"prompt":false, "setTimeout":false, "setInterval":false, "location":false,
+						"localStorage":false, "FileReader":false} },
+				gutters: ["CodeMirror-lint-markers", "CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+				extraKeys: {						
+					"Esc": function() {
+					  var scroller = editorJs.getScrollerElement();
+					  if (scroller.className.search(/\bCodeMirror-fullscreen\b/) !== -1) {
+						scroller.className = scroller.className.replace(" CodeMirror-fullscreen", "");
+						scroller.style.height = '';
+						scroller.style.width = '';
+						editorJs.refresh();
+					  }
+					},
+					"F1":function(){
+						openJQueryHelp();
+					},
+					"Ctrl-Space": "autocomplete"
+				}
+			};
+			if (extraOptions) {
+				for (var key in extraOptions) {
+					options[key] = extraOptions[key];
+				}
+			}
+			
+			return CodeMirror.fromTextArea(document.getElementById(textareaID), options); 
+		}
 		
 		function setupKeyEventHandler() {
 			var mac_os = navigator.userAgent.indexOf("Mac OS") > -1;
