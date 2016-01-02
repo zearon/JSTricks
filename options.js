@@ -786,8 +786,9 @@
 				mode: mode,					
 				tabMode: 'indent',
 				lineNumbers:true,
+				styleActiveLine: true,
 				matchBrackets :true,
-				theme: "abcdef", //_yellow
+				theme: "_yellow", //_yellow, abcdef, default
 				foldGutter: true,
 				lint: {"esversion":6, "expr":true, "indent":2, "globals":
 						{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, 
@@ -809,16 +810,6 @@
 						openJQueryHelp();
 					},
 					"Ctrl-Space": "autocomplete"
-				},
-				onCursorActivity: function() {
-					if(hlLineJs!=null)
-						editorJs.setLineClass(hlLineJs, null, null);    
-						
-					hlLineJs = editorJs.getCursor().line;						
-					editorJs.setLineClass(hlLineJs, "activeline", "activeline");  						
-				},
-				onFocus: function() {
-					focusNotOnMenuList = true;
 				}
 			};
 			if (extraOptions) {
@@ -827,7 +818,11 @@
 				}
 			}
 			
-			return CodeMirror.fromTextArea(document.getElementById(textareaID), options); 
+			var editor = CodeMirror.fromTextArea(document.getElementById(textareaID), options); 
+			editor.on("focus", function() {
+					focusNotOnMenuList = true;				
+				});
+			return editor;
 		}
 		
 		function loadMetaData() {
@@ -1572,9 +1567,9 @@
 			
 			// Update some UI according to button pressed in find and replace dialog
 			if (options.alerteditor) {
-				$("#tabs-sss .CodeMirror").css("background-color", "#ffeeee");
+				$("#tabs-sss .CodeMirror").addClass("findReplacePreview");//.css("background-color", "#ffeeee");
 			} else {
-				$("#tabs-sss .CodeMirror").css("background-color", "");
+				$("#tabs-sss .CodeMirror").removeClass("findReplacePreview");//.css("background-color", "");
 			}
 		}
 		
@@ -1598,9 +1593,9 @@
 			
 			// Update some UI according to button pressed in find and replace dialog
 			if (options.alerteditor) {
-				$("#tabs-dcs .CodeMirror").css("background-color", "#ffeeee");
+				$("#tabs-dcs .CodeMirror").addClass("findReplacePreview");//.css("background-color", "#ffeeee");
 			} else {
-				$("#tabs-dcs .CodeMirror").css("background-color", "");
+				$("#tabs-dcs .CodeMirror").removeClass("findReplacePreview");//.css("background-color", "");
 			}
 		}
 		

@@ -462,6 +462,7 @@ function log() {
 				mode: mode,					
 				tabMode: 'indent',
 				lineNumbers:true,
+				styleActiveLine: true,
 				matchBrackets :true,
 				theme: "abcdef", //_yellow
 				foldGutter: true,
