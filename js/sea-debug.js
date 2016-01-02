@@ -1143,6 +1143,19 @@ seajs.config = function(configData) {
   return seajs
 }
 
+
+  
+/***************************************************
+ *               Sea.js load CSS Plugin            *
+ ***************************************************/    
+  seajs.importCss = function(id) {
+    var href = seajs.resolve(id).replace(/\.js$/, "");
+	var s = document.createElement('link');
+	s.setAttribute('rel', 'stylesheet');
+	s.setAttribute('href', href);
+	(document.head||document.documentElement).appendChild(s);
+  }
+
 })(this);
 
 

@@ -6,25 +6,50 @@
 -->
 <html>
   <head>	
+<meta charset="utf-8" />
 	<title>Javascript Tricks - Options</title>
 	<script type="text/javascript" src="js/cryptojs/aes.js" ></script>	
 	<script type="text/javascript" src="js/cryptojs/md5.js" ></script>	
 	<script type="text/javascript" src="js/cryptojs/pad-zeropadding.js" ></script>	
 
-	<script src="lib/codemirror.js"></script>
-	<script src="lib/codemirror-syntax.js"></script>        
-	<script src="lib/javascript-hint.js"></script>    
-	<script src="lib/simple-hint.js"></script>    
-    <script src="mode/javascript/javascript.js"></script>    
-	<script src="mode/css/css.js"></script>  
+	<!-- CodeMirror stylesheets and scripts -->
+	<link rel=stylesheet href="lib/codemirror/doc/docs.css">
+	<link rel="stylesheet" href="lib/codemirror/lib/codemirror.css">
+	<link rel="stylesheet" href="lib/codemirror/addon/hint/show-hint.css">
+	<link rel="stylesheet" href="lib/codemirror/addon/fold/foldgutter.css" />
+	<link rel="stylesheet" href="lib/codemirror/addon/lint/lint.css">
+	<link rel="stylesheet" href="lib/codemirror/myext/syntaxcheck/syntaxcheck.css">
+	<link rel="stylesheet" href="lib/codemirror/theme/abcdef.css">
+
+	<script src="lib/codemirror/lib/codemirror.js"></script>
+	<script src="lib/codemirror/addon/edit/matchbrackets.js"></script>
+	<script src="lib/codemirror/addon/comment/continuecomment.js"></script>
+	<script src="lib/codemirror/addon/comment/comment.js"></script>
+	<script src="lib/codemirror/addon/hint/show-hint.js"></script>
+	<script src="lib/codemirror/addon/hint/javascript-hint.js"></script>
+	<script src="lib/codemirror/mode/javascript/javascript.js"></script>
+	<script src="lib/codemirror/addon/hint/css-hint.js"></script>
+	<script src="lib/codemirror/mode/css/css.js"></script>
+	<script src="lib/codemirror/addon/fold/foldcode.js"></script>
+	<script src="lib/codemirror/addon/fold/foldgutter.js"></script>
+	<script src="lib/codemirror/addon/fold/brace-fold.js"></script>
+	<script src="lib/codemirror/addon/fold/comment-fold.js"></script>
+	<script src="lib/codemirror/myext/syntaxcheck/syntaxcheck.js"></script>  
+	
+	<script src="lib/jshint/jshint.js"></script>
+	<script src="lib/3rdparty-lint/jsonlint_zaach.js"></script>
+	<script src="lib/3rdparty-lint/csslint.js"></script>
+	<script src="lib/codemirror/addon/lint/lint.js"></script>
+	<script src="lib/codemirror/addon/lint/javascript-lint.js"></script>
+	<script src="lib/codemirror/addon/lint/json-lint.js"></script>
+	<script src="lib/codemirror/addon/lint/css-lint.js"></script>	
+	<!-- End of CodeMirror stylesheets and scripts -->
 	  
 	<script src="js/jquery.js" ></script>	
-	<script src="js/jquery-ui.js" ></script>	
+	<script src="js/jquery-ui.js" ></script>
 	<script src="js/jsformatter.js" ></script>
 	
-	<script src="js/jsonlint.js"></script>
-	<script src="lib/jscolor/jscolor.js"></script>   
-	<script src="lib/jshint/jshint.js"></script>   
+	<script src="lib/jscolor/jscolor.js"></script> 
 	
 	<!-- script src="js/bootstrap-colorpicker.min.js" ></script -->	
 
@@ -35,8 +60,6 @@
 	<script src="codesnippet.js" ></script>	
 	<script src="options.js"></script>
 	
-    <link rel=stylesheet href="lib/codemirror.css">    
-    <link rel=stylesheet href="lib/codemirror-syntax.css">   
 	<link rel=stylesheet href="css/custom-theme/jquery-ui.css">   
 	<link rel=stylesheet href="css/custom-theme/jquery-ui-1.8.21.custom.css">   
     <!-- link rel=stylesheet href="css/bootstrap-colorpicker.css" -->   
