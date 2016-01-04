@@ -8,6 +8,7 @@ function guid() {
 }
 
 var invocationID = 0;
+var handlers = {};
 chrome.runtime.onMessage.addListener(function(msg, sender) {
 	//console.log("Message received:");
 	//console.log(msg);
@@ -18,23 +19,10 @@ chrome.runtime.onMessage.addListener(function(msg, sender) {
 		var arg = JSON.parse(msg["arg"]);
 		
 		// call method such as GetTabURL, GetSelectedTab, etc
-		//scope[method](tabid, method, id, arg);
-		
-		if (method == "GetTabURL") {
-			GetTabURL(tabid, method, id, arg);
-		} else if (method == "GetSelectedTab") {
-			GetSelectedTab(tabid, method, id, arg);
-		} else if (method == "SetIcon") {
-			SetIcon(tabid, method, id, arg);
-		} else if (method == "SendMessageToTab") {
-			SendMessageToTab(tabid, method, id, arg);
-		} else if (method == "OpenWindow") {
-			OpenWindow(tabid, method, id, arg);
-		} else if (method == "ConsoleLog") {
-			ConsoleLog(tabid, method, id, arg);
-		}
+		handlers[method](tabid, method, id, arg);
 	}
 });
+
 function API_SendResponse(tabid, method, id, arg) {
 	var msg = {MsgType:"chrome-ext-api-response", method:method, id:id, arg:JSON.stringify(arg)};
 	//console.log("Send response for request with id="+id);
@@ -45,23 +33,23 @@ function API_SendResponse(tabid, method, id, arg) {
 		chrome.runtime.sendMessage({MsgType:"chrome-ext-api-response", method:method, id:id, arg:arg});
 }
 
-function GetTabURL(tabid, method, id, arg) {
+handlers.GetTabURL = function (tabid, method, id, arg) {
 	chrome.tabs.query({active:true, windowId:chrome.windows.WINDOW_ID_CURRENT}, function(tabs) {
 		var url = tabs[0].url;
 		API_SendResponse(tabid, method, id, url);
 	});
-}
+};
 
-function GetSelectedTab(tabid, method, id, arg) {
+handlers.GetSelectedTab = function (tabid, method, id, arg) {
 	chrome.tabs.query({active:true, windowId:chrome.windows.WINDOW_ID_CURRENT}, function(tabs) {
 		var tab = tabs[0];
 		//console.log(tab);
 		API_SendResponse(tabid, method, id, tab);
 	});
-}
+};
 
 var a = 0;
-function SetIcon(tabid, method, id, arg) {
+handlers.SetIcon = function (tabid, method, id, arg) {
 	console.log("setIcon");
 	chrome.browserAction.setIcon(arg);
 	
@@ -72,25 +60,25 @@ function SetIcon(tabid, method, id, arg) {
 		chrome.browserAction.setIcon({path: "icon/icon24_auto.png"});
 		console.log('chrome.browserAction.setIcon({path: "icon/icon24_auto.png"});');
 	}
-}
+};
 
-function SendMessageToTab(tabid, method, id, arg) {
+handlers.SendMessageToTab = function (tabid, method, id, arg) {
 	chrome.tabs.sendMessage(tabid, arg, function(response) {
 		API_SendResponse(tabid, method, id, tab);
 	});
-}
+};
 
-function OpenWindow(tabid, method, id, arg) {
+handlers.OpenWindow = function (tabid, method, id, arg) {
 	window.open(arg.url, arg.name);
-}
+};
 
-function ConsoleLog(tabid, method, id, arg) {
+handlers.ConsoleLog = function (tabid, method, id, arg) {
 	var argArray = [];
 	for (k in arg) {
 		argArray[k] = arg[k];
 	}
 	console.log.apply(console, argArray);
 	delete argArray;
-}
+};
 
 })();
