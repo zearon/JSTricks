@@ -167,12 +167,12 @@ function log() {
 			if (enabled) {
 				// Disable
 				localStorage["$setting.enabled"] = "false";
-				API_SetIcon({path:"icon24_disabled.png"});
+				API_SetIcon({path:"icon/icon24_disabled.png"});
 			} else {
 				// Enable
 				chrome.runtime.sendMessage({tabid:tabID, method: "JSTinjectScript"});
 				localStorage["$setting.enabled"] = "true";
-				API_SetIcon({path:"icon24.png"});
+				API_SetIcon({path:"icon/icon24.png"});
 			}
 			setEnableDisableBtnImage();
 		}
@@ -194,7 +194,7 @@ function log() {
 				var domain = url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
 				delete localStorage[domain];
 				  
-            	API_SetIcon({path:"icon24.png"});
+            	API_SetIcon({path:"icon/icon24.png"});
             
 				// Update status to let user know options were saved.
 				var status = document.getElementById("title");
@@ -225,9 +225,9 @@ function log() {
 			tmpp.sfile  = $("#jsincludefile").val();
 			
 			if (tmpp.autostart)
-				API_SetIcon({path:"icon24_auto.png"});
+				API_SetIcon({path:"icon/icon24_auto.png"});
 			else
-				API_SetIcon({path:"icon24.png"});
+				API_SetIcon({path:"icon/icon24.png"});
 			
             localStorage[url] = JSON.stringify(tmpp);
             

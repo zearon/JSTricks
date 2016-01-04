@@ -3,7 +3,7 @@
 		"page": "background.html"
 	},
 	"browser_action": {
-		"default_icon": "icon.png",
+		"default_icon": "icon/icon.png",
 		"default_popup": "popup.html"
 	},
 	"content_scripts": [ {
@@ -19,10 +19,10 @@
 	"sandbox": ["sandbox.html"],
 	"description": "Add your own JavaScript (powered by JQuery) and/or CSS to any page to trick it!",
 	"icons": {
-		"128": "icon128.png",
-		"16": "icon16.png",
-		"24": "icon24.png",
-		"48": "icon48.png"
+		"128": "icon/icon128.png",
+		"16": "icon/icon16.png",
+		"24": "icon/icon24.png",
+		"48": "icon/icon48.png"
 	},
 	"manifest_version": 2,
 	"name": "JavaScript Tricks",

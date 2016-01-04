@@ -94,7 +94,7 @@ function updateSettings() {
         }
         
         function processRequest(tabid, url, requestMethod, requestData) {					
-			//chrome.browserAction.setIcon({path:"icon24_auto.png"});
+			//chrome.browserAction.setIcon({path:"icon/icon24_auto.png"});
 			
         	// Load _Main script as the entry-point of requireJS
         	if (requestMethod == "LoadMainScript") {        		
@@ -110,10 +110,10 @@ function updateSettings() {
             		localStorage["$setting.enabled"] = "true";
             		
             	if (localStorage["$setting.enabled"] != "true") {
-            		chrome.browserAction.setIcon({path: "icon24_disabled.png"});
+            		chrome.browserAction.setIcon({path: "icon/icon24_disabled.png"});
             		return;
             	} else {
-            		chrome.browserAction.setIcon({path: "icon24.png"});
+            		chrome.browserAction.setIcon({path: "icon/icon24.png"});
             	}
 				
 				// Inject a function to add <script> tag in document.
@@ -304,7 +304,7 @@ function updateSettings() {
 					loadProperty.siteAdded = true;					
 					addScriptsForAutostartSite(tabid, key, autoloadFileList, loadProperty);
 					
-					chrome.browserAction.setIcon({path: "icon24_auto.png"});
+					chrome.browserAction.setIcon({path: "icon/icon24_auto.png"});
 					
 					if(lsd.sfile != "") {					
 						addContentScriptsToLoadList(autoloadFileList, lsd.sfile);
@@ -497,13 +497,13 @@ function updateSettings() {
 					var lsd = JSON.parse(localStorage[matches[1]]);
 					if(lsd.autostart)
 					{
-						chrome.browserAction.setIcon({path:"icon24_auto.png"});    
+						chrome.browserAction.setIcon({path:"icon/icon24_auto.png"});    
 						return;
 					}
 				}
-				chrome.browserAction.setIcon({path:"icon24.png"});    
+				chrome.browserAction.setIcon({path:"icon/icon24.png"});    
             } else {
-            	chrome.browserAction.setIcon({path:"icon24_disabled.png"});    
+            	chrome.browserAction.setIcon({path:"icon/icon24_disabled.png"});    
             }
         }
 		
