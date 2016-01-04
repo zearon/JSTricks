@@ -148,6 +148,14 @@ function API_SendMessageToTab(tabid, msg, callback) {
 	}
 }
 
+function API_OpenWindow(url, name) {
+	if (inExtensionPage) {
+		window.open(url, name);
+	} else {
+		API_SendRequest("OpenWindow", {url:url, name:name});
+	}
+}
+
 function log() {
 	console.log.apply(console, arguments);
 	
@@ -329,7 +337,8 @@ function log() {
 				editorCss.setValue( localStorage['cacheCss'] );
 		}
 		function editInOptionPage() {
-			window.open("chrome-extension://"+chrome.runtime.id+"/options.html?tab=0&item="+tabSite, "OptionPage");
+			var url = "chrome-extension://"+chrome.runtime.id+"/options.html?tab=0&item="+tabSite;
+			API_OpenWindow(url, "OptionPage");
 		}
 		
 		
