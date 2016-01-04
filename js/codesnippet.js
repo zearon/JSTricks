@@ -93,13 +93,15 @@ var codesnippet_onBootCode =
 	
 	// Add some default settings
 	seajs.config({
-	"base": ("chrome-extension://" + chrome.runtime.id + "/js/"),
+	"base": ("chrome-extension://" + chrome.runtime.id + "/injected/"),
 	"paths": {
+		"lib": "chrome-extension://" + chrome.runtime.id + "/lib"
 	},
 	"alias": {
-	  "ready": "[AMD]domReady.js",
-	  "jquery": "[AMD]jquery.js",  //"[AMD]jquery.sea.js", "[CommonJS]jquery.sea.js"
-	  "jquery-ui": "[AMD]jquery-ui.js",
+	  "jquery": "lib/jquery[AMD]",  //"[AMD]jquery.sea.js", "[CommonJS]jquery.sea.js"
+	  "jquery-ui": "lib/jquery-ui[AMD]",
+	  "ready": "domReady[AMD]",
+	  "msgbox": "msgbox",
 	  "selectbox": "selectionBox"
 	}
 	});

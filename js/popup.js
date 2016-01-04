@@ -468,7 +468,6 @@ function log() {
 				$(".CodeMirror").each(function(index, ele) {
 					var node = $(ele);
 					var height = windowHeight - node.offset().top - 4;
-					console.log("top is", top);
 					node.css("height", height + "px");
 					node.find(".CodeMirror-gutters, .CodeMirror-scroll").css("height", height + "px");
 					node.css("height", height + "px");
