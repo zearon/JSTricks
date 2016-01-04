@@ -367,13 +367,13 @@
 			
 			if(v!="Default" && v!= "Main")
 			{
-				var $imgLink = $("<img class='goto' border=0 src='url_icon.gif'>");
+				var $imgLink = $("<img class='goto' border=0 src='css/theme/img/url_icon.gif'>");
 				if(lsd.hidden == 'checked')
 				{
 					$imgLink.click(function(){
 						chrome.windows.create({"url":"http://"+v, "incognito": true});
 					});
-					$imgLink.attr("src","url_icon_i.png");
+					$imgLink.attr("src","css/theme/img/url_icon_i.png");
 				}
 				else
 				{
@@ -382,13 +382,6 @@
 					});
 				}
 				$divbox.append($imgLink);
-				
-				
-				/*var $editLink = $("<img class='goto edit' border=0 src='edit_icon.png'>").click(function(){
-					editTitle($(this).parent());
-					return false;
-				});
-				$divbox.append($editLink);*/
 			}
 			
 			if(lsd.hidden == 'checked')
@@ -655,7 +648,7 @@
 			//});
 			
 			$("#logo").css({"width":128}).delay(10).animate({"width":48},function(){
-				$(this).attr("src","icon48.png");
+				$(this).attr("src","icon/icon48.png");
 				$("#backupToolbar").fadeIn();
 			});
 			

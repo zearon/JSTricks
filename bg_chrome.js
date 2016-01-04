@@ -64,11 +64,11 @@ function SetIcon(tabid, method, id, arg) {
 	chrome.browserAction.setIcon(arg);
 	
 	if (a++ % 2) {
-		chrome.browserAction.setIcon({path: "icon24.png"});
-		console.log('chrome.browserAction.setIcon({path: "icon24.png"});');
+		chrome.browserAction.setIcon({path: "icon/icon24.png"});
+		console.log('chrome.browserAction.setIcon({path: "icon/icon24.png"});');
 	} else {
-		chrome.browserAction.setIcon({path: "icon24_auto.png"});
-		console.log('chrome.browserAction.setIcon({path: "icon24_auto.png"});');
+		chrome.browserAction.setIcon({path: "icon/icon24_auto.png"});
+		console.log('chrome.browserAction.setIcon({path: "icon/icon24_auto.png"});');
 	}
 }
 
