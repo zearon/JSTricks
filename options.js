@@ -436,10 +436,10 @@
 			
 			
 			if (mapOptions.indexes) {
-				mapOptions.editor.hightlightLinesAtIndex(mapOptions.indexes);
+				highlightMatchesInEditor(mapOptions.editor, mapOptions.indexes);
 			}
 			if (mapOptions.indexes2) {
-				mapOptions.editor2.hightlightLinesAtIndex(mapOptions.indexes2);
+				highlightMatchesInEditor(mapOptions.editor2, mapOptions.indexes2);
 			}
 				
 				
@@ -792,6 +792,7 @@
 				lineNumbers:true,
 				styleActiveLine: true,
 				matchBrackets :true,
+				styleSelectedText: true,
 				theme: getCodeMirrorTheme(), //_yellow, abcdef, default
 				foldGutter: true,
 				lint: {"esversion":6, "expr":true, "indent":2, "globals":
@@ -1551,7 +1552,11 @@
 			findReplaceDialog_replaceKey = null;
 		}
 				
-		function findReplaceDialog_updateSiteScriptsView(options) {
+		function findReplaceDialog_updateSiteScriptsView(options) {		
+			// Clear search markers
+			highlightMatchesInEditor(editorJs, []);
+			highlightMatchesInEditor(editorCss, []);
+				
 			// Reload site script list: only matching scripts or all scripts.
 			if (options.reloadlist)
 				if (options.filter) {
@@ -1588,9 +1593,14 @@
 			} else {
 				$("#tabs-sss .CodeMirror").removeClass("findReplacePreview");//.css("background-color", "");
 			}
+			
+			//
 		}
 		
-		function findReplaceDialog_updateContentScriptsView(options) {
+		function findReplaceDialog_updateContentScriptsView(options) {			
+			// Clear search markers
+			highlightMatchesInEditor(editorDynScript, []);
+			
 			// Reload content script list: only matching scripts or all scripts.
 			if (options.reloadlist)
 				if (options.filter) {
@@ -1616,37 +1626,63 @@
 			}
 		}
 		
-		// Pattern is assigned in findReplaceDialog_updateReplaceKey
-		// and should be like /([\s\S]*?)msg/g in which msg is the content to be searched.
-		function getIndexesOfMatching(text, pattern) {	
-			// Find the first occurence
-			var match = text.match(pattern);
-			if (match == null)
-				return [];
+		// Highlight matches in CodeMirror editor.
+		// cm is editor, and indexes is an array of {from, to}
+		function highlightMatchesInEditor(cmeditor, indexes) {
+			var pos = [];
 			
-			if (!pattern.global) {
-				return [ match[1].length ];
-			} else {
-				var flags = ""; flags += pattern.ignoreCase ? "i" : ""; flags += pattern.multiline ? "m" : "";
-				var newPattern = new RegExp(pattern.source, flags);
-				var newMatch = text.match(newPattern);
-				var offset = newMatch[0].length - newMatch[1].length;
-				console.log("offset is", offset);
-				
-				return match.map(function(text) { 
-					return text.length - offset; 
-				}).reduce(function(result, index) { 
-					result.push(index + result.slice(-1)[0]); 
-					return result;
-				}, [0]).slice(1);
+			// remove markers
+			if (cmeditor.searchMarkers) {
+				for (var i = 0; i < cmeditor.searchMarkers.length; ++ i) {
+					cmeditor.searchMarkers[i].clear();
+				}
 			}
+			cmeditor.searchMarkers = [];
+			
+			// highlight matches
+			for (var i = 0; i < indexes.length; ++ i) {
+				var from = cmeditor.posFromIndex(indexes[i].from);
+				var to = cmeditor.posFromIndex(indexes[i].to);
+				pos.push({from:from, to:to});
+				var marker = cmeditor.markText(from, to, {className: "highlighted-background"});
+				cmeditor.searchMarkers.push(marker);
+			}
+			
+			// set markers for highlights on scroll bar
+			if (cmeditor.annsclbar) {
+				try {	cmeditor.annsclbar.clear(); } catch(ex) {}
+				cmeditor.annsclbar = null;
+			}
+			cmeditor.annsclbar = cmeditor.annotateScrollbar("highlighted-scrollbar");
+			cmeditor.annsclbar.update(pos);
 		}
 		
-		function getHighlightMatchingLinesInEditor(options, editor, text, pattern) {
+		// Pattern is assigned in findReplaceDialog_updateReplaceKey
+		// and should be like /([\s\S]*?)msg/g in which msg is the content to be searched.
+		// The third parameter can be omitted.
+		function getIndexesOfMatching(text, pattern, replacement) {	
+			// Find the first occurence
+			var matches = [], index = 0, repllen = replacement !== undefined ? replacement.length : 0;
+			text.replace(pattern, function(str, group1) {
+				var len = str.length, g1len = group1 ? group1.length : 0;
+				var matchlen = len - g1len;
+				var offset = replacement !== undefined ? repllen - matchlen : 0;
+				var from = index + g1len, to = from + matchlen + offset;
+				index += len + offset;
+				matches.push({from:from, to:to});
+			});
+			
+			if (pattern.global)
+				return matches;
+			else
+				return matches.slice(0, 1);
+		}
+		
+		function getHighlightMatchingLinesInEditor(options, editor, text, pattern, replacement) {
 			if (!options || options.command !== "HightlightMatchedText")
 				return [];
 				
-			return getIndexesOfMatching(text, pattern);			
+			return getIndexesOfMatching(text, pattern, replacement);			
 		}
 		
 		// Invoked by loadContentScript and selectSite
@@ -1681,13 +1717,15 @@
 			var replaceCss = targetType.indexOf("css") > -1;
 			
 			if (replaceScript) {
+				var oldtext = s.script;
 				s.script = s.script.replace(pattern, "$1" + replacement);
-				options.indexes = getHighlightMatchingLinesInEditor(options, options.editor, s.script, replacementPattern);
+				options.indexes = getHighlightMatchingLinesInEditor(options, options.editor, oldtext, pattern, replacement);
 			}
 			
 			if (replaceCss) {
+				var oldtext = s.css
 				s.css = s.css.replace(pattern, "$1" + replacement);
-				options.indexes2 = getHighlightMatchingLinesInEditor(options, options.editor2, s.css, replacementPattern);
+				options.indexes2 = getHighlightMatchingLinesInEditor(options, options.editor2, oldtext, pattern, replacement);
 			}
 				
 			if (setAutostart != "unchanged")
@@ -2402,7 +2440,7 @@
 			editorDynScript.clearHistory();
 			
 			if (mapOptions.indexes) {
-				mapOptions.editor.hightlightLinesAtIndex(mapOptions.indexes);
+				highlightMatchesInEditor(mapOptions.editor, mapOptions.indexes);
 			}
 			
 			// Switch from Meat data editor to script editor.

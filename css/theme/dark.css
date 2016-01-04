@@ -134,6 +134,16 @@ html body.theme-dark { background:#0f0f0f; color:#eeeeee; }
     box-shadow: rgba(255,255,255,0.8) 2px 0 20px;
 }
 
+/* Styles for the selected text */
+.theme-dark .highlighted-background { background-color: #0233f7; }
+.theme-dark .highlighted-scrollbar { 
+  background: gold;
+  border-top: 1px solid orange;
+  border-bottom: 1px solid orange;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  opacity: .5;
+}
 
 /* Styles for the folding gutter in dark mode */
 .cm-s-abcdef span.CodeMirror-foldmarker { color: #FFFE00;

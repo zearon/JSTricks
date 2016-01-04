@@ -135,6 +135,17 @@ html body.theme-light { background:rgb(252,252,252); }
     box-shadow: rgba(0,0,0,0.4) 2px 0 20px;
 }
 
+/* Styles for the selected text */
+.theme-light .highlighted-background { background-color: rgba(255,255,119, 1); }
+.theme-light .highlighted-scrollbar { 
+  background: gold;
+  border-top: 1px solid orange;
+  border-bottom: 1px solid orange;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  opacity: .5;
+}
+
 /* styles from lib/codemirror/theme/default.css */
 .cm-s-_yellow .cm-header {color: blue;}
 .cm-s-_yellow .cm-quote {color: #090;}
