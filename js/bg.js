@@ -257,8 +257,8 @@ function updateSettings() {
 			autoloadFileList.unshift(
 				{name:"boot/setMetaData", code:setMetaDataCode, type:"js"},/*
 				 // confiture seajs_boot.js injection manifest.json
-				{name:"boot/seajs_boot", file:"js/seajs_boot.js", type:"js"}, */
-				{name:"boot/nodeSelector", file:"js/nodeSelector.js", type:"js"}
+				{name:"boot/seajs_boot", file:"injected/seajs_boot.js", type:"js"}, */
+				{name:"boot/nodeSelector", file:"injected/nodeSelector.js", type:"js"}
 			);
 			if (localStorage["Main"]) {
 				try {
@@ -334,9 +334,9 @@ function updateSettings() {
         		
         	loadProperty.autostartLibAdded = true;
         		
-			// Inject injected.js file by inserting a <script> tag in document.
+			// Inject injected/injected.js file by inserting a <script> tag in document.
 			chrome.tabs.executeScript(tabid, {"code": `
-				InjectCodeToOriginalSpace("chrome-extension://" + chrome.runtime.id + "/injected.js");
+				InjectCodeToOriginalSpace("chrome-extension://" + chrome.runtime.id + "/injected/injected.js");
 			`});
 			
 			// Inject content scripts in include section of meta data.

@@ -37,7 +37,7 @@ delete domainMatch;
 // process received message sent in content script by
 // window.postMessage({ type: "JST-callMethod", func: "enableRightClick" }, "*");
 window.addEventListener("message", function(event) {
-  //console.log("Message received from", event.origin, "in injected.js: ", event, ". Current domain is", __JSTricks_Injected_domain_name____);
+  //console.log("Message received from", event.origin, "in injected/injected.js: ", event, ". Current domain is", __JSTricks_Injected_domain_name____);
 
   // We only accept JST-callMethod messages from current page.
   if (event.data && event.data.type == "JST-injected-callMethod" && event.origin == __JSTricks_Injected_domain_name____) {

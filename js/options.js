@@ -67,7 +67,7 @@
 		var mapContentScriptFunc = dummyMapFunc;
 
 		var selectedTitle = "";		
-		var scripts = ["js/jquery.js"];
+		var scripts = ["lib/jquery.js"];
 		
 		var defaultSettings = {};
 		
@@ -672,7 +672,7 @@
 			editorDynScript = generateEditor("dyscriptedit", "text/javascript"); 
 			editorMeta = generateEditor("taeditmeta", "application/json"); 		
 			editorJsonFile = generateEditor("json-file", "application/json"); 
-			editorJsonObjectValue = generateEditor("json-file-obj", "application/json"); 
+			editorJsonObjectValue = generateEditor("json-file-obj", "text/javascript"); 
 			
 			//line highlight
 			//hlLineJs = editorJs.setLineClass(0, "activeline");
@@ -994,7 +994,7 @@
 		{
 			var $opt = $("#floatingWindow");
 			
-			$opt.empty().append("<img class='loadingimg' src='loading.gif?seed' alt=''/>").dialog('open');
+			$opt.empty().append("<img class='loadingimg' src='css/theme/img/loading.gif?seed' alt=''/>").dialog('open');
 			
 			$opt.load("http://api.jquery.com/"+word+"/ #content",function(){
 				if($opt.text() == "")
