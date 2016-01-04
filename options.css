@@ -1,5 +1,5 @@
 
-		html,body{margin:0;padding:0;background:#fefebb;font-family:Verdana;height:100%;font-size: 75%;min-width:850px;}
+		html,body{margin:0;padding:0;font-family:Verdana;height:100%;font-size: 75%;min-width:850px;}
 		.ui-widget-content {
 			background: #efefba;
 		}
@@ -11,6 +11,7 @@
 		}
 		h1{
 			line-height:1em;
+			font-size: 18px;
 			margin:0px;
 			color:#444;
 		}
@@ -32,7 +33,7 @@
 			cursor:pointer;
 			padding: 0 10px;
 			margin:0 0 0 0px;			
-			text-shadow:white 0 1px;			
+			/*text-shadow:white 0 1px;		*/	
 			-webkit-transition: background-color 0.2s linear, margin 0.2s linear;
 			overflow:hidden;
 			height: 30px;
@@ -180,17 +181,14 @@
 			display:inline-block;
 			border:1px solid rgba(124,122,12,1);
 			cursor:pointer;			
-			background-color:rgba(227,203,09,1);
 			background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
 			box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
 			padding:0px 10px;
-			text-shadow:rgba(255,255,255,0.6) 0 1px;
-			
+			text-shadow:rgba(255,255,255,0.6) 0 1px;			
 		}
 		div.tabs > ul li:active
 		{
-			box-shadow: rgba(0,0,0,0.2) 0 1px 2px inset,rgba(255,255,255,1) 0 -1px 2px inset,rgba(247,223,29,1) 0 0px 15px;	
-			
+			box-shadow: rgba(0,0,0,0.2) 0 1px 2px inset,rgba(255,255,255,1) 0 -1px 2px inset,rgba(247,223,29,1) 0 0px 15px;				
 		}
 		div.tabs > ul li.selected
 		{
@@ -250,14 +248,14 @@
 			position: relative;
 			top: 3px;
 			width: 26px;
-			background: url('img/arrow_up.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+			background: url('css/theme/img/arrow_up.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
 		}
 		
 		#dcsindexdown {
 			position: relative;
 			top: 3px;
 			width: 26px;
-			background: url('img/arrow_down.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+			background: url('css/theme/img/arrow_down.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
 		}
 		
 		#centercontainer
@@ -318,7 +316,6 @@
 			position:relative;
 			height: 100%;
 			margin-left: 250px;
-			background:#efefba;
 			-webkit-box-sizing: border-box;
 			-moz-box-sizing: border-box;
 			box-sizing: border-box;
@@ -335,7 +332,6 @@
 		.hidableEditorArea
 		{
 			height:100%;
-			background:#efefba;
 			position:relative;
 		}
 		.editorPanel .toolbar {
@@ -415,7 +411,6 @@
 			top: 34px;
 			bottom: 0px;
 			padding: 2px 0px 5px 0px;
-			background-color: #efefba;
 		}
 		
 		#json-viewer-site-list {
@@ -444,6 +439,10 @@
 		
 		#settings-manual h5 {
 			margin-left: 20px;
+		}
+		
+		#settings-global h3 {
+			font-weight: bold;
 		}
 		/*
 		::-webkit-scrollbar {

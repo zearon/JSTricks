@@ -6,7 +6,7 @@
 -->
 <html>
   <head>	
-<meta charset="utf-8" />
+	<meta charset="utf-8" />
 	<title>Javascript Tricks - Options</title>
 	<script type="text/javascript" src="js/cryptojs/aes.js" ></script>	
 	<script type="text/javascript" src="js/cryptojs/md5.js" ></script>	
@@ -18,7 +18,9 @@
 	<link rel="stylesheet" href="lib/codemirror/addon/hint/show-hint.css">
 	<link rel="stylesheet" href="lib/codemirror/addon/fold/foldgutter.css" />
 	<link rel="stylesheet" href="lib/codemirror/addon/lint/lint.css">
-	<link rel="stylesheet" href="lib/codemirror/theme/abcdef.css">
+	<link rel="stylesheet" href="css/theme/light.css">
+	<link rel="stylesheet" href="css/theme/_yellow.css">
+	<link rel="stylesheet" href="css/theme/dark.css">
 
 	<script src="lib/codemirror/lib/codemirror.js"></script>
 	<script src="lib/codemirror/addon/selection/active-line.js"></script>
@@ -49,20 +51,21 @@
 	<script src="js/jsformatter.js" ></script>
 	
 	<script src="lib/jscolor/jscolor.js"></script> 
-	
-	<!-- script src="js/bootstrap-colorpicker.min.js" ></script -->	
 
 	<script src="usrlib/localStorageBackup.js"></script>
 	
+	<script src="js/theme.js" ></script>	
 	<script src="templating.js" ></script>	
 	<script src="templates.js" ></script>	
 	<script src="codesnippet.js" ></script>	
 	<script src="options.js"></script>
 	
-	<link rel=stylesheet href="css/custom-theme/jquery-ui.css">   
-	<link rel=stylesheet href="css/custom-theme/jquery-ui-1.8.21.custom.css">   
-    <!-- link rel=stylesheet href="css/bootstrap-colorpicker.css" -->   
-    <link rel="stylesheet" href="options.css"> 
+	
+  <link rel="stylesheet" href="css/jquery-ui.structure.css"> 
+  <link rel="stylesheet" href="css/theme/jqueryui/jquery-ui.theme-light.css"> 
+  <link rel="stylesheet" href="css/theme/jqueryui/jquery-ui.theme-_yellow.css"> 
+  <link rel="stylesheet" href="css/theme/jqueryui/jquery-ui.theme-dark.css"> 
+  <link rel="stylesheet" href="options.css"> 
 	<style>
 		
 	</style>
@@ -73,8 +76,8 @@
 	<div class="header">
 		<div id="logowrapper"><img id="logo" src='icon128.png' alt='' style='float:right;margin:5px;'/></div>
 		<div id="page-title">
-			<h1>JavaScript Tricks v<span id='version'></span> - options</h1>
-			by Jeffrey
+			<h1>JavaScript Tricks Options</h1>
+			v<span id='version'></span> by Jeffrey
 		</div>
 	</div>
 	<div id="centercontainer" >
@@ -86,9 +89,16 @@
 				<li><a href="#tabs-gs">Backup Restore & Misc.</a></li>
 			</ul>
 			<span id="backupToolbar" class="hide" style="display:block;margin-right:60px;float:right;position:relative;top:-25px;">
-							<input id="testtest" type="button" value="Test" class="hide" style="display:none" />
-							<input class="cloudbackup" type="button" value="Backup" />
-							<input class="cloudrestore" type="button" value="Restore" /><br/><br/>
+				<input id="testtest" type="button" value="Test" class="hide" style="display:none" />
+				Theme:
+				<select id="theme" class="localstorage_itemvalue" target="$setting.temp-theme" title="Theme. Automatic means automatically change between a day theme and a night theme.">
+					<option value="light">Light</option>
+					<option value="_yellow">Yellow</option>
+					<option value="dark">Dark</option>
+					<option value="automatic">Automatic</option>
+				</select>
+				<input class="cloudbackup" type="button" value="Backup" />
+				<input class="cloudrestore" type="button" value="Restore" /><br/><br/>
 			</span>
 			<div id="tabs-sss" class="tab">
 				<div class="editwrap" >
@@ -331,7 +341,49 @@
 						<div id="settings-global">
 							<h2>Options</h2>
 							<p>Refresh page to make settings effective.</p><hr/>
-							<table class="localstorage_block">
+							<table class="localstorage_block">								
+								<tr class="togglePanel" target=".settings-theme" >
+									<td colspan="4"><h3>Theme …</h3></td>
+								<tr>
+								<tr class="localstorage_item settings-theme hide">
+									<td>Day Theme in Automatic Mode</td>
+									<td>
+									<select class="localstorage_itemvalue" target="$setting.theme_day" defaultvalue="_yellow" >
+										<option value="light">Light</option>
+										<option value="_yellow">Yellow</option>
+										<option value="dark">Dark</option>
+									</select>
+									</td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.theme_day" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.theme_day" value="Default" /></td>
+								<tr>
+								<tr class="localstorage_item settings-theme hide">
+									<td>Night Theme in Automatic Mode</td>
+									<td>
+									<select class="localstorage_itemvalue" target="$setting.theme_night" defaultvalue="dark" >
+										<option value="light">Light</option>
+										<option value="_yellow">Yellow</option>
+										<option value="dark">Dark</option>
+									</select>
+									</td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.theme_night" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.theme_night" value="Default" /></td>
+								<tr>
+								<tr class="localstorage_item settings-theme hide">
+									<td title="Start time of night in format of hh:mm, e.g. 18:30">
+									Start Time of Night</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.theme_nightStartTime" defaultvalue="18:00" value="18:00" size="9" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.theme_nightStartTime" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.theme_nightStartTime" value="Set to Default" /></td>
+								<tr>
+								<tr class="localstorage_item settings-theme hide">
+									<td title="End time of night in format of hh:mm, e.g. 06:30">
+									End Time of Night</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.theme_nightEndTime" defaultvalue="06:30" value="06:30" size="9" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.theme_nightEndTime" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.theme_nightEndTime" value="Set to Default" /></td>
+								<tr>
+								
 								<tr>
 									<td colspan="4"><h3>Popup Window</h3></td>
 								<tr>

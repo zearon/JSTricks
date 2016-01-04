@@ -6,17 +6,20 @@ var codesnippit_showPopupInWebpage =
 	.appendTo("body")
 	.dialog({
 		"title":"JavaScript Tricks (Double click to toggle)", 
-		"width":"630", "height":"600",
+		"width":"602", "height":"600",
 		"position": {"my": "right center", "at": "right center", "of": window}
 	});
-	$("#JST-POPUP-PINNED").css("width", "calc(100% - 28px)");	
+	$("#JST-POPUP-PINNED").css("width", "calc(100% - 2px)");	
 	
 	$(".ui-dialog-titlebar").dblclick(function() {
 		$(this).attr("title", "Double click to toggle (collapse or extend) dialog box.");
 		$(this).next().toggle();
 	});
 	
-	$("#JST-POPUP-PINNED").closest(".ui-dialog").css("z-index", "2147483645");
+	$("#JST-POPUP-PINNED").closest(".ui-dialog").css("z-index", "2147483645")
+		.children("iframe").css("padding", "0 0 0 0").css("border", "0 0 0 0");
+	
+	$("body").addClass("theme-light");
 	
 	if ({{hideDialog}})
 		$("#JST-POPUP-PINNED").parent().hide();

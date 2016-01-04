@@ -71,6 +71,7 @@ function optionValueChanged() {
 
 function reloadBackroundPage(info, tab) {
 	//var id = chrome.runtime.id;
+	// chrome.management need "management" permissions in manifest.json
 	//chrome.management.setEnabled(id, false, function() {
 	//	// re-enable
 	//	chrome.management.setEnabled(id, true, function() {} );
