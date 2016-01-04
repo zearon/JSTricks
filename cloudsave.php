@@ -14,6 +14,7 @@ $ROOTPATH = "$ROOTPATH_PREFIX/CloudStorage"; // Can be chagned to whatever direc
 $PASSPHASE = '<Any non-empty text>'; // Any non-empty text
 $KEY_IV= '~RzN3g4$K2*m0[cv'; // 16 characters which can be generated with the "Generate a key iv" button
 
+
 @$code = isset($_GET["method"]) ? $_GET["method"] : $_POST["method"];
 if (!$code) $code = "";
 
@@ -112,7 +113,7 @@ else {
 			// arg2 of scandir: 0 for accending, 1 for descending
 			if($files = @scandir($path, 1)) {
 				$files = array_slice($files, 0, count($files) - 2);
-				$files = array_map(filterTxtFiles, $files); 
+				$files = array_map("filterTxtFiles", $files); 
 				$return["code"] = 0;
 				$return["result"] = $files;
 			} else {
@@ -143,10 +144,10 @@ else {
 				}
 			}
 			
-			// list remaining files
-			if($files = scandir($path, SCANDIR_SORT_DESCENDING)) {        
+			// list remaining files. 1 for descending
+			if($files = scandir($path, 1)) {        
 				$files = array_slice($files, 0, count($files) - 2);
-				$files = array_map(filterTxtFiles, $files); 
+				$files = array_map("filterTxtFiles", $files); 
 				$return["result"] = $files;
 			}   
 			 
