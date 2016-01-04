@@ -96,6 +96,7 @@ define(["jquery"], function(require, exports, module) {
 		<style>
 			#${msgDivID}
 			{
+				color:black;
 				position:fixed;
 				${getInitCSSStyle()}
 				left:calc( 50% - ${INFO.settings.builtin_msgboxWidth} / 2);

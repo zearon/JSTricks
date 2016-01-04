@@ -2181,9 +2181,7 @@
 			
 			updateContentScriptForContextMenu();
 			
-			editorDynScript.clearSyntaxCheckHightlight();
 			var noErrorsFound = checkScriptSyntax(dcstitle);
-			//showJSSyntaxCheckReport(editorDynScript, JSHINT.data());
 			showMessage("Error found in current content script!");
 			if (!noErrorsFound) {
 				console.log(JSHINT.data());
