@@ -22,9 +22,9 @@ html body.theme-dark { background:#0f0f0f; color:#eeeeee; }
 .theme-dark .jstbox:hover { background:  rgba(64,64,64,1); }
 .theme-dark .jstbox.selected { background: rgba(50,50,50,1); }
 .theme-dark #jstmessage {
-	background:rgba(247,223,29,1);
+	background: #1C77FF;
 	box-shadow:rgba(0,0,0,0.4) 0 3px 10px;
-	border:1px solid rgba(147,123,19,1);
+	border:1px solid #1351AD;
 }
 .theme-dark #contentscript-menu .jstbox.contentScriptKey .group { color: #aaaaaa; }
 .theme-dark .jstmessage.ok { color:white; background:green;	}

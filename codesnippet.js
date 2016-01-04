@@ -6,7 +6,7 @@ var codesnippit_showPopupInWebpage =
 	.appendTo("body")
 	.dialog({
 		"title":"JavaScript Tricks (Double click to toggle)", 
-		"width":"602", "height":"600",
+		"width":"602", "height":"653",
 		"position": {"my": "right center", "at": "right center", "of": window}
 	});
 	$("#JST-POPUP-PINNED").css("width", "calc(100% - 2px)");	

@@ -410,6 +410,9 @@ function log() {
 				API_GetSelectedTab(function(tab) {
 					API_SendMessageToTab(tab.id, { method: "RestoreEditDialogContextRequest"});
 				});
+				
+			} else {
+				//$("body").height("570px");
 			}
 			tabs();
 			setEnableDisableBtnImage();
@@ -454,16 +457,22 @@ function log() {
 				}
 			
 				// Height adjusting 
-				//if (inExtensionPage) {
-					var windowHeight = $("body").height();
-					// tabHeight = 500
-					var tabHeight = windowHeight - $("#editor-script-gen-ui-title").offset().top - 2;
-					$(".topeditorwrap").css("height", tabHeight);
-					$(".CodeMirror-scroll, .CodeMirror-gutters").css("height", tabHeight);
-					
-					var editor1Height = windowHeight - $("#tabs-1 .CodeMirror-scroll").offset().top - 1;
-					$("#tabs-1 .CodeMirror-scroll").css("height", editor1Height);
-				//}
+				var windowHeight = $("body").height();
+				// tabHeight = 500
+// 				var tabHeight = windowHeight - $("#editor-script-gen-ui-title").offset().top - 2;
+// 				$(".topeditorwrap").css("height", tabHeight);
+// 				$(".CodeMirror-scroll, .CodeMirror-gutters").css("height", tabHeight);
+// 				
+// 				var editor1Height = windowHeight - $("#tabs-1 .CodeMirror-scroll").offset().top - 1;
+// 				$("#tabs-1 .CodeMirror-scroll").css("height", editor1Height);
+				$(".CodeMirror").each(function(index, ele) {
+					var node = $(ele);
+					var height = windowHeight - node.offset().top - 4;
+					console.log("top is", top);
+					node.css("height", height + "px");
+					node.find(".CodeMirror-gutters, .CodeMirror-scroll").css("height", height + "px");
+					node.css("height", height + "px");
+				});
 				
 				if (RUN_BUTTON_CODE) {
 					$("#tabs-1 .CodeMirror").css("background-color", "#ffeeee");
@@ -471,10 +480,19 @@ function log() {
 				}
 			});
 			
+			// Adjust editor height when switching among different module tabs
 			$("#editor-script-gen-ui-title > ul:first > li").click(function() {
-				var editor1Height = $("body").height() - $("#tabs-1 .CodeMirror-scroll").offset().top - 1;
-				$("#tabs-1 .CodeMirror-scroll").css("height", editor1Height);
-			});
+				var editor1Height = $("body").height() - $("#tabs-1 .CodeMirror").offset().top - 4;
+				$("#tabs-1 .CodeMirror, #tabs-1 .CodeMirror-scroll, #tabs-1 .CodeMirror-gutters").css("height", editor1Height);
+				$("#tabs-1 .CodeMirror").css("height", editor1Height);
+			});	
+			
+			function getWindowHeight() {
+				if (inExtensionPage) {
+					return $("body").height();
+				} else {
+				}
+			}
 			
 			$(document).tooltip({
 				content: function() {
@@ -527,6 +545,9 @@ function log() {
 		
 		function setupKeyEventHandler() {
 			var mac_os = navigator.userAgent.indexOf("Mac OS") > -1;
+			if (mac_os) {
+				$('body').addClass("osx");
+			}
 			
 			$('body').on('keydown',function (event){
 				var key = event.which;
@@ -712,7 +733,10 @@ function log() {
 								commandDiv.append(element);
 
 							} else {
-								var element = arg.name + ':<input id="' + inputID + '" type="text" class="code-arg-value" value="' + arg.defaultValue + '" size="' + arg.len + '" data-type="' + type + '" />';
+								var size = arg.len ? arg.len : 10;
+								var unitWidth = 350 / 47;
+								var width = Math.floor(size * unitWidth) + "px";
+								var element = arg.name + ':<input id="' + inputID + '" type="text" class="code-arg-value" value="' + arg.defaultValue + '" data-type="' + type + '" style="width:' + width + ';" />';
 								commandDiv.append(element);
 							}
 							

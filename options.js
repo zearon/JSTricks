@@ -1257,6 +1257,11 @@
 				} else {
 					node.val(value);
 				}
+				if (node.hasClass("color")) {
+					// update background color for the color picker
+					node[0].focus();
+					setTimeout(function() {node[0].blur();}, 10);
+				}
 			}
 			function getUIValue(node) {
 				if (node.is("span")) {
