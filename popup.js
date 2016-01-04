@@ -1,3 +1,28 @@
+// 对Date的扩展，将 Date 转化为指定格式的String 
+// 月(M)、日(d)、小时(h)、分(m)、秒(s)、季度(q) 可以用 1-2 个占位符， 
+// 年(y)可以用 1-4 个占位符，毫秒(S)只能用 1 个占位符(是 1-3 位的数字) 
+// 例子： 
+// (new Date()).Format("yyyy-MM-dd hh:mm:ss.S") ==> 2006-07-02 08:09:04.423 
+// (new Date()).Format("yyyy-M-d h:m:s.S")      ==> 2006-7-2 8:9:4.18 
+Date.prototype.Format = function(fmt) 
+{ //author: meizz 
+  var o = { 
+	"M+" : this.getMonth()+1,                 //月份 
+	"d+" : this.getDate(),                    //日 
+	"h+" : this.getHours(),                   //小时 
+	"m+" : this.getMinutes(),                 //分 
+	"s+" : this.getSeconds(),                 //秒 
+	"q+" : Math.floor((this.getMonth()+3)/3), //季度 
+	"S"  : this.getMilliseconds()             //毫秒 
+  }; 
+  if(/(y+)/.test(fmt)) 
+	fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length)); 
+  for(var k in o) 
+	if(new RegExp("("+ k +")").test(fmt)) 
+  fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length))); 
+  return fmt; 
+}
+	
 // Redirect chrome extension api invocations which are not accessible in content script
 // to background page.
 var inExtensionPage = typeof(chrome.tabs) !== "undefined";
@@ -154,9 +179,9 @@ function log() {
 		
 		function setEnableDisableBtnImage() {
 			if (localStorage["$setting.enabled"] == "true") {
-				$("#enableDisableBtn").css("background", "url('img/disable.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b))");
+				$("#enableDisableBtn").attr("class", "disable");
 			} else {
-				$("#enableDisableBtn").css("background", "url('img/enable.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b))");
+				$("#enableDisableBtn").attr("class", "enable");
 			}
 		}
 
@@ -213,9 +238,7 @@ function log() {
 				status.innerHTML = "";
 			}, 750);
 			
-			editor.clearSyntaxCheckHightlight();
 			var noErrorFound = checkScriptSyntax(tmpp.script);
-			showJSSyntaxCheckReport(editor, JSHINT.data());
 			console.log(JSHINT.data());	
 			
 			//Inject CSS immediately
@@ -359,6 +382,8 @@ function log() {
 		
 		var editor=null;
 		var editorCss=null;
+		var editorDemo=null;
+		var editors = [];
 		$(function(){//on popup load
 			
 			$("#runBtn").click(run);
@@ -373,7 +398,7 @@ function log() {
 			$("#optionsBtn").click(function() { window.open(chrome.runtime.getURL("options.html"), "OptionPage"); });
 			
 			$("#jstcb").button({icons: {
-						primary: "ui-icon-locked"
+						primary: "ui-icon-close"
 					}
 				}).click(save_options);
 				
@@ -403,6 +428,7 @@ function log() {
 				editorDemo = generateEditor("demo-code", "text/javascript", {
 					readOnly:true
 				});
+				editors = [editor, editorCss, editorDemo];
 				
 				// Select <SELECTION_START><SELECTION_END> region
 				function setSelectionInEditor(editor, setFocus) {
@@ -464,7 +490,7 @@ function log() {
 				lineNumbers:true,
 				styleActiveLine: true,
 				matchBrackets :true,
-				theme: "abcdef", //_yellow
+				theme: getCodeMirrorTheme(), //_yellow
 				foldGutter: true,
 				lint: {"esversion":6, "expr":true, "indent":2, "globals":
 						{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, 
@@ -494,7 +520,9 @@ function log() {
 				}
 			}
 			
-			return CodeMirror.fromTextArea(document.getElementById(textareaID), options); 
+			var editor = CodeMirror.fromTextArea(document.getElementById(textareaID), options); 
+			editors.push(editor);
+			return editor;
 		}
 		
 		function setupKeyEventHandler() {
@@ -689,7 +717,7 @@ function log() {
 							}
 							
 							if (type == "domnode") {
-								element = '<input type="button" class="select-domnode-btn" title="Click to choose dom node." style="float:none; display:inline; background-image:url(img/target.jpg); background-size:contain"/> ';
+								element = '<input type="button" class="select-domnode-btn" title="Click to choose dom node." style="float:none; display:inline;"/> ';
 								commandDiv.append(element);
 							} else if (type == "url") {
 								API_GetTabURL((function(inputIDStr) { return (function(url) {									

@@ -12,7 +12,13 @@
 	<link rel="stylesheet" href="lib/codemirror/addon/hint/show-hint.css">
 	<link rel="stylesheet" href="lib/codemirror/addon/fold/foldgutter.css" />
 	<link rel="stylesheet" href="lib/codemirror/addon/lint/lint.css">
-	<link rel="stylesheet" href="lib/codemirror/theme/abcdef.css">
+	<link rel="stylesheet" href="css/theme/light.css">
+	<link rel="stylesheet" href="css/theme/_yellow.css">
+	<link rel="stylesheet" href="css/theme/dark.css">	
+  <link rel="stylesheet" href="css/jquery-ui.structure.css"> 
+  <link rel="stylesheet" href="css/theme/jqueryui/jquery-ui.theme-light.css"> 
+  <link rel="stylesheet" href="css/theme/jqueryui/jquery-ui.theme-_yellow.css"> 
+  <link rel="stylesheet" href="css/theme/jqueryui/jquery-ui.theme-dark.css"> 
 
 	<script src="lib/codemirror/lib/codemirror.js"></script>
 	<script src="lib/codemirror/addon/selection/active-line.js"></script>
@@ -42,15 +48,12 @@
 	<script  type="text/javascript" src="js/jquery.js" ></script>
 	<script  type="text/javascript" src="js/jquery-ui.js" ></script>
 	
+	<script src="js/theme.js" ></script>
 	<script src="templating.js" ></script>	
 	<script src="templates.js" ></script>	
 	<script src="codesnippet.js" ></script>	
 	
 	<script  type="text/javascript" src="popup.js" ></script>
-	
-	<link rel=stylesheet href="css/custom-theme/jquery-ui.css">  
-	<link rel=stylesheet href="css/custom-theme/jquery-ui-fix.css"> 
-	<link rel=stylesheet href="css/custom-theme/jquery-ui-1.8.21.custom.css">   
 	
 	<link rel=stylesheet href="css/theme/dark.css">   
     
@@ -75,6 +78,7 @@
 			-webkit-padding-start: 0px;
 		}
 		#title {
+			color: black;
 			background-color: yellow;
 			position: absolute;
 			width: 150px;
@@ -101,7 +105,7 @@
 			background-color:rgba(247,223,29,1); 
 			background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b));
 			box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
-			padding:3px 10px;
+			/*padding:3px 10px;*/
 			text-shadow:rgba(255,255,255,0.6) 0 1px;
 		}
 		input[type=button]:hover,input[type=button]:focus
@@ -203,7 +207,7 @@
 			background:   url('img/setting.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
 		}
 		input[type=button].add-script-btn {
-			height: 18px;
+			height: 22px;
 			float: none;
 			display: inline;
 		}
@@ -256,6 +260,11 @@
 		input[type=button].add-script-btn {
 			margin-right:1px;
 		}
+		#editor-script-gen-ui .select-domnode-btn { 
+			background-image: url("css/theme/img/target.jpg");
+			background-size:contain;
+			width:20px;
+		}
 	</style>
   </head>
   <body class="theme-dark">
@@ -275,7 +284,7 @@
 		</span>
 		<input id='deleteBtn' type='button' title="Delete" >
 		<input id='editInOptionPageBtn' type='button' title="Edit In Option Page">	
-		<input id='laodCacheBtn' type='button' title="Load Cache">	
+		<input id='laodCacheBtn' type='button' title="Load Cache" style="display:none;">	
 		<input id='saveOptBtn' type='button' title="Save" >
 		<input tabindex="1" type='checkbox' id='jstcb'  /><label for="jstcb" id="forjstcb" style="height:21px;">Autostart</label>
 		

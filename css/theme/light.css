@@ -1,154 +1,182 @@
 /* Global Styles */
-html,body { background:#fefebb; }
+html body.theme-light { background:rgb(252,252,252); }
 
-/* Styles for CodeMirror */
-.CodeMirror-scroll{
-	background:rgba(255,255,255,0.5);
-	box-shadow:rgba(0,0,0,0.3) 0 0 20px inset;
-}
-.CodeMirror-completions {
-  border:1px solid rgba(124,122,12,1);
-  box-shadow: 2px 3px 5px rgba(0,0,0,.4);
-}
-.CodeMirror-completions select {
-  background: #fff;
-}
-.CodeMirror .activeline{
-	background:#eec;
-}
 
 /* Styles for options page */
-.ui-widget-content { background: #efefba; }
-.tooltip { 	background: #ffffff; }
-h1 { color:#444; }
-table#main {
+.theme-light .ui-state-active > .ui-icon-close { background-position: -64px -144px; /* position of ui-icon-check*/}
+.theme-light h1 { color:#444; }
+.theme-light table#main {
 	border-collapse:collapse;
 	vertical-align:top;
 	box-shadow: rgba(0,0,0,0.1) 0 -10px 20px;
 	border-bottom:silver 1px solid;
 }
-.jstbox {
+.theme-light .editorPanel { background:#f0f0f0; }
+.theme-light .jstbox {
 	border-bottom:1px solid rgba(0,0,0,0.2);
 	border-top:1px solid white;
-	background:#efefba;
+	background:#f0f0f0;
 	text-shadow:white 0 1px;			
 	-webkit-transition: background-color 0.2s linear, margin 0.2s linear;
 }
-.jstbox:hover { background:  rgba(247,223,29,0.5); }
-.jstbox.selected { background: rgba(247,223,29,1); }
-#jstmessage {
-	background:rgba(247,223,29,1);
+.theme-light .jstbox:hover { background:  rgba(200,200,200,0.5); }
+.theme-light .jstbox.selected { background: rgba(200,200,200,1); }
+.theme-light #jstmessage {
+	background:rgba(252,252,252,1);
 	box-shadow:rgba(0,0,0,0.4) 0 3px 10px;
 	border:1px solid rgba(147,123,19,1);
 }
-#contentscript-menu .jstbox.contentScriptKey .group { color: #aaaaaa; }
-.jstmessage.ok { color:white; background:green;	}
-.jstmessage.error { color:white; background:red; }
-.hiddenFlag { color:#999; }
-input[type=button] {
+.theme-light #contentscript-menu .jstbox.contentScriptKey .group { color: #aaaaaa; }
+.theme-light .jstmessage.ok { color:white; background:green;	}
+.theme-light .jstmessage.error { color:white; background:red; }
+.theme-light .hiddenFlag { color:#999; }
+.theme-light #dcsindexup { 
+	/* -webkit-filter:invert(1); */
+	background: url('img/arrow_up.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
+}
+.theme-light #dcsindexdown {
+	/* -webkit-filter:invert(1); */
+	background: url('img/arrow_down.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
+}
+
+
+/* Common styles for both options window and popup window */
+.theme-light input[type=button] {
 	border:1px solid rgba(124,122,12,1);
-	background-color:rgba(247,223,29,1); 
-	background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b));
+	color: black;
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
 	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
 	text-shadow:rgba(255,255,255,0.6) 0 1px;
 }
-input[type=button]:active {
+.theme-light input[type=button]:hover,
+.theme-light input[type=button]:focus {
+	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset,rgba(247,223,29,1) 0 0px 15px;
+	/*background-color*/
+}
+.theme-light input[type=button]:active {
 	box-shadow: rgba(0,0,0,0.2) 0 1px 2px inset,rgba(255,255,255,1) 0 -1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
-	background-color:rgba(227,203,09,1);
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
 }
-div.tabs > ul li {
-	border:1px solid rgba(124,122,12,1);
-	background-color:rgba(227,203,09,1);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
-	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;			padding:0px 10px;
+.theme-light div.tabs > ul li,
+.theme-light #tabs > ul li,
+.theme-light li.tab-title {
+	border:1px solid #bbbbbb;
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
+	box-shadow: rgba(255,255,255,0.2) 0 -1px 2px inset,rgba(221,221,221,1) 0 1px 2px inset;
 	text-shadow:rgba(255,255,255,0.6) 0 1px;	
+	border-top-left-radius: 6px;
+	border-top-right-radius: 6px
 }
-div.tabs > ul li.selected {
-	background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b));
-	background-color:rgba(247,223,29,1);
-	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
+.theme-light div.tabs > ul li.selected,
+.theme-light #tabs > ul li.selected,
+.theme-light li.tab-title.selected {
+	border:1px solid #aaaaaa;
+	background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), /*color-stop(50%,#fce448), color-stop(51%,#f4d300), */color-stop(100%,#fefefe));
+	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(0,0,0,0.5) 0 1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
 }
-#dcsindexup { background: url('img/arrow_up.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); }
-#dcsindexdown { background: url('img/arrow_down.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); }
-#json-viewer-tabs .ui-tabs-panel { background-color: #efefba; }
+
 
 /* Styles for popup window */
+.theme-light #saveOptBtn {
+	background: url('img/icons_01.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
+}
+.theme-light #laodCacheBtn {
+	background:   url('img/icons_02.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
+}
+.theme-light #editInOptionPageBtn {
+	background:   url('img/icons_07.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
+}
+.theme-light #runBtn {
+	background:   url('img/icons_03.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
+}
+.theme-light #runSelectedBtn {
+	background:   url('img/icons_04.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
+}
+.theme-light #deleteBtn {
+	background:   url('img/icons_05.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
+}
+.theme-light #showInDialogBtn {
+	background:   url('img/icons_06.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
+}
+.theme-light #enableDisableBtn.enable {
+	background:   url('img/enable.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
+}
+.theme-light #enableDisableBtn.disable {
+	background:   url('img/disable.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
+}
+.theme-light #optionsBtn {
+	background:   url('img/setting.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
+}
+.theme-light input[type=button].init-script-btn {
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#D6FCB4), color-stop(50%,#D0FC48), color-stop(51%,#B8F400), color-stop(100%,#DFFB8B));
+}
+.theme-light input[type=button].run-script-btn {
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#D6FCB4), color-stop(50%,#D0FC48), color-stop(51%,#B8F400), color-stop(100%,#DFFB8B));
+}
 
-#title {
+.theme-light #title {
 	background-color: yellow;
 }
-input[type=button] {
-	background-color:rgba(247,223,29,1); 
-	background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b));
-	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
-	text-shadow:rgba(255,255,255,0.6) 0 1px;
-}
-input[type=button]:active {
-	box-shadow: rgba(0,0,0,0.2) 0 1px 2px inset,rgba(255,255,255,1) 0 -1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
-	background-color:rgba(227,203,09,1);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
-}
-#tabs > ul li {
-	border:1px solid rgba(124,122,12,1);
-	background-color:rgba(227,203,09,1);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
-	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
-	text-shadow:rgba(255,255,255,0.6) 0 1px;
-}
-#tabs > ul li.selected {
-	background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b));
-	background-color:rgba(247,223,29,1);
-	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
-}
-li.tab-title {
-	border:1px solid rgba(124,122,12,1);
-	background-color:rgba(227,203,09,1);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
-	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
-	text-shadow:rgba(255,255,255,0.6) 0 1px;
-}
-li.tab-title.selected {
-	background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b));
-	background-color:rgba(247,223,29,1);
-	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
-}
-
-#saveOptBtn {
-	background: url('img/icons_01.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-#laodCacheBtn {
-	background:   url('img/icons_02.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-#editInOptionPageBtn {
-	background:   url('img/icons_07.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-#runBtn {
-	background:   url('img/icons_03.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-#runSelectedBtn {
-	background:   url('img/icons_04.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-#deleteBtn {
-	background:   url('img/icons_05.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-#showInDialogBtn {
-	background:   url('img/icons_06.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-#enableDisableBtn {
-	background:   url('img/disable.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-#optionsBtn {
-	background:   url('img/setting.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-input[type=button].init-script-btn {
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#D6FCB4), color-stop(50%,#D0FC48), color-stop(51%,#B8F400), color-stop(100%,#DFFB8B));
-}
-input[type=button].run-script-btn {
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#D6FCB4), color-stop(50%,#D0FC48), color-stop(51%,#B8F400), color-stop(100%,#DFFB8B));
-}
-
-#js-editor-hint {
+.theme-light #js-editor-hint {
 	background-color:white;
 	opacity: 0.8;
 }
+
+
+/* Styles for CodeMirror */
+.theme-light .CodeMirror-completions {
+  border:1px solid rgba(124,122,12,1);
+  box-shadow: 2px 3px 5px rgba(0,0,0,.4);
+}
+.theme-light .CodeMirror-completions select {
+  background: #fff;
+}
+.theme-light .CodeMirror-gutters {
+    box-shadow: rgba(0,0,0,0.4) 2px 0 20px;
+}
+
+/* styles from lib/codemirror/theme/default.css */
+.cm-s-_yellow .cm-header {color: blue;}
+.cm-s-_yellow .cm-quote {color: #090;}
+.cm-negative {color: #d44;}
+.cm-positive {color: #292;}
+.cm-header, .cm-strong {font-weight: bold;}
+.cm-em {font-style: italic;}
+.cm-link {text-decoration: underline;}
+.cm-strikethrough {text-decoration: line-through;}
+
+.cm-s-_yellow .cm-keyword {color: #708;}
+.cm-s-_yellow .cm-atom {color: #219;}
+.cm-s-_yellow .cm-number {color: #164;}
+.cm-s-_yellow .cm-def {color: #00f;}
+.cm-s-_yellow .cm-variable,
+.cm-s-_yellow .cm-punctuation,
+.cm-s-_yellow .cm-property,
+.cm-s-_yellow .cm-operator {}
+.cm-s-_yellow .cm-variable-2 {color: #05a;}
+.cm-s-_yellow .cm-variable-3 {color: #085;}
+.cm-s-_yellow .cm-comment {color: #a50;}
+.cm-s-_yellow .cm-string {color: #a11;}
+.cm-s-_yellow .cm-string-2 {color: #f50;}
+.cm-s-_yellow .cm-meta {color: #555;}
+.cm-s-_yellow .cm-qualifier {color: #555;}
+.cm-s-_yellow .cm-builtin {color: #30a;}
+.cm-s-_yellow .cm-bracket {color: #997;}
+.cm-s-_yellow .cm-tag {color: #170;}
+.cm-s-_yellow .cm-attribute {color: #00c;}
+.cm-s-_yellow .cm-hr {color: #999;}
+.cm-s-_yellow .cm-link {color: #00c;}
+
+.cm-s-_yellow .cm-error {color: #f00;}
+.cm-invalidchar {color: #f00;}
+
+.CodeMirror-composing { border-bottom: 2px solid; }
+
+span.cm-header, span.cm-strong {font-weight: bold;}
+span.cm-em {font-style: italic;}
+span.cm-emstrong {font-style: italic; font-weight: bold;}
+span.cm-link {text-decoration: underline;}
+
+div.CodeMirror span.CodeMirror-matchingbracket {color: #0f0;}
+div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
+

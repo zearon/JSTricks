@@ -118,17 +118,16 @@
 			var key = selectedTitle;
 			var val = editorJs.getValue() ;
 			var cssval = editorCss.getValue();
-            var autos = $("#jscb")[0].checked;
+      var autos = $("#jscb")[0].checked;
 			var hid = $("#jshid").attr('checked');
 			var sf = $("#jsincludefile").val();
 			
 			
-            var tmp =  {"script": val, "autostart": autos, "hidden": hid , "sfile": sf, "css": cssval};
+      var tmp =  {"script": val, "autostart": autos, "hidden": hid , "sfile": sf, "css": cssval};
 			localStorage[key] = JSON.stringify(tmp);
 			currentSavedState = editorJs.getValue();
 			currentSavedStateCss = editorCss.getValue();
 			
-			editorDynScript.clearSyntaxCheckHightlight();
 			var noErrorFound = checkScriptSyntax(val);
 			console.log(JSHINT.data());		
 			if (!noErrorFound) {
@@ -554,10 +553,15 @@
 		var editorDynScript = null;
 		var editorJsonFile = null;
 		var editorJsonObjectValue = null;
+		var editors = [];
 		var hlLineJs = null;
 		var hlLineCss = null;
 		
 		$(function(){//on load
+			$("#theme").change(function() {
+				var theme = $(this).val();
+				setTheme(theme);
+			});
 			$("#testtest").click(cloudStorageGenCode);
 		
 			$("#jscontentfilterbtn").click(filterSiteScriptByJSContent);
@@ -720,7 +724,7 @@
 			dialog = $("#floatingWindow").dialog({"autoOpen":false, height:500,"width":600});
 			//buttons
 			$("#jscb, #jshid").button({icons: {
-						primary: "ui-icon-locked"
+						primary: "ui-icon-close"
 					}
 				});
 			$('#json-viewer-tabs').tabs();
@@ -788,7 +792,7 @@
 				lineNumbers:true,
 				styleActiveLine: true,
 				matchBrackets :true,
-				theme: "_yellow", //_yellow, abcdef, default
+				theme: getCodeMirrorTheme(), //_yellow, abcdef, default
 				foldGutter: true,
 				lint: {"esversion":6, "expr":true, "indent":2, "globals":
 						{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, 
@@ -822,6 +826,7 @@
 			editor.on("focus", function() {
 					focusNotOnMenuList = true;				
 				});
+			editors.push(editor);
 			return editor;
 		}
 		
@@ -1291,6 +1296,13 @@
 					if (refreshOnSaveAnOption)
 						location.reload();
 				});
+			});
+			
+			$("select.localstorage_itemvalue").change(function() {
+				var node = $(this);
+				var value = node.val();
+				var key = node.attr("target");
+				localStorage[key] = value;
 			});
 			
 			$(".localstorage_saveall").click(function() {
