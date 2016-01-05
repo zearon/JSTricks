@@ -475,51 +475,53 @@ function updateSettings() {
 			return false;
 		}
 		
+		/*
+		
         chrome.tabs.onActiveChanged.addListener(function(tabId) {
             chrome.tabs.get(tabId, function(tab){				
                 changeIcon(tab)
             })
 
-        });
+        });*/
         
         //chrome.tabs.onCreated.addListener(setTabID);
         //chrome.tabs.onUpdated.addListener(setTabID);
-				function setTabID(arg) {
-					if (chrome.runtime.lastError) {
-						// tabid is not fetched successfully
-						console.error("Cannot get tabid on the created/updated tab.");
-					} else {
-						// in onCreated arg is Tab object, and in onUpdated arg is tabid
-						var tabid = arg.id ? arg.id : arg;
-						chrome.tabs.executeScript(tabid, {"code":`
-							window.tabid = ${tabid};
-							if (${DEBUG}) {
-								console.info("Chome Tab ID is: "+"${tabid}");
-							}
-						`}, function() {
-							if (chrome.runtime.lastError) {
-								console.error("Failed to inject INFO obj to tab due to", chrome.runtime.lastError.message);
-							}
-						} );
-					}
-				}
-
-        function  changeIcon(tab) {
-					if (localStorage["$setting.enabled"] == "true") {
-						var matches= tab.url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/);
-
-						if( matches[1] && localStorage[matches[1]] ) {
-							var lsd = JSON.parse(localStorage[matches[1]]);
-							if(lsd.autostart) {
-								chrome.browserAction.setIcon({path:"icon/icon24_auto.png"});    
-								return;
-							}
-						}
-						chrome.browserAction.setIcon({path:"icon/icon24.png"});    
-					} else {
-						chrome.browserAction.setIcon({path:"icon/icon24_disabled.png"});    
-					}
-        }
+// 				function setTabID(arg) {
+// 					if (chrome.runtime.lastError) {
+// 						// tabid is not fetched successfully
+// 						console.error("Cannot get tabid on the created/updated tab.");
+// 					} else {
+// 						// in onCreated arg is Tab object, and in onUpdated arg is tabid
+// 						var tabid = arg.id ? arg.id : arg;
+// 						chrome.tabs.executeScript(tabid, {"code":`
+// 							window.tabid = ${tabid};
+// 							if (${DEBUG}) {
+// 								console.info("Chome Tab ID is: "+"${tabid}");
+// 							}
+// 						`}, function() {
+// 							if (chrome.runtime.lastError) {
+// 								console.error("Failed to inject INFO obj to tab due to", chrome.runtime.lastError.message);
+// 							}
+// 						} );
+// 					}
+// 				}
+// 
+//         function  changeIcon(tab) {
+// 					if (localStorage["$setting.enabled"] == "true") {
+// 						var matches= tab.url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/);
+// 
+// 						if( matches[1] && localStorage[matches[1]] ) {
+// 							var lsd = JSON.parse(localStorage[matches[1]]);
+// 							if(lsd.autostart) {
+// 								chrome.browserAction.setIcon({path:"icon/icon24_auto.png"});    
+// 								return;
+// 							}
+// 						}
+// 						chrome.browserAction.setIcon({path:"icon/icon24.png"});    
+// 					} else {
+// 						chrome.browserAction.setIcon({path:"icon/icon24_disabled.png"});    
+// 					}
+//         }
 		
 		chrome.manifest = (function() {
 			var manifestObject = false;
