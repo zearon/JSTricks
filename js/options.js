@@ -2417,7 +2417,7 @@
 				}
 			}
 			keys.sort(sortContentScriptByDefault);
-			for ( i in keys ) {
+			for ( var i = 0; i < keys.length; ++ i ) {
 				var item = keys[i];
 				var name = item['name'];
 				var key = "$cs-" + name;
