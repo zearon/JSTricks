@@ -1,19 +1,15 @@
 //autoload.js
 
+var loaded = false;
 
-function autoload()
-{	
-	//window.___JSTRICKS_AUTOLOAD_TIME___ = Date.parse( new Date()) - window.___JSTRICKS_LOAD_TIME___;
-	//console.log("[JScript Tricks] Start loading autoload.js " + window.___JSTRICKS_AUTOLOAD_TIME___ + " ms after first.js was loaded.");
+function autoload() {
+	console.log("autoload.js is loaded.");
 	
-	this.name =  Math.random() ;
-	
-	
-	//$(function() {
-		// console.log("autoload.js send JSTinjectScript request.");
-		//chrome.extension.sendRequest({method: "JSTinjectScript", key: location.href, wname: window.name});
+	if (loaded) {}
+	else {
+		console.log("Start to load content scripts.");
 		chrome.runtime.sendMessage({method: "JSTinjectScript"});
-	//});
+	}
 }
 autoload();
 

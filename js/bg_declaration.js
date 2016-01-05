@@ -6,7 +6,7 @@
 	/* Event listeners */
 	function resetDeclarativeRules() {
 		// Replace all rules ...
-		chrome.declarativeContent.onPageChanged.removeRules(["setDefaultIcon", "setAutoIcon", "setDisabledIcon"], function() {
+		chrome.declarativeContent.onPageChanged.removeRules(["setDefaultIcon", "setAutoIcon", "setDisabledIcon", "loadScript"], function() {
 			if (chrome.runtime.lastError)
 				console.error(chrome.runtime.lastError);
 			
@@ -18,7 +18,7 @@
 					createSetIconAction("icon/ICON19_disabled.png", "icon/ICON38_disabled.png", function(setDisabledIconAction) {					
 						var rules = [];
 						
-						// Set default icon
+						// Set default icon and page action
 						rules.push( {
 							id: "setDefaultIcon", priority: 100,
 							// That fires when a page's URL contains a 'g' ...
@@ -43,7 +43,7 @@
 								})
 							],
 							// And shows the extension's page action.
-							actions: [  new chrome.declarativeContent.ShowPageAction(), setAutoIconAction ]
+							actions: [  setAutoIconAction ]
 						} );
 						
 						// Set disabled icon
@@ -57,12 +57,29 @@
 								})
 							],
 							// And shows the extension's page action.
-							actions: [  new chrome.declarativeContent.ShowPageAction(), setDisabledIconAction ]
-						} );						
+							actions: [  setDisabledIconAction ]
+						} );		
+		
+						// Load content script
+						rules.push( {
+							id: "loadScript",
+							priority: 103,
+							conditions: [
+								new chrome.declarativeContent.PageStateMatcher({
+									pageUrl: { urlMatches: getSetting("temp-activesites-pattern") },
+								})
+							],
+				
+							// And shows the extension's page action.
+							actions: [  new chrome.declarativeContent.RequestContentScript({
+								"js": [ "injected/sea-debug.js", "injected/seajs_boot.js", "injected/autoload.js"],
+								"allFrames": false,
+								"matchAboutBlank": false}) ]
+						} );				
 						
 						
 						chrome.declarativeContent.onPageChanged.addRules(rules, 
-							function() { if (chrome.runtime.lastError) console.error(chrome.runtime.lastError); console.info(rules); });
+							function() { if (chrome.runtime.lastError) console.error(chrome.runtime.lastError); console.info("Set icon rules", rules); });
 						//chrome.declarativeContent.onPageChanged.getRules(undefined, function(rules) { console.log("rules:", rules)∂; });		
 					});
 				});
