@@ -543,6 +543,7 @@
 					
 			$('#backupbtn').click(backup);
 			$('#restorebtn').click(restore);
+			$('#loadDftSettingsBtn').click(loadDefaultSettings);
 			$('#genInitSettingbtn').click(backupInitialSettings);
 			$("#cloudsave-savesettings").click(cloudStorageSaveSettings);
 			$('input:button.cloudbackup').click(cloudBackup);
@@ -1109,6 +1110,9 @@
 				}	*/	
 			}	
 			
+			var autos = $("#jscb")[0].checked;
+			chrome.runtime.sendMessage({method:"UpdateActiveSites", data: {site:selectedTitle, autostart:autos} });
+			
 			saveSiteScript();
 		}
 		
@@ -1186,6 +1190,9 @@
 			});
 		}
 		
+		function loadDefaultSettings() {
+			chrome.runtime.sendMessage({method:"LoadDefaultSettings"});
+		}
 		
 		function updateSettings() {
 			chrome.runtime.sendMessage({method:"UpdateSettings"});

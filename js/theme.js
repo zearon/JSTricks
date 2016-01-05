@@ -1,15 +1,15 @@
 function getStaticTheme(theme) {
 	if (theme === undefined)
-		theme = localStorage["$setting.temp-theme"];
+		theme = getSetting("theme");
 		
 	if (theme != "automatic") {
 		return theme;
 	} else {
 		var now = (new Date()).Format("hh:mm");
-		var nightStartTime = localStorage["$setting.theme_nightStartTime"];
-		var nightEndTime = localStorage["$setting.theme_nightEndTime"];
-		var dayTheme = localStorage["$setting.theme_day"];
-		var nightTheme = localStorage["$setting.theme_night"];
+		var nightStartTime = getSetting("theme_nightStartTime");
+		var nightEndTime = getSetting("theme_nightEndTime");
+		var dayTheme = getSetting("theme_day");
+		var nightTheme = getSetting("theme_night");
 		
 		return (now >= nightStartTime || now <= nightEndTime) ? nightTheme : dayTheme;
 	}

@@ -32,5 +32,5 @@
 	"options_page": "options.html",
 	"permissions": [ "declarativeContent", "contextMenus", "activeTab", "tabs", "alarms", "webNavigation", "cookies", "http://*/*", "https://*/*"],
 	"update_url": "https://clients2.google.com/service/update2/crx",
-	"version": "1.1.1.001"
+	"version": "1.1.1.002"
 }

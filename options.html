@@ -98,7 +98,7 @@
 			<span id="backupToolbar" class="hide" style="display:block;margin-right:60px;float:right;position:relative;top:-25px;">
 				<input id="testtest" type="button" value="Test" class="hide" style="display:none" />
 				Theme:
-				<select id="theme" class="localstorage_itemvalue" target="$setting.temp-theme" title="Theme. Automatic means automatically change between a day theme and a night theme.">
+				<select id="theme" class="localstorage_itemvalue" target="$setting.theme" defaultvalue="_yellow" title="Theme. Automatic means automatically change between a day theme and a night theme.">
 					<option value="light">Light</option>
 					<option value="_yellow">Yellow</option>
 					<option value="dark">Dark</option>
@@ -694,9 +694,14 @@
 							Local storage backup file:
 							<input id="__LocalStorageFP__" type="file" title="Please select the backup file to restore" style="width:150px"/>
 							<input type="button" id="restorebtn" value="Restore" style='height:25px' />
+							<hr/>
+							
+							<h2>Restore with default settings</h2>
+							<input type="button" id="loadDftSettingsBtn" value="Load Default Settings" style='height:25px' />
+							<br/>
+							<hr/>
 							
 							<div class="hide0">
-								<hr/>
 								<h2>Generate Initial Settings (only for development use)</h2>
 								<input type="button" id="genInitSettingbtn" value="Generate" style='height:25px' />
 								<a id="__UI_dialog__link_init_setting" download="init_settings.json" title="Click to download and view the init_settings.json file." style="display:none;position:relative;top:5px">Download and View</a>

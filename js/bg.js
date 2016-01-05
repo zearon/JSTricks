@@ -1,5 +1,5 @@
-var DEBUG = false;
-var infoStr = "";
+var DEBUG = getSetting("DEBUG") == "true";
+var infoStr = getSetting("temp-infostr");
 
 function log() {
 	if (DEBUG) {
@@ -10,51 +10,35 @@ function log() {
 function debug_log() {
 	if (DEBUG) {
 		console.log.apply(console, arguments);
+		//console.log(new Error("stack trace"));
 	}
 }
 
 function updateSettings() {
-	DEBUG = localStorage["$setting.DEBUG"] == "true";
+	DEBUG = getSetting("DEBUG") == "true";
 	var setting = {};
-	for ( key in localStorage) {
-		if (!key.startsWith("$setting.") || key.startsWith("$setting.cloud-") || key.startsWith("$settings.temp-") ) 
-			continue;
-		
-		var shortKey = key.replace("$setting.", "");
-		
-		setting[shortKey] = localStorage[key];
-	}
+	iterateSettings(function(name, val) {
+		// iteration
+		if (name.startsWith("cloud-") || name.startsWith("temp-"))
+			return;
+			
+		setting[name] = val;
+	}, function() {
+		// on complete
+		var INFO = { settings: setting, debug: DEBUG,
+			meta_data: JSON.parse(localStorage['meta']) };
 	
-	var INFO = { settings: setting, debug: DEBUG,
-		meta_data: JSON.parse(localStorage['meta']) };
-	
-	infoStr = encodeURIComponent(JSON.stringify(INFO));
-	
-	//if (DEBUG)
+		infoStr = encodeURIComponent(JSON.stringify(INFO));
+		setSetting("temp-infostr", infoStr);
+
 		console.log("Settings are updated, and new INFO is", INFO);
-	//console.log("InfoStr is", infoStr);
+	});
 }
+
 		
 (function(global) {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	chrome.runtime.onInstalled.addListener(initExtension);
 
 
 
@@ -74,11 +58,11 @@ function updateSettings() {
 		});
 
 		
-        //chrome.extension.onRequest.addListener(function(request, sender) {
-        chrome.runtime.onMessage.addListener(function(request, sender) {
-        	if (request.tabid) {
+		//chrome.extension.onRequest.addListener(function(request, sender) {
+		chrome.runtime.onMessage.addListener(function(request, sender) {
+			if (request.tabid) {
 				processTab(request.tabid, request.method, request.data);
-        	} else {
+			} else {
 				//chrome.tabs.query({active:true, windowId:chrome.windows.WINDOW_ID_CURRENT}, function(tabs) {
 				//	if (chrome.runtime.lastError) {
 				//		// tab is not fetched successfully
@@ -91,13 +75,13 @@ function updateSettings() {
 				//	}
 				//});
 			}
-        });
-        
-        function processTab(tabid, requestMethod, requestData) {
-        	// if tabid is undefined
-        	if (!tabid) {
-        		processRequest(undefined, undefined, requestMethod, requestData);
-        	} else {
+		});
+		
+		function processTab(tabid, requestMethod, requestData) {
+			// if tabid is undefined
+			if (!tabid) {
+				processRequest(undefined, undefined, requestMethod, requestData);
+			} else {
 				chrome.tabs.get(tabid, function(tab) {
 					if (chrome.runtime.lastError) {
 						// tab is not fetched successfully
@@ -108,34 +92,25 @@ function updateSettings() {
 					}
 				});
 			}
-        }
-        
-        function processRequest(tabid, url, requestMethod, requestData) {					
-			//chrome.browserAction.setIcon({path:"icon/icon24_auto.png"});
+		}
+		
+		function processRequest(tabid, url, requestMethod, requestData) {	
+			// Load _Main script as the entry-point of requireJS
+			if (requestMethod == "EnableDisableExt") {
+				var enabled = requestData == "true";
+				// call resetDeclarativeRules() in bg_declaration.js
+				resetDeclarativeRules();
+				debug_log("Set enabled status to " + enabled);
+			}
 			
-        	// Load _Main script as the entry-point of requireJS
-        	if (requestMethod == "LoadMainScript") {        		
-            	debug_log("[JScript Tricks] Load _Main script as the entry-point of requireJS");
-        	}
-        	
-        	// Inject site-specific scripts on website loaded.
-            else if (requestMethod == "JSTinjectScript") {
+			// Inject site-specific scripts on website loaded.
+			else if (requestMethod == "JSTinjectScript") {
 				var d = url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/); 
 				var key = d[1];
 				
-            	if (localStorage["$setting.enabled"] === undefined)
-            		localStorage["$setting.enabled"] = "true";
-            		
-            	if (localStorage["$setting.enabled"] != "true") {
-            		chrome.browserAction.setIcon({path: "icon/icon24_disabled.png"});
-            		return;
-            	} else {
-            		chrome.browserAction.setIcon({path: "icon/icon24.png"});
-            	}
-				
 				// Inject a function to add <script> tag in document.
 				chrome.tabs.executeScript(tabid, {"code": codesnippet_addScriptNodeToDOM});
-            	
+				
 				var autoloadFileList = [];
 				var loadProperty = {necessaryAdded: false, autostartLibAdded: false, defaultAdded: false, siteAdded: false};
 				
@@ -145,11 +120,16 @@ function updateSettings() {
 				
 				delete autoloadFileList;
 				delete loadProperty;
-            }
-            
-            // Invoked when content menues are clicked.
-            else if (requestMethod == "ExecuteContentScript") {
-            	var csName = requestData;
+			}
+			
+			// Load _Main script as the entry-point of requireJS
+			else if (requestMethod == "LoadMainScript") {        		
+				debug_log("[JScript Tricks] Load _Main script as the entry-point of requireJS");
+			}
+			
+			// Invoked when content menues are clicked.
+			else if (requestMethod == "ExecuteContentScript") {
+				var csName = requestData;
 				var autoloadFileList = [];
 				addAContentScriptToLoadList(autoloadFileList, csName);
 				var lastScript = autoloadFileList[autoloadFileList.length - 1];
@@ -157,31 +137,36 @@ function updateSettings() {
 				
 				// Load all included files in chain.
 				loadIncludeFiles(tabid, null, autoloadFileList, 0);
-            }
-            
-            // Invoked by RUN script or RUN selected script in popup window
-            else if (requestMethod == "ExecuteSiteScript") {
-            	var data = JSON.parse(requestData);
-            	//debug_log(data);
-            	var name = data.name;
-            	var includes = data.includes;
-            	var script = data.script;
-            	
+			}
+			
+			// Invoked by RUN script or RUN selected script in popup window
+			else if (requestMethod == "ExecuteSiteScript") {
+				var data = JSON.parse(requestData);
+				//debug_log(data);
+				var name = data.name;
+				var includes = data.includes;
+				var script = data.script;
+				
 				var autoloadFileList = [];
 				addContentScriptsToLoadList(autoloadFileList, includes);
 				autoloadFileList.push( {"name":name+"-"+guid(), "code":script, "type":"js"} );
 				
 				loadIncludeFiles(tabid, null, autoloadFileList, 0);
-            }
-            
-            // Invoked when sea.js request a module saved in local storage with a URI such as localstorage://Novel.
-            // or the source code of a external script file.
-            else if (requestMethod == "InjectModule") {
-            	var data = JSON.parse(requestData);
-            	var csName = data.name;
-            	var srcCode = data.code;
-            	var callbackID = data.callback;
-            	
+			}
+			
+		  // Load _Main script as the entry-point of requireJS
+			if (requestMethod == "LoadMainScript") {        		
+				debug_log("[JScript Tricks] Load _Main script as the entry-point of requireJS");
+			}
+			
+			// Invoked when sea.js request a module saved in local storage with a URI such as localstorage://Novel.
+			// or the source code of a external script file.
+			else if (requestMethod == "InjectModule") {
+				var data = JSON.parse(requestData);
+				var csName = data.name;
+				var srcCode = data.code;
+				var callbackID = data.callback;
+				
 				var autoloadFileList = [];
 				if (srcCode !== undefined) {
 					autoloadFileList.push({"name":csName, "code":srcCode, "type":"js"});
@@ -200,14 +185,14 @@ function updateSettings() {
 					}, 
 					autoloadFileList, 0);
 				}				
-            }
-            
-            // Invoked by request from content scripts to inject other content script as 
-            // a script node in DOM tree with Data URI. In this way, the injected script is
-            // executed in the top frame, instead of the extension frame. The window objects
-            // in the two frames are different, but share a same DOM tree. For example (in content script):
-            // chrome.runtime.sendMessage({tabid: INFO.tabid, method:"ExecuteJsCodeOrFile", data:"Test"}); // Test is the name of a content script.
-            else if (requestMethod == "InjectContentScriptAsScriptNode"){
+			}
+			
+			// Invoked by request from content scripts to inject other content script as 
+			// a script node in DOM tree with Data URI. In this way, the injected script is
+			// executed in the top frame, instead of the extension frame. The window objects
+			// in the two frames are different, but share a same DOM tree. For example (in content script):
+			// chrome.runtime.sendMessage({tabid: INFO.tabid, method:"ExecuteJsCodeOrFile", data:"Test"}); // Test is the name of a content script.
+			else if (requestMethod == "InjectContentScriptAsScriptNode"){
 				var args = JSON.parse(requestData);
 				var csName = args.name;
 				var code = args.code;
@@ -230,45 +215,57 @@ function updateSettings() {
 						window["__JSTricks_Messenger"].onScriptLoaded("${callbackID}");
 					});
 				`} );
-            }
-            
-            // When settings are changed in options page (options.js), this message is sent to inform background page.
-            else if (requestMethod == "UpdateSettings") {
+			}
+			
+			// When settings are changed in options page (options.js), this message is sent to inform background page.
+			else if (requestMethod == "UpdateSettings") {
 				updateSettings();
-            }
-            
-            // Invoked by DEBUG content script. Other script can send this message as well. For example:
+			}
+			
+			// Invoked when "Load Default Settings" buttons in options.html is clicked
+			else if (requestMethod == "LoadDefaultSettings") {
+				loadDefaultSettings(true);
+			}
+			
+			// Invoked by options page and popup page when site scripts are saved.
+			else if (requestMethod == "UpdateActiveSites") {
+				var site = requestData.site;
+				var autostart = requestData.autostart
+				updateActiveSites(site, autostart);
+			}
+			
+			// Invoked by DEBUG content script. Other script can send this message as well. For example:
 			// chrome.runtime.sendMessage( {tabid: INFO.tabid, method:"ExecuteJsCodeOrFile", data:[
 			//   { code: ` InjectCodeToOriginalSpace("${src}");`} ]
 			// } );
 			// data is a list of object, which has a code or file attribute that will be forwarded to chrome.tabs.executeScript function.
-            else if (requestMethod == "ExecuteJsCodeOrFile") {
+			else if (requestMethod == "ExecuteJsCodeOrFile") {
 				var execs = requestData;
 				for (var i = 0; i < execs.length; ++ i) {
 					debug_log("Execute JS code or file: ", execs[i]);
 					chrome.tabs.executeScript(tabid, execs[i]);
 				}
-            }
-            
-            // Invoked by DEBUG content script.
-            else if (requestMethod == "InjectPopupPage") {
+			}
+			
+			// Invoked by DEBUG content script.
+			else if (requestMethod == "InjectPopupPage") {
 				var code = compile_template(codesnippit_showPopupInWebpage, requestData);
 				//debug_log(code);
 				chrome.tabs.executeScript(tabid, {"code": code});
-            }
-            
-            // Invoked by DEBUG content script.
-            else if (requestMethod == "ReloadBackroundPage") {
+			}
+			
+			// Invoked by DEBUG content script.
+			else if (requestMethod == "ReloadBackroundPage") {
 				location.reload();
-            }
-        }
-        
-        function addNecessaryScriptsForAllSiteToHead(tabid, url, autoloadFileList, loadProperty) {
-        	if (loadProperty.necessaryAdded)
-        		return;
-        		
-        	loadProperty.necessaryAdded = true;
-        		
+			}
+		}
+		
+		function addNecessaryScriptsForAllSiteToHead(tabid, url, autoloadFileList, loadProperty) {
+			if (loadProperty.necessaryAdded)
+				return;
+				
+			loadProperty.necessaryAdded = true;
+				
 			var setMetaDataCode = codesnippet_getOnBootCode(tabid, url, infoStr);
 			// console.log(setMetaDataCode);
 			autoloadFileList.unshift(
@@ -287,8 +284,8 @@ function updateSettings() {
 					debug_log(exception);
 				}
 			}
-        }
-        
+		}
+		
 		function loadDefaultScript(tabid, key, autoloadFileList, loadProperty) {		
 			// debug_log("Loading default script.");
 			try {
@@ -344,13 +341,13 @@ function updateSettings() {
 			// Load all included files in chain.
 			loadIncludeFiles(tabid, null, autoloadFileList, 0);
 		}
-        
-        function addScriptsForAutostartSite(tabid, url, autoloadFileList, loadProperty) {	
-        	if (loadProperty.autostartLibAdded)
-        		return;
-        		
-        	loadProperty.autostartLibAdded = true;
-        		
+		
+		function addScriptsForAutostartSite(tabid, url, autoloadFileList, loadProperty) {	
+			if (loadProperty.autostartLibAdded)
+				return;
+				
+			loadProperty.autostartLibAdded = true;
+				
 			// Inject injected/injected.js file by inserting a <script> tag in document.
 			chrome.tabs.executeScript(tabid, {"code": `
 				InjectCodeToOriginalSpace("chrome-extension://" + chrome.runtime.id + "/injected/injected.js");
@@ -377,11 +374,11 @@ function updateSettings() {
 				// debug_log(autoloadFileList);
 			} catch(exception) {
 			}
-        }
+		}
 		
 		function emptyFunc() {};
-        
-        function loadIncludeFiles(tabid, callback, autoloadFileList, index) {
+		
+		function loadIncludeFiles(tabid, callback, autoloadFileList, index) {
 			if (!callback)
 				callback = emptyFunc;
 				
@@ -421,10 +418,10 @@ function updateSettings() {
 			
 			// Reduce memory leak
 			delete callNextInChain;
-        }
-        
-        function insertScriptNodeAsDataUri() {
-        }
+		}
+		
+		function insertScriptNodeAsDataUri() {
+		}
 		
 		function addContentScriptsToLoadList(loadList, csNames) {
 			if(csNames) {
@@ -475,17 +472,82 @@ function updateSettings() {
 			return false;
 		}
 		
-		/*
+		function updateActiveSites(site, autostart) {
+			var activeSites; 
+			var defaultActive = {}; defaultActive.value = getSetting("temp-activesites-defaultenabled", true);
+			
+			// Initialize the active sites
+			if (arguments.length < 1) {
+				debug_log("Initialize the active sites list.");
+				activeSites = [], defaultActive.value = false;
+				getAllScripts(["ss", "dss"], function(allscripts) {
+					// On complete
+					updateStatus(activeSites, defaultActive.value);
+				}, function(id, type, obj) {
+					// On iterate
+					if (type == "dss" && id == "Default" && obj.autostart)
+						defaultActive.value = true;
+					else if (type == "ss" && obj.autostart)
+						activeSites.push(obj.id);
+				});
+			} 
+			
+			// Update the active sites according to site status given by the arguments
+			else {
+				debug_log("Update the active sites list. site=", site, "autostart=", autostart);
+				activeSites = getSetting("temp-activesites", true);
+				
+				if (site == "Default") {
+					defaultActive.value = autostart;
+				} else {
+					if (autostart && !(site in activeSites))
+						activeSites.push(site);
+					else if (!autostart)
+						activeSites = activeSites.filter(function(ele) { return ele != site; } );
+				}
+				
+				updateStatus(activeSites, defaultActive.value);
+			}
+			
+			function updateStatus(activeSites, defaultActive) {
+				debug_log("All active sites:", activeSites, "default is", defaultActive ? "active" : "inactive");
+				
+				var activeSitesPattern;
+				
+				// Default script is autostarted, so the pattern should match any site url.
+				if (defaultActive) {
+					activeSitesPattern = ".*";
+				} 
+				
+				else {
+					activeSitesPattern = activeSites.map(function(site0) {
+						 var sitepattern = "(" + ('://' + site0 + "/").getTextRegexpPattern() + ".*" + ")";
+						 return sitepattern;
+					}).join("|");
+					activeSitesPattern = "(" + activeSitesPattern + ")";
+				}
+			
+				// Save status
+				setSetting("temp-activesites", activeSites, true);
+				setSetting("temp-activesites-defaultenabled", defaultActive, true);
+				setSetting("temp-activesites-pattern", activeSitesPattern);
+				debug_log("activeSitesPattern=", activeSitesPattern);
+			
+				// call resetDeclarativeRules() in bg_declaration.js
+				resetDeclarativeRules();
+			}
+		}
 		
-        chrome.tabs.onActiveChanged.addListener(function(tabId) {
-            chrome.tabs.get(tabId, function(tab){				
-                changeIcon(tab)
-            })
+		/*
+		chrome.tabs.onActiveChanged.addListener(function(tabId) {
+			chrome.tabs.get(tabId, function(tab){				
+				changeIcon(tab)
+			})
 
-        });*/
-        
-        //chrome.tabs.onCreated.addListener(setTabID);
-        //chrome.tabs.onUpdated.addListener(setTabID);
+		});*/
+		
+		//chrome.tabs.onCreated.addListener(setTabID);
+		//chrome.tabs.onUpdated.addListener(setTabID);
 // 				function setTabID(arg) {
 // 					if (chrome.runtime.lastError) {
 // 						// tabid is not fetched successfully
@@ -522,7 +584,9 @@ function updateSettings() {
 // 						chrome.browserAction.setIcon({path:"icon/icon24_disabled.png"});    
 // 					}
 //         }
-		
+	
+	
+	function initExtension() {
 		chrome.manifest = (function() {
 			var manifestObject = false;
 			var xhr = new XMLHttpRequest();
@@ -543,36 +607,49 @@ function updateSettings() {
 			return manifestObject;
 
 		})();
-		if( localStorage["info"] == undefined || localStorage["info"] != chrome.manifest.version)
-		{		
-			localStorage["info"] = chrome.manifest.version;
+		
+		setSetting("enabled", "true");
+		localStorage["info"] = chrome.manifest.version;
+		
+		if( localStorage["info"] == undefined) {		
 			loadDefaultSettings();
 			alert("JS TRICKS IMPORTANT CHANGE: script and css are now injected before DOM creation. Use $(function(){ ... }) to start script on DOMReady.");
 		}
-
-		function loadDefaultSettings() {
-			var manifestObject = false;
-			var xhr = new XMLHttpRequest();
-
-			xhr.onreadystatechange = function() {
-				if (xhr.readyState == 4) {
-					var initSettings = JSON.parse(xhr.responseText);
-					for (key in initSettings) {
-						localStorage[key] = initSettings[key];
-					}
-				}
-			};
-			if (chrome.runtime) {
-				xhr.open("GET", chrome.runtime.getURL('/init_settings.json'), false);
-			}
-			try {
-				xhr.send();
-			} catch(e) {
-				debug_log('Couldn\'t load init_settings.json');
-			}
+		
+		if (localStorage["info"] && localStorage["info"] != chrome.manifest.version) {
+			if (!confirm("New version installed! Do you want to override current configuration with the one in the new version?"))
+				return;
+				
+			loadDefaultSettings();
 		}
 		
-		
+		updateActiveSites();
 		updateSettings();	
+	}
+
+	function loadDefaultSettings(alertAfterComplete) {
+		var manifestObject = false;
+		var xhr = new XMLHttpRequest();
+
+		xhr.onreadystatechange = function() {
+			if (xhr.readyState == 4) {
+				var initSettings = JSON.parse(xhr.responseText);
+				for (key in initSettings) {
+					localStorage[key] = initSettings[key];
+				}
+			
+				if (alertAfterComplete)
+					alert("Default settings are loaded.");
+			}
+		};
+		if (chrome.runtime) {
+			xhr.open("GET", chrome.runtime.getURL('/init_settings.json'), false);
+		}
+		try {
+			xhr.send();
+		} catch(e) {
+			debug_log('Couldn\'t load init_settings.json');
+		}
+	}
 		
 }) (this);
