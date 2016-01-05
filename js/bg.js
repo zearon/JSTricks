@@ -13,13 +13,6 @@ function debug_log() {
 	}
 }
 
-function guid() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-        return v.toString(16);
-    });
-}
-
 function updateSettings() {
 	DEBUG = localStorage["$setting.DEBUG"] == "true";
 	var setting = {};
@@ -44,12 +37,36 @@ function updateSettings() {
 		
 (function(global) {
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* Several ways to inject a script into a web page:
 1. Insert a <script type="text/javascript" src="path/to/script/file/in/extension/dir.js"></script> node.
 2. Insert a <script type="text/javascript" src="data:text/javascript;charset=utf-8,encodeURIComponent(SCRIPT_CONTENT)"></script> node.
 3. chrome.tabs.executeScript()
 */
 		// Fix a chrome bug which mess up tab id for prerendered page
+		// webNavigation.onTabReplaced
 		chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
 			debug_log(`TAB-REPLACEMENT: Tab ${removedTabId} is replaced by tab ${addedTabId}`);
 			
@@ -467,44 +484,41 @@ function updateSettings() {
         
         //chrome.tabs.onCreated.addListener(setTabID);
         //chrome.tabs.onUpdated.addListener(setTabID);
-        function setTabID(arg) {
-			if (chrome.runtime.lastError) {
-				// tabid is not fetched successfully
-				console.error("Cannot get tabid on the created/updated tab.");
-			} else {
-				// in onCreated arg is Tab object, and in onUpdated arg is tabid
-				var tabid = arg.id ? arg.id : arg;
-				chrome.tabs.executeScript(tabid, {"code":`
-					window.tabid = ${tabid};
-					if (${DEBUG}) {
-						console.info("Chome Tab ID is: "+"${tabid}");
-					}
-				`}, function() {
+				function setTabID(arg) {
 					if (chrome.runtime.lastError) {
-						console.error("Failed to inject INFO obj to tab due to", chrome.runtime.lastError.message);
-					}
-				} );
-        	}
-        }
-
-        function  changeIcon(tab)
-        {
-        	if (localStorage["$setting.enabled"] == "true") {
-				var matches= tab.url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/);
-					
-				if( matches[1] && localStorage[matches[1]] )
-				{
-					var lsd = JSON.parse(localStorage[matches[1]]);
-					if(lsd.autostart)
-					{
-						chrome.browserAction.setIcon({path:"icon/icon24_auto.png"});    
-						return;
+						// tabid is not fetched successfully
+						console.error("Cannot get tabid on the created/updated tab.");
+					} else {
+						// in onCreated arg is Tab object, and in onUpdated arg is tabid
+						var tabid = arg.id ? arg.id : arg;
+						chrome.tabs.executeScript(tabid, {"code":`
+							window.tabid = ${tabid};
+							if (${DEBUG}) {
+								console.info("Chome Tab ID is: "+"${tabid}");
+							}
+						`}, function() {
+							if (chrome.runtime.lastError) {
+								console.error("Failed to inject INFO obj to tab due to", chrome.runtime.lastError.message);
+							}
+						} );
 					}
 				}
-				chrome.browserAction.setIcon({path:"icon/icon24.png"});    
-            } else {
-            	chrome.browserAction.setIcon({path:"icon/icon24_disabled.png"});    
-            }
+
+        function  changeIcon(tab) {
+					if (localStorage["$setting.enabled"] == "true") {
+						var matches= tab.url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/);
+
+						if( matches[1] && localStorage[matches[1]] ) {
+							var lsd = JSON.parse(localStorage[matches[1]]);
+							if(lsd.autostart) {
+								chrome.browserAction.setIcon({path:"icon/icon24_auto.png"});    
+								return;
+							}
+						}
+						chrome.browserAction.setIcon({path:"icon/icon24.png"});    
+					} else {
+						chrome.browserAction.setIcon({path:"icon/icon24_disabled.png"});    
+					}
         }
 		
 		chrome.manifest = (function() {
@@ -516,7 +530,7 @@ function updateSettings() {
 					manifestObject = JSON.parse(xhr.responseText);
 				}
 			};
-			xhr.open("GET", chrome.extension.getURL('/manifest.json'), false);
+			xhr.open("GET", chrome.runtime.getURL('/manifest.json'), false);
 
 			try {
 				xhr.send();
@@ -546,8 +560,8 @@ function updateSettings() {
 					}
 				}
 			};
-			if (chrome.extension) {
-				xhr.open("GET", chrome.extension.getURL('/init_settings.json'), false);
+			if (chrome.runtime) {
+				xhr.open("GET", chrome.runtime.getURL('/init_settings.json'), false);
 			}
 			try {
 				xhr.send();

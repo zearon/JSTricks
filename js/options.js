@@ -1,36 +1,3 @@
-	// 对Date的扩展，将 Date 转化为指定格式的String 
-	// 月(M)、日(d)、小时(h)、分(m)、秒(s)、季度(q) 可以用 1-2 个占位符， 
-	// 年(y)可以用 1-4 个占位符，毫秒(S)只能用 1 个占位符(是 1-3 位的数字) 
-	// 例子： 
-	// (new Date()).Format("yyyy-MM-dd hh:mm:ss.S") ==> 2006-07-02 08:09:04.423 
-	// (new Date()).Format("yyyy-M-d h:m:s.S")      ==> 2006-7-2 8:9:4.18 
-	Date.prototype.Format = function(fmt) 
-	{ //author: meizz 
-	  var o = { 
-		"M+" : this.getMonth()+1,                 //月份 
-		"d+" : this.getDate(),                    //日 
-		"h+" : this.getHours(),                   //小时 
-		"m+" : this.getMinutes(),                 //分 
-		"s+" : this.getSeconds(),                 //秒 
-		"q+" : Math.floor((this.getMonth()+3)/3), //季度 
-		"S"  : this.getMilliseconds()             //毫秒 
-	  }; 
-	  if(/(y+)/.test(fmt)) 
-		fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length)); 
-	  for(var k in o) 
-		if(new RegExp("("+ k +")").test(fmt)) 
-	  fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length))); 
-	  return fmt; 
-	}
-	
-	String.prototype.replaceAll = function(AFindText, ARepText) {
-		var raRegExp = new RegExp(AFindText.replace(
-			/([\(\)\[\]\{\}\^\$\+\-\*\?\.\"\'\|\/\\])/g, "\\$1"), "ig");
-		return this.replace(raRegExp, ARepText);
-	}
-	
-	function isArray(it) { return Object.prototype.toString.call(it) === '[object Array]'; }
-	function isFunction(it) { return Object.prototype.toString.call(it) === '[object Function]'; }
 
 	// jQuery UI Dialog: Double click dialog title bar to toggle dialog content
 	$(function() {
@@ -80,8 +47,8 @@
 					manifestObject = JSON.parse(xhr.responseText);
 				}
 			};
-			if (chrome.extension) {
-				xhr.open("GET", chrome.extension.getURL('/manifest.json'), false);
+			if (chrome.runtime) {
+				xhr.open("GET", chrome.runtime.getURL('/manifest.json'), false);
 			}
 			try {
 				xhr.send();
@@ -555,7 +522,7 @@
 				var theme = $(this).val();
 				setTheme(theme);
 			});
-			$("#testtest").click(cloudStorageGenCode);
+// 			$("#testtest").click(cloudStorageGenCode);
 		
 			$("#jscontentfilterbtn").click(filterSiteScriptByJSContent);
 			$("#csscontentfilterbtn").click(filterSiteScriptByCSSContent);
@@ -1794,53 +1761,21 @@
 			alert($(this).prev().val());
 		}
 		
-		function cloudStorageGenKey() {
-			chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFYHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+{}|[]:;<>,.?/';
-			length = chars.length;
-			key = '';
-			for (var i = 0; i < 16; ++ i) {
-				var index = Math.round((Math.random() * 1000000)) % 88;
-				key += chars[index];
-			}
-			
-			$("#cloudsave-key").val(key);
-			$(this).next().text(key);
-			alert("Copy the following key value and change the $PRIVATEKEY variable in cloudsave.php.\n" + key);
-		}
-		
-		function cloudStorageGenCode(text, passphrase, keyiv) {			
-			var key_hash = CryptoJS.MD5(passphrase); 
-			var key = CryptoJS.enc.Utf8.parse(key_hash); 			
-			var iv  = CryptoJS.enc.Utf8.parse(keyiv); 
-			// var iv  = CryptoJS.enc.Utf8.parse('1234567812345678'); 
-			var encrypted = CryptoJS.AES.encrypt(text, key, { iv: iv,mode:CryptoJS.mode.CBC, padding:CryptoJS.pad.ZeroPadding}); 
-			var encryptedText = "" + encrypted;
-			//console.log(text)
-			//console.log(keyiv)
-			//console.log(encryptedText);
-			return encryptedText;
-		}
-		
-		function cloudStoragePost(data, callback) {
+		function cloudGetSaveObj() {
 			var url = localStorage["$setting.cloud-url"];
 			var path = localStorage["$setting.cloud-path"];
 			var passphrase = localStorage["$setting.cloud-passphrase"];
 			var keyiv = localStorage["$setting.cloud-keyiv"];
 			
-			if (!url || !passphrase || !keyiv) {
-				alert("Cannot backup. Cloud storage is not set yet.");
-				return;
-			}
+			return new CloudSave(url, path, passphrase, keyiv);
+		}
+		
+		function cloudStorageGenKey() {
+			var key = cloudGetSaveObj().genKeyIV();
 			
-			var timestr = (new Date()).Format("yyyyMMddhhmmssS");
-			data["path"] = path;			
-			data["time"] = timestr;
-			// function defined in aes.js, md5.js, pad-zeropadding.js in js/cryptojs
-			data["token"] = cloudStorageGenCode(timestr, passphrase, keyiv);
-			
-			$.post(url, data)
-			.done(callback)
-			.fail(function(data) { alert("Error occurred when visiting:\n" + url + "\n" + data.status + "\n" + data.statusText); console.log(data); });
+			$("#cloudsave-key").val(key);
+			$(this).next().text(key);
+			alert("Copy the following key value and change the $PRIVATEKEY variable in cloudsave.php.\n" + key);
 		}
 		
 		function cloudBackup() {
@@ -1848,17 +1783,16 @@
 			var data = JSON.stringify(localStorage);
 			data = formatter.formatJson(data)
 			var filename = (new Date()).Format("yyyyMMdd-hhmmss");
-			// cloudsave.php?method=save&path=chrome-ext&key=file2&value=hello2323
-			cloudStoragePost({"method":"save", "key":filename, "value":data}, 
-			function(data) {
-				if (data.code == 0) {
+			
+			cloudGetSaveObj().backupSingleFile(filename, data, function(data) {
+				// on ok
 					localStorage["$setting.cloud-lastsave"] = filename;
 					$("#cloudrestore-key").val(filename);
 					showMessage("Configurations are backup up in cloud.");
-				} else {
-					alert("Failed to save configuration. \n" + data.message);
-				}
 				
+			}, 	function(err) {
+				// on err
+					alert("Failed to list configurations. \n" + err.message);
 			});
 		}
 		
@@ -1868,9 +1802,9 @@
 				return;
 				
 			showMessage("Start backing configuration up in cloud.");	
-			//cloudsave.php?method=load&path=chrome-ext&key=20151101-185152
-			cloudStoragePost({"method":"load", "key":key} , 
-			function(data) {
+			
+			cloudGetSaveObj().restoreFromSingleFile(key, function(data) {
+				// on ok
 				console.log(data);
 				var values = JSON.parse(data);
 				for (v in localStorage) {
@@ -1882,30 +1816,33 @@
 				}
 				alert("Selected configuration is restored.");
 				location.reload();
+				
 			});
 		}
 		
 		function cloudStorageList() {
-			// cloudsave.php?method=list&path=chrome-ext&key=file2
-			cloudStoragePost({"method":"list"} , 
-			function(data) {
-				if (data.code == 0) {
-					cloudStorageAddKeysToUI(data.result);					
-					showMessage("Configurations are listed out of cloud.");
-				} else {
-					alert("Failed to list configurations. \n" + data.message);
-				}
+			cloudGetSaveObj().list(function(data) {
+				// on ok
+				cloudStorageAddKeysToUI(data.result);					
+				showMessage("Configurations are listed out of cloud.");
+				
+			}, 	function(err) {
+				// on err
+					alert("Failed to list configurations. \n" + err.message);
 			});
 		}
 		
 		function cloudStorageView() {
 			var key = $("#cloudrestore-key").val();
-				
-			//cloudsave.php?method=load&path=chrome-ext&key=20151101-185152
-			cloudStoragePost({"method":"load", "key":key} , 
-			function(data) {
+			
+			cloudGetSaveObj().view(key, function(data) {
+				// on ok
 				$("#settings-list .jstbox:eq(1)").click();
 				showConfiguration(data);
+				
+			}, 	function(err) {
+				// on err
+					alert("Failed to view configurations. \n" + err.message);
 			});
 		}
 		
@@ -1936,16 +1873,27 @@
 			}
 		}
 		
+		function cloudStorageDeleteItem(key) {	
+			cloudGetSaveObj().remove(key, function(data) {
+				// on ok
+					$(`#cloudrestore-keys div.key[name='${key}']`).remove();
+					showMessage("Selected onfiguration is deleted.");
+				
+			}, 	function(err) {
+				// on err
+					alert("Failed to delete the configuration. \n" + data.message);
+			});
+		}
+		
 		function cloudStorageLeaveLast10() {
-			// cloudsave.php?method=removeExceptLast10&path=chrome-ext
-			cloudStoragePost({"method":"removeExceptLast10"} , 
-			function(data) {
-				if (data.code == 0) {
-					cloudStorageAddKeysToUI(data.result);
-					showMessage(data.message);
-				} else {
-					alert("Failed to remove configurations. \n" + data.message);
-				}
+			cloudGetSaveObj().leaveLast10(function(data) {
+				// on ok
+					$(`#cloudrestore-keys div.key[name='${key}']`).remove();
+					showMessage("Selected onfiguration is deleted.");
+				
+			}, 	function(err) {
+				// on err
+					alert("Failed to delete the configuration. \n" + data.message);
 			});
 		}
 		
@@ -1996,19 +1944,6 @@
 		
 		function cloudStorageKeyClicked() {
 			$("#cloudrestore-key").val($(this).val());
-		}
-		
-		function cloudStorageDeleteItem(key) {				
-			//cloudsave.php?method=delete&path=chrome-ext&key=20151101-181410
-			cloudStoragePost({"method":"delete", "key":key} , 
-			function(data) {
-				if (data.code == 0) {
-					$(`#cloudrestore-keys div.key[name='${key}']`).remove();
-					showMessage("Selected onfiguration is deleted.");
-				} else {
-					alert("Failed to delete the configuration. \n" + data.message);
-				}
-			});
 		}
 		
 		
