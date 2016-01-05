@@ -1,5 +1,5 @@
-if (!Object.prototype.clear)	
-	Object.prototype.clear = function() { for (var key in this) { delete this[key]; } };
+//if (!Object.prototype.clear)	
+//	Object.prototype.clear = function() { for (var key in this) { delete this[key]; } };
 
 (function() {
 	
@@ -40,14 +40,13 @@ if (!Object.prototype.clear)
 	
 	
 	/* Persistent states */
-	var scriptMenuDict = localStorage["$setting.temp-contextMenu-scriptMenuDict"];
-	if (!scriptMenuDict) localStorage["$setting.temp-contextMenu-scriptMenuDict"] = {};
-	var optionMenuDict = localStorage["$setting.temp-contextMenu-optionMenuDict"];
-	if (!optionMenuDict) localStorage["$setting.temp-contextMenu-optionMenuDict"] = {};
-	var optionMenuDictReverse = localStorage["$setting.temp-contextMenu-optionMenuDictReverse"];
-	if (!optionMenuDictReverse) localStorage["$setting.temp-contextMenu-optionMenuDictReverse"] = {};
+	var scriptMenuDict = getSetting("temp-contextMenu-scriptMenuDict", true);	
+	var optionMenuDict = getSetting("temp-contextMenu-optionMenuDict", true);	
+	var optionMenuDictReverse = getSetting("temp-contextMenu-optionMenuDictReverse", true);
 	
-	// Use .clear() method to clear the three object above. Do not assign new value to them.
+// 	if (!scriptMenuDict) { scriptMenuDict = {}; setSetting("temp-contextMenu-scriptMenuDict", {}, true); }
+// 	if (!optionMenuDict) { optionMenuDict = {}; setSetting("temp-contextMenu-optionMenuDict", {}, true); }
+// 	if (!optionMenuDictReverse) { scriptMenuDict = {}; setSetting("temp-contextMenu-optionMenuDictReverse", {}, true); }
 	
 
 	/* Event listener for onInstalled */
@@ -90,7 +89,8 @@ if (!Object.prototype.clear)
 	function updateConextMenu(scriptGroups) {
 		// remove old menues
 		chrome.contextMenus.removeAll();
-		scriptMenuDict.clear();
+		
+		scriptMenuDict = {}; 
 		var menuID = 1000;
 	
 		// Create menus
@@ -117,7 +117,9 @@ if (!Object.prototype.clear)
 		chrome.contextMenus.create({"id":"1", "title": "Preferences", "contexts":["all"]});
 	
 		// Create default menus
-		createDefaultMenus();
+		createDefaultMenus();		
+
+		setSetting("temp-contextMenu-scriptMenuDict", scriptMenuDict, true);
 	}
 
 	function createDefaultMenus() {
@@ -125,14 +127,20 @@ if (!Object.prototype.clear)
 	// 	  {"title": "Reload BG Page", "type": "normal", "contexts":["all"], "onclick":reloadBackroundPage});
 		
 		var menuID = 100;
-		createOptionMenu("" + menuID++, "Debug Mode", "$setting.DEBUG");
-		createOptionMenu("" + menuID++, "Run Code Mode", "$setting.DEBUG_runbuttoncode", "1");
-		createOptionMenu("" + menuID++, "Disable Run-Code Buttons", "$setting.popupwindow_disableRunCodeButton", "1");
+		optionMenuDict = {}; 
+		optionMenuDictReverse = {}; 
+
+		createOptionMenu("" + menuID++, "Debug Mode", "DEBUG");
+		createOptionMenu("" + menuID++, "Run Code Mode", "DEBUG_runbuttoncode", "1");
+		createOptionMenu("" + menuID++, "Disable Run-Code Buttons", "popupwindow_disableRunCodeButton", "1");
+		
+		setSetting("temp-contextMenu-optionMenuDict", optionMenuDict, true);
+		setSetting("temp-contextMenu-optionMenuDictReverse", optionMenuDictReverse, true);
 	}
 
 	function createOptionMenu(id, title, keyInLocalStorage, parentID) {
 		var options = {"id":id, "title": title, "type": "checkbox", "contexts":["all"], 
-			 "checked":("false" != localStorage[keyInLocalStorage]) };
+			 "checked":("false" != getSetting(keyInLocalStorage)) };
 	
 		if (parentID)
 			options["parentId"] = parentID;
@@ -150,7 +158,7 @@ if (!Object.prototype.clear)
 		console.log("Option value changed");
 		for (key in optionMenuDictReverse) {
 			var menuID = optionMenuDictReverse[key];
-			var value = localStorage[key] != "false";
+			var value = getSetting(key) != "false";
 			chrome.contextMenus.update(menuID, {checked:value});		
 		}
 	}
@@ -186,9 +194,9 @@ if (!Object.prototype.clear)
 		var menuID = info.menuItemId;
 		var optionKey = optionMenuDict[menuID];
 	
-		var optionValue = localStorage[optionKey] != "false";
+		var optionValue = getSetting(optionKey) != "false";
 		// make it the opposite and then save.
-		localStorage[optionKey] = optionValue ? "false" : "true";
+		setSetting(optionKey, optionValue ? "false" : "true");
 		chrome.contextMenus.update(menuID, {checked:!optionValue});
 	
 		// call update settings defined in bg.js

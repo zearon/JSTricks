@@ -90,6 +90,8 @@
 		var valtext = localStorage["$setting." + key];
 		if (asobj) {
 			try {
+				if (!valtext)
+					return undefined;
 				return JSON.parse(valtext);
 			} catch(ex) {
 				throw new Error("Invalid JSON object: " + valtext);

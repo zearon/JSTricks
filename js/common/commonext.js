@@ -15,20 +15,20 @@
 		"S"  : this.getMilliseconds()             //毫秒 
 	  }; 
 	  if(/(y+)/.test(fmt)) 
-		fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length)); 
+			fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length)); 
 	  for(var k in o) 
-		if(new RegExp("("+ k +")").test(fmt)) 
-	  fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length))); 
+			if(new RegExp("("+ k +")").test(fmt)) 
+	  		fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length))); 
 	  return fmt; 
 	}
 	
 	String.prototype.replaceAll = function(AFindText, ARepText) {
-		var raRegExp = new RegExp(getTextRegexpPattern(AFindText), "ig");
+		var raRegExp = new RegExp(this.getTextRegexpPattern(AFindText), "ig");
 		return this.replace(raRegExp, ARepText);
 	}
 	
-	function getTextRegexpPattern(AFindText) {
-		return AFindText.replace(/([\(\)\[\]\{\}\^\$\+\-\*\?\.\"\'\|\/\\])/g, "\\$1");
+	String.prototype.getTextRegexpPattern = function() {
+		return this.replace(/([\(\)\[\]\{\}\^\$\+\-\*\?\.\"\'\|\/\\])/g, "\\$1");
 	}
 	
 	function isArray(it) { return Object.prototype.toString.call(it) === '[object Array]'; }
