@@ -51,10 +51,11 @@ function updateSettings() {
 */
 		// Fix a chrome bug which mess up tab id for prerendered page
 		// webNavigation.onTabReplaced
-		chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
-			debug_log(`TAB-REPLACEMENT: Tab ${removedTabId} is replaced by tab ${addedTabId}`);
+		//chrome.tabs.onReplaced.addListener(function(newTabId, oldTabId) {
+		chrome.webNavigation.onTabReplaced.addListener(function(oldTabId, newTabId) {
+			console.log(`TAB-REPLACEMENT: Tab ${oldTabId} is replaced by tab ${newTabId}`);
 			
-			processTab(addedTabId, "JSTinjectScript");
+			processTab(newTabId, "JSTinjectScript");
 		});
 
 		
@@ -317,8 +318,6 @@ function updateSettings() {
 				if(lsd.autostart) {
 					loadProperty.siteAdded = true;					
 					addScriptsForAutostartSite(tabid, key, autoloadFileList, loadProperty);
-					
-					chrome.browserAction.setIcon({path: "icon/icon24_auto.png"});
 					
 					if(lsd.sfile != "") {					
 						addContentScriptsToLoadList(autoloadFileList, lsd.sfile);

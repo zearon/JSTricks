@@ -107,8 +107,9 @@
 
 	/*********************************************
 	 *        Event Registration                 *
-	 *********************************************/		
-	chrome.runtime.onInstalled.addListener(initStorage);
+	 *********************************************/
+	if (chrome.runtime.onInstalled)
+		chrome.runtime.onInstalled.addListener(initStorage);
 	
 	/**
 	 * Initialize the storage.
