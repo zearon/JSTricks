@@ -40,3 +40,7 @@
 					return v.toString(16);
 			});
 	}
+	
+	Array.prototype.contains = function (element) {
+		return this.filter(function(ele) { return ele == element; }).length > 0;
+	}

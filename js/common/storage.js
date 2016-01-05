@@ -5,13 +5,28 @@
 	 
 	/**
 	 * Get a setting value
+	 *   key: setting name
+	 *   asobj: get setting value as object.
 	 */
 	global.getSetting = function (key, asobj) {
 		return getSettingFromLocalStorage.apply(global, arguments);
+	}	
+	
+	/**
+	 * Iterate over all settings.
+	 *   iter: iteration callback: iter(name, val)
+	 *   oncomplete: complete callback: oncomplete()
+	 *   asobj: get setting value as object.
+	 */
+	global.iterateSettings = function (iter, oncomplete, asobj) {
+		return iterateSettingsFromLocalStorage.apply(global, arguments);
 	}
 	
 	/**
 	 * Set a setting with a value
+	 *   key: setting name
+	 *   value: setting value
+	 *   asobj: get setting value as object.
 	 */
 	global.setSetting = function(key, value, asobj) {
 		return setSettingFromLocalStorage.apply(global, arguments);
@@ -20,15 +35,17 @@
 	/**
 	 * Iterate all scripts with given type from storage with a iteration callback, 
 	 * and optionally an on error callback.
-	 * type: type of scripts, which can be "cs", "ss", "dss", …
-	 * The iteration callback should be like:
-	 *   iterCallback(id, type, obj) {...} 
+	 * type: type of scripts, which can be "cs", "ss", "dss", …. It can be a string or an array of string.
+	 * callback: a function get invoked after all scripts are fetched. function ( array of scripts ) {…}
+	 * filter (optional): a filter callback determines if the script being iterated should be in the result set. It should be like:
+	 *   filter(id, type, obj) {... return true/false.} 
 	 * in which
 	 *   id: domain of site-script, name of content-script
 	 *   type: 'ss' for site-script, 'cs' for content-script, 'meta' for mata data
+	 *   return value: determines if the obj should be in the result set.
 	 * The optional onerr callback should be like: onerr(err) {...}
 	 */
-	global.getAllScripts = function (type, iterCallback, onerr) {
+	global.getAllScripts = function (type, callback, filter, onerr) {
 		return getAllScriptsFromLocalStorage.apply(global, arguments);
 	}
 	
@@ -67,6 +84,26 @@
 	 */
 	global.getActiveSitePattern = function () {
 	}
+	
+	global.getExtEnabledPattern = function() {
+		var enabled = getSetting("enabled", true);
+		if (enabled)
+			// every URL matches this pattern
+			return ".*";
+		else
+			// none URL matches this pattern
+			return "^zzz:\/\/$";
+	}
+	
+	global.getExtDisabledPattern = function() {
+		var enabled = getSetting("enabled", true);
+		if (enabled)
+			// none URL matches this pattern
+			return "^zzz:\/\/$";
+		else
+			// every URL matches this pattern
+			return ".*";
+	}
 
 	/*********************************************
 	 *        Event Registration                 *
@@ -101,18 +138,41 @@
 		}
 	}
 	
+	function iterateSettingsFromLocalStorage(iter, oncomplete, asobj) {
+		for (var key in localStorage) {
+			if (getScriptTypeByKey(key) != "setting")
+				continue;
+			
+			var name = getScriptNameByKey(key);
+			var val = getSettingFromLocalStorage(name, asobj);
+			
+			iter(name, val);
+		}
+		
+		oncomplete();
+	}
+	
 	function setSettingFromLocalStorage(key, value, asobj) {
 		localStorage["$setting." + key] = asobj ? JSON.stringify(value) : value;
 	}
 	
-	// iterCallback(iterCallback(id, type, obj) {...} 
-	function getAllScriptsFromLocalStorage(type, iterCallback, onerr) {
+	// callback(scriptArray)
+	// filter(iterCallback(id, type, obj) {...} 
+	function getAllScriptsFromLocalStorage(types, callback, filter, onerr) {
+		var allscripts = [];
 		for (var key in localStorage) {
 			if (!isScriptName(key))
 				continue;
 			
-			loadScriptFromLocalStorage(key, type, iterCallback, onerr);
+			var script = loadScriptFromLocalStorage(key, types);
+			if (!script)
+				continue;
+				
+			if (filter && filter(script.id, script.type, script))
+				allscripts.push(script);
 		}
+		
+		callback(allscripts);
 	}
 	
 	// onok(iterCallback(id, type, obj) {...} 
@@ -120,22 +180,38 @@
 		//var key = (type == "ss" || type == "dss") ? 
 	}
 	
-	function loadScriptFromLocalStorage(key, type, onok, onerr) {
+	function loadScriptFromLocalStorage(key, types, onok, onerr) {
 		var str = localStorage[key], obj;
 		try {
 			obj = JSON.parse(str);
 		} catch (ex) { 
-			ex.messgage = "Invalid script format for " + (type == "cs" ? "content" : "site" ) +
-				" script " + id + ". \n" + ex.message;
+			var typesDesc = types.map(function(str) { return str == "cs" ? "content script" : "site script"; }).join(", ");
+			ex.messgage = "Invalid script format for [" + typesDesc + "] " + 
+				id + ". \n" + ex.message;
 			if (onerr)
 				onerr(ex);
 			else
-				console.err(ex);
+				console.error(key, "=", str, ex);
+				
+			return undefined;
 		}
 		
-		var id = getScriptNameByKey(key);	
+		var id = getScriptNameByKey(key);
+		obj.id = id;
+		obj.type = getScriptTypeByKey(key);
 		
-		onok(id, type, obj);
+		if (isArray(types)) {
+			if ( !types.contains(obj.type) ) {
+				return undefined;
+			}
+		} else if (types != obj.type) {
+			return undefined;
+		}
+		
+		if (onok)
+			onok(id, type, obj);
+			
+		return obj
 	}
 	
 	function saveScriptToLocalStorage(id, type, autoscript, include, script, css, hint, others) {

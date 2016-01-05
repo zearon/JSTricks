@@ -68,10 +68,10 @@ API_GetSelectedTab(function(tab) {
 
 
 function guid() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-        return v.toString(16);
-    });
+	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+		var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+		return v.toString(16);
+	});
 }
 
 
@@ -132,13 +132,14 @@ function API_InsertCssInTab(css) {
 	chrome.runtime.sendMessage(msg);
 }
 
-function API_SetIcon(arg) {
-	if (inExtensionPage) {
-		chrome.browserAction.setIcon(arg);   
-	} else {
-		API_SendRequest("SetIcon", arg);
-	}
-}
+
+// function API_SetIcon(arg) {
+// 	if (inExtensionPage) {
+// 		chrome.browserAction.setIcon(arg);   
+// 	} else {
+// 		API_SendRequest("SetIcon", arg);
+// 	}
+// }
 
 function API_SendMessageToTab(tabid, msg, callback) {
 	if (inExtensionPage) {
@@ -156,6 +157,10 @@ function API_OpenWindow(url, name) {
 	}
 }
 
+function API_ConsoleLog() {
+	API_SendRequest("ConsoleLog", arguments);
+}
+
 function log() {
 	console.log.apply(console, arguments);
 	
@@ -170,18 +175,19 @@ function log() {
 			if (!inExtensionPage)
 				return;
 				
-			var enabled = localStorage["$setting.enabled"] == "true";
+			var enabled = getSetting("enabled") == "true";
 			
 			if (enabled) {
 				// Disable
-				localStorage["$setting.enabled"] = "false";
-				API_SetIcon({path:"icon/icon24_disabled.png"});
+				setSetting("enabled", "false");
+				//API_SetIcon({path:"icon/icon24_disabled.png"});
 			} else {
 				// Enable
 				chrome.runtime.sendMessage({tabid:tabID, method: "JSTinjectScript"});
-				localStorage["$setting.enabled"] = "true";
-				API_SetIcon({path:"icon/icon24.png"});
+				setSetting("enabled", "true");
+				//API_SetIcon({path:"icon/icon24.png"});
 			}
+			chrome.runtime.sendMessage({tabid:tabID, method: "EnableDisableExt", date: (enabled ? "false" : "true") });
 			setEnableDisableBtnImage();
 		}
 		
@@ -202,8 +208,8 @@ function log() {
 				var domain = url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
 				delete localStorage[domain];
 				  
-            	API_SetIcon({path:"icon/icon24.png"});
-            
+				API_SetIcon({path:"icon/icon24.png"});
+			
 				// Update status to let user know options were saved.
 				var status = document.getElementById("title");
 				status.innerHTML = "Options deleted. <br/>Please refresh the page.";
@@ -221,24 +227,24 @@ function log() {
 		}
 		function saveBody(url)
 		{
-            var tmpp = {script:"",autostart:false};
-    		if(localStorage[url])
-            {
+			var tmpp = {script:"",autostart:false};
+			if(localStorage[url])
+			{
 				 tmpp = JSON.parse(localStorage[url]);
 			}	
-            
-            tmpp.script = editor.getValue();
+			
+			tmpp.script = editor.getValue();
 			tmpp.css = editorCss.getValue();
-            tmpp.autostart = document.getElementById("jstcb").checked;
+			tmpp.autostart = document.getElementById("jstcb").checked;
 			tmpp.sfile  = $("#jsincludefile").val();
 			
-			if (tmpp.autostart)
-				API_SetIcon({path:"icon/icon24_auto.png"});
-			else
-				API_SetIcon({path:"icon/icon24.png"});
+// 			if (tmpp.autostart)
+// 				API_SetIcon({path:"icon/icon24_auto.png"});
+// 			else
+// 				API_SetIcon({path:"icon/icon24.png"});
 			
-            localStorage[url] = JSON.stringify(tmpp);
-            
+			localStorage[url] = JSON.stringify(tmpp);
+			
 			// Update status to let user know options were saved.
 			var status = document.getElementById("title");
 			status.innerHTML = "Options Saved.";
@@ -402,14 +408,14 @@ function log() {
 			$("#editInOptionPageBtn").click(editInOptionPage);
 			$("#deleteBtn").click(remove);
 			$("#showInDialogBtn").click(showInDialog);
-			$("#forjstcb").click(changeAutostart);
+			//$("#forjstcb").click(changeAutostart);
 			$("#enableDisableBtn").click(toggleExtension);
 			$("#optionsBtn").click(function() { window.open(chrome.runtime.getURL("options.html"), "OptionPage"); });
 			
 			$("#jstcb").button({icons: {
 						primary: "ui-icon-close"
 					}
-				}).click(save_options);
+				}).click(changeAutostart);
 				
 			if (!inExtensionPage) {
 				$("#img-icon").hide();
@@ -599,9 +605,16 @@ function log() {
 			
 		}
 		
-		function changeAutostart() {
+		function changeAutostart() {			
+			//$("#jstcb").button("refresh");
 			var autostart = document.getElementById("jstcb").checked;
+			
 			var lineCount = editor.lineCount();
+			
+			chrome.runtime.sendMessage({method:"UpdateActiveSites", data: {site:tabSite, autostart:autostart} });
+			save_options();
+			
+			
 			//console.log("linecount=" + lineCount);
 			/*if (autostart) {
 				// change from autostart to not autostart
