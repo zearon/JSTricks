@@ -517,8 +517,9 @@ function log() {
 		
 		function generateEditor(textareaID, mode, extraOptions) {
 			var options = {
-				mode: mode,					
-				tabMode: 'indent',
+				mode: mode,				
+				indentWithTabs: false,
+				tabSize: 2,
 				lineNumbers:true,
 				styleActiveLine: true,
 				matchBrackets :true,

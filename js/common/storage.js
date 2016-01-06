@@ -31,6 +31,24 @@
 	global.setSetting = function(key, value, asobj) {
 		return setSettingFromLocalStorage.apply(global, arguments);
 	}
+	
+	global.getMetadata = function() {
+	  var val = localStorage["meta"];
+	  try {
+	    return JSON.parse(val);
+	  } catch (ex) {
+	    console.error("Cannot parse metadata string as an object.");
+	    throw ex;
+	  }
+	}
+	
+	global.setMetadata = function(metadata, asobj) {
+	  if (asobj || typeof metadata !== "string") {
+	    metadata = JSON.stringify(metadata);
+	  }
+	  
+	  localStorage["meta"] = metadata;
+	}
 
 	/**
 	 * Iterate all scripts with given type from storage with a iteration callback, 
@@ -59,8 +77,8 @@
 	 *   type: 'ss' for site-script, 'cs' for content-script, 'meta' for mata data
 	 * The optional onerr callback should be like: onerr(err) {...}
 	 */
-	global.findScript = function (id, type, onok, onerr) {
-		return findScriptFromLocalStorage.apply(global, arguments);
+	global.getScript = function (id, type, onok, onerr) {
+		return getScriptFromLocalStorage.apply(global, arguments);
 	}
 
 	/**
@@ -177,8 +195,9 @@
 	}
 	
 	// onok(iterCallback(id, type, obj) {...} 
-	function findScriptFromLocalStorage(id, type, onok, onerr) {
-		//var key = (type == "ss" || type == "dss") ? 
+	function getScriptFromLocalStorage(id, type, onok, onerr) {
+		var key = (type == "ss" || type == "dss") ? id : "$cs-" + id;
+// 		var 
 	}
 	
 	function loadScriptFromLocalStorage(key, types, onok, onerr) {

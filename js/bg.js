@@ -26,10 +26,14 @@ function updateSettings() {
 	}, function() {
 		// on complete
 		var INFO = { settings: setting, debug: DEBUG,
-			meta_data: JSON.parse(localStorage['meta']) };
+			meta_data: getMetadata() };
 	
 		infoStr = encodeURIComponent(JSON.stringify(INFO));
-		setSetting("temp-infostr", infoStr);
+		setSetting("temp-infostr", infoStr);		
+				
+		// Save the meta object into chrome.storage.local
+		chrome.storage.local.set({"INFO": INFO});
+
 
 		console.log("Settings are updated, and new INFO is", INFO);
 	});
@@ -129,13 +133,19 @@ function updateSettings() {
 			else if (requestMethod == "ExecuteContentScript") {
 				var csName = requestData.name;
 				var initCode = requestData.initCode;
+				var extraCode = requestData.extraCode;
 				var autoloadFileList = [];
 				var loadProperty = {necessaryAdded: false, testURL: true, domain:domain};
 				
 				addNecessaryScriptsForAllSiteToHead(tabid, url, autoloadFileList, loadProperty);
-				autoloadFileList.push({"name":"contextMenuInit", "code":initCode, "type":"js"});
 				addScriptsForAutostartSite(tabid, url, autoloadFileList, loadProperty);
+				if (initCode) {
+				  autoloadFileList.push({"name":"contextMenuInit", "code":initCode, "type":"js"});
+				}
 				addAContentScriptToLoadList(autoloadFileList, csName);
+				if (extraCode) {
+				  autoloadFileList.push({"name":"contextMenuInit", "code":extraCode, "type":"js"});
+				}
 				
 				var lastScript = autoloadFileList[autoloadFileList.length - 1];
 				lastScript.name = lastScript.name + "-" + guid();

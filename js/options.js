@@ -185,11 +185,14 @@
 			try {
 				var meta = editorMeta.getValue();
 				JSON.parse(meta);
-				jsonlint.parse(meta);
+				var metadata = jsonlint.parse(meta);
 				localStorage["meta"] = meta;
 				currentSavedStateMeta = editorMeta.getValue();
 				
 				updateMetaData(meta);
+				
+				// update meta data into chrome.storage.locale
+				updateSettings();
 			} catch (ex) {
 				console.log(ex);
 				
@@ -771,7 +774,8 @@
 		function generateEditor(textareaID, mode, extraOptions) {
 			var options = {
 				mode: mode,					
-				tabMode: 'indent',
+				indentWithTabs: false,
+				tabSize: 2,
 				lineNumbers:true,
 				styleActiveLine: true,
 				matchBrackets :true,
