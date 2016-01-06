@@ -96,6 +96,9 @@ function updateSettings() {
 		}
 		
 		function processRequest(tabid, url, requestMethod, requestData) {	
+		  var domain_ = url ? url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/) : "";
+		  var domain = domain_ ? domain_[1] : undefined;
+		  
 			// Load _Main script as the entry-point of requireJS
 			if (requestMethod == "EnableDisableExt") {
 				var enabled = requestData == "true";
@@ -105,19 +108,13 @@ function updateSettings() {
 			}
 			
 			// Inject site-specific scripts on website loaded.
-			else if (requestMethod == "JSTinjectScript") {
-				var d = url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/); 
-				var key = d[1];
-				
-				// Inject a function to add <script> tag in document.
-				chrome.tabs.executeScript(tabid, {"code": codesnippet_addScriptNodeToDOM});
-				
+			else if (requestMethod == "JSTinjectScript") {				
 				var autoloadFileList = [];
 				var loadProperty = {necessaryAdded: false, autostartLibAdded: false, defaultAdded: false, siteAdded: false};
 				
 				addNecessaryScriptsForAllSiteToHead(tabid, url, autoloadFileList, loadProperty);
 				
-				loadDefaultScript(tabid, key, autoloadFileList, loadProperty);
+				loadDefaultScript(tabid, domain, autoloadFileList, loadProperty);
 				
 				delete autoloadFileList;
 				delete loadProperty;
@@ -130,9 +127,16 @@ function updateSettings() {
 			
 			// Invoked when content menues are clicked.
 			else if (requestMethod == "ExecuteContentScript") {
-				var csName = requestData;
+				var csName = requestData.name;
+				var initCode = requestData.initCode;
 				var autoloadFileList = [];
+				var loadProperty = {necessaryAdded: false, testURL: true, domain:domain};
+				
+				addNecessaryScriptsForAllSiteToHead(tabid, url, autoloadFileList, loadProperty);
+				autoloadFileList.push({"name":"contextMenuInit", "code":initCode, "type":"js"});
+				addScriptsForAutostartSite(tabid, url, autoloadFileList, loadProperty);
 				addAContentScriptToLoadList(autoloadFileList, csName);
+				
 				var lastScript = autoloadFileList[autoloadFileList.length - 1];
 				lastScript.name = lastScript.name + "-" + guid();
 				
@@ -149,6 +153,9 @@ function updateSettings() {
 				var script = data.script;
 				
 				var autoloadFileList = [];
+				var loadProperty = {necessaryAdded: false, testURL: true, domain:domain};
+				addNecessaryScriptsForAllSiteToHead(tabid, url, autoloadFileList, loadProperty);
+				addScriptsForAutostartSite(tabid, url, autoloadFileList, loadProperty);
 				addContentScriptsToLoadList(autoloadFileList, includes);
 				autoloadFileList.push( {"name":name+"-"+guid(), "code":script, "type":"js"} );
 				
@@ -265,7 +272,21 @@ function updateSettings() {
 			if (loadProperty.necessaryAdded)
 				return;
 				
+			// Test if this site is is a target for an active site script.
+			// Only "ExecuteContentScript" and "ExecuteSiteScript" message will set this flag
+			// The "JSTinjectScript" message sent by autoload.js does not set this flag.
+			if (loadProperty.testURL) {
+			  var activeSitesPattern = getSetting("temp-activesites-pattern");
+			  var isSiteActive = loadProperty.domain.match(activeSitesPattern);
+			  if (isSiteActive)
+			    return;
+			}
+				
 			loadProperty.necessaryAdded = true;
+			
+      // Inject a function to add <script> tag in document.
+      // This code is moved to injected/dom.js as static injection
+      // chrome.tabs.executeScript(tabid, {"code": codesnippet_addScriptNodeToDOM});
 				
 			var setMetaDataCode = codesnippet_getOnBootCode(tabid, url, infoStr);
 			// console.log(setMetaDataCode);
@@ -400,6 +421,10 @@ function updateSettings() {
 			var callNextInChain = function(result) {
 				//debug_log("result of executing content script:");
 				//debug_log(result);
+				if (chrome.runtime.lastError) {
+				  console.error("Error occurs when executing", execDetail);
+				}
+				
 				if (index <autoloadFileList.length - 1)
 					loadIncludeFiles(tabid, callback, autoloadFileList, index + 1);
 				else
@@ -438,24 +463,38 @@ function updateSettings() {
 						
 					loadList.push( {"name":csName, "link":csName, "type":"js"} );
 				} else {
-					var fileName = "$cs-" + csName;
-					var text = localStorage[fileName];
-					var data = JSON.parse(text);
-					
-					if (data["sfile"]) {
-						var includeFiles = data.sfile.trim().split(/\s*,\s*/)
-							.filter(function(str) {return str != ""; });
-						
-						for (var i = 0; i < includeFiles.length; ++ i) {
-							var includeFile = includeFiles[i];
-							if (!isContentScriptInLoadList(loadList, includeFile)) {
-								addAContentScriptToLoadList(loadList, includeFile);
-							}
-						}
-					}
+				  var execDetail = {name:csName, type:"js"};
+				  
+				  // If the script is a user-defined content script
+				  //if (csName.startsWith("#")) {
+				    var fileName = "$cs-" + csName.replace(/^#/, "");
+            var text = localStorage[fileName];
+            var data = JSON.parse(text);
+            execDetail.code = data["script"];
+          
+            // If the content script itself has dependencies, add them to the load list.
+            if (data["sfile"]) {
+              var includeFiles = data.sfile.trim().split(/\s*,\s*/)
+                .filter(function(str) {return str != ""; });
+            
+              for (var i = 0; i < includeFiles.length; ++ i) {
+                var includeFile = includeFiles[i];
+                if (!isContentScriptInLoadList(loadList, includeFile)) {
+                  addAContentScriptToLoadList(loadList, includeFile);
+                }
+              }
+            }            
+// 				  }
+				  
+				  // Else the script is considered as a lib content script in injected/ folder.
+// 				  else {
+// 				    if (!csName.endsWith(".js"))
+// 				      csName += ".js";
+//             execDetail.file = "injected/" + csName;
+// 				  }
 					
 					if (!isContentScriptInLoadList(loadList, csName)) {
-						loadList.push( {"name":csName, "code":data["script"], "type":"js"} );
+						loadList.push( execDetail );
 					}
 				}
 			} catch(exception) {}

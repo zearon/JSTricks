@@ -11,13 +11,13 @@
 		"default_popup": "popup.html"
 	},
 	"content_scripts": [ {
-		"js": ["injected/plugin/loader.js", "injected/plugin/care-your-eyes.js"],
+		"js": ["injected/dom.js", "injected/sea-debug.js", "injected/seajs_boot.js", "injected/ready.js", "injected/plugin/loader.js", "injected/plugin/care-your-eyes.js"],
 		"css": ["css/jquery-ui.structure.css", "css/theme/jqueryui/jquery-ui.theme-light.css"],
 		"matches": [ "http://*/*", "https://*/*", "file://*/*" ],
 		"run_at": "document_start"
 	} ],
 	"web_accessible_resources": ["lib/jquery.js", "lib/jquery-ui.js", 
-		"injected/msgbox.js", "injected/nodeSelector.js", "injected/selectionBox.js", "injected/domReady.js", 
+		"injected/ready.js", "injected/msgbox.js", "injected/nodeSelector.js", "injected/selectionBox.js", 
 		"injected/injected.js", "popup.html"],
 	"sandbox": ["sandbox.html"],
 	"description": "Add your own JavaScript (powered by JQuery) and/or CSS to any page to trick it!",
@@ -30,7 +30,8 @@
 	"manifest_version": 2,
 	"name": "JavaScript Tricks",
 	"options_page": "options.html",
-	"permissions": [ "declarativeContent", "webNavigation", "contextMenus", "activeTab", "tabs", "alarms", "cookies", "http://*/*", "https://*/*"],
+	"permissions": [ "declarativeContent", "webNavigation", "contextMenus", "activeTab", 
+		"tabs", "cookies", "storage", "http://*/*", "https://*/*"],
 	"update_url": "https://clients2.google.com/service/update2/crx",
 	"version": "1.1.1.002"
 }

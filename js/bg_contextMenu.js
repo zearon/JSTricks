@@ -173,8 +173,8 @@
 		debug_log(`Menu ${menuID} clicked: load file ${file}`, "Context menu item info:", info);
 	
 		function execScriptInTab(tabid) {
-			chrome.tabs.executeScript(tabid, {code:'delete INFO.contextMenuInfo; INFO.contextMenuInfo = JSON.parse(decodeURIComponent("'+encodeURIComponent(JSON.stringify(info))+'")); if (INFO.debug) { console.debug(INFO); }'});
-			chrome.runtime.sendMessage({tabid: tabid, method: "ExecuteContentScript", data: file});
+		  var initCode = 'delete INFO.contextMenuInfo; INFO.contextMenuInfo = JSON.parse(decodeURIComponent("'+encodeURIComponent(JSON.stringify(info))+'")); if (INFO.debug) { console.debug(INFO); }';
+			chrome.runtime.sendMessage({tabid: tabid, method: "ExecuteContentScript", data: {name:file, initCode:initCode} });
 		}
 	
 		if (tab.id >= 0) {
