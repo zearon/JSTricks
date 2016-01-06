@@ -31,7 +31,6 @@
 			border-top:1px solid white;
 			background:#efefba;
 			cursor:pointer;
-			padding: 0 10px;
 			margin:0 0 0 0px;			
 			/*text-shadow:white 0 1px;		*/	
 			-webkit-transition: background-color 0.2s linear, margin 0.2s linear;
@@ -51,6 +50,15 @@
 		{
 			visibility: visible;
 			opacity:1;
+		}
+		.jstbox.siteScriptKey .jsttitle {
+			margin-left: 20px;
+		}
+		.jstbox.autostart {
+			background-repeat: no-repeat; 
+		}
+		.jstbox.siteScriptKey.autostart {
+			background-position: 0 9px; 
 		}
 		#contentscript-menu .jstbox.contentScriptKey span
 		{
@@ -133,7 +141,8 @@
 		}
 		img.goto
 		{
-			float:right;
+			position:absolute;
+			right: 5px;
 			margin:8px 0 0 5px;;
 		}
 		img.edit

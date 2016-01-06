@@ -21,6 +21,7 @@ html body.theme-light { background:rgb(252,252,252); }
 }
 .theme-light .jstbox:hover { background:  rgba(200,200,200,0.5); }
 .theme-light .jstbox.selected { background: rgba(200,200,200,1); }
+.theme-light .jstbox.autostart { background-image: url(img/autostart.png); background-repeat: no-repeat; }
 .theme-light #jstmessage {
 	background:rgba(252,252,252,1);
 	box-shadow:rgba(0,0,0,0.4) 0 3px 10px;
