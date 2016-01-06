@@ -11,7 +11,7 @@
 		"default_popup": "popup.html"
 	},
 	"content_scripts": [ {
-		"js": ["injected/plugin/care-your-eyes.js"],
+		"js": ["injected/plugin/loader.js", "injected/plugin/care-your-eyes.js"],
 		"css": ["css/jquery-ui.structure.css", "css/theme/jqueryui/jquery-ui.theme-light.css"],
 		"matches": [ "http://*/*", "https://*/*", "file://*/*" ],
 		"run_at": "document_start"

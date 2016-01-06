@@ -77,6 +77,24 @@
 								"matchAboutBlank": false}) ]
 						} );				
 						
+						/*
+						// Load extra plugin content script
+						rules.push( {
+							id: "loadScript",
+							priority: 103,
+							conditions: [
+								new chrome.declarativeContent.PageStateMatcher({
+									css: ["#cye-workaround-body"],
+								})
+							],
+				
+							// And shows the extension's page action.
+							actions: [  new chrome.declarativeContent.RequestContentScript({
+								"js": ["injected/plugin/care-your-eyes.js"],
+								"allFrames": true,
+								"matchAboutBlank": false}) ]
+						} );	*/		
+						
 						
 						chrome.declarativeContent.onPageChanged.addRules(rules, 
 							function() { if (chrome.runtime.lastError) console.error(chrome.runtime.lastError); console.info("Set icon rules", rules); });
