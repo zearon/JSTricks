@@ -69,7 +69,7 @@
 		}
 	
 		keys.sort(sortContentScriptByDefault);
-		for ( i in keys ) {
+		for ( var i = 0; i < keys.length; ++ i ) {
 			var item = keys[i];
 			var name = item['name'];
 			var key = "$cs-" + name;
@@ -103,7 +103,7 @@
 				chrome.contextMenus.create({"id":"" + menuID++,"title": `Scripts [${groupName}]`, "contexts":["all"]});
 			}
 		
-			for ( index in group ) {
+			for ( var index = 0; index < group.length; ++ index ) {
 				var menu = group[index];
 				menuID = chrome.contextMenus.create({"id":"" + menuID, "title": `${menu.title}`, "contexts":["all"],
 									 "parentId": groupMenuID});
