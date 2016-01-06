@@ -226,6 +226,8 @@
 				currentSavedState = "";
 				currentSavedStateCss = "";
 				selectedTitle ="";
+				
+			  chrome.runtime.sendMessage({method:"UpdateActiveSites", data: {mode:"delete", site:key} });
 			}
 		}
 		var messageTimer=null;
@@ -1152,7 +1154,7 @@
 			}	
 			
 			var autos = $("#jscb")[0].checked;
-			chrome.runtime.sendMessage({method:"UpdateActiveSites", data: {site:selectedTitle, autostart:autos} });
+			chrome.runtime.sendMessage({method:"UpdateActiveSites", data: {mode:"active", site:selectedTitle, autostart:autos} });
 			
 			saveSiteScript();
 		}

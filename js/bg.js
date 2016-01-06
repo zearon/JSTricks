@@ -108,6 +108,8 @@ function updateSettings() {
 				var enabled = requestData == "true";
 				// call resetDeclarativeRules() in bg_declaration.js
 				resetDeclarativeRules();
+				//updateActiveSites();
+				
 				debug_log("Set enabled status to " + enabled);
 			}
 			
@@ -247,9 +249,10 @@ function updateSettings() {
 			
 			// Invoked by options page and popup page when site scripts are saved.
 			else if (requestMethod == "UpdateActiveSites") {
+				var mode = requestData.mode;
 				var site = requestData.site;
 				var autostart = requestData.autostart
-				updateActiveSites(site, autostart);
+				updateActiveSites(mode, site, autostart);
 			}
 			
 			// Invoked by DEBUG content script. Other script can send this message as well. For example:
@@ -265,7 +268,7 @@ function updateSettings() {
 				}
 			}
 			
-			// Invoked by DEBUG content script.
+			// Invoked by popup window when pin it.
 			else if (requestMethod == "InjectPopupPage") {
 				var code = compile_template(codesnippit_showPopupInWebpage, requestData);
 				//debug_log(code);
@@ -301,10 +304,10 @@ function updateSettings() {
 			var setMetaDataCode = codesnippet_getOnBootCode(tabid, url, infoStr);
 			// console.log(setMetaDataCode);
 			autoloadFileList.unshift(
-				{name:"boot/setMetaData", code:setMetaDataCode, type:"js"},/*
+				{name:"boot/setMetaData", code:setMetaDataCode, type:"js"}/*,
 				 // confiture seajs_boot.js injection manifest.json
-				{name:"boot/seajs_boot", file:"injected/seajs_boot.js", type:"js"}, */
-				{name:"boot/nodeSelector", file:"injected/nodeSelector.js", type:"js"}
+				{name:"boot/seajs_boot", file:"injected/seajs_boot.js", type:"js"}, 
+				{name:"boot/nodeSelector", file:"injected/nodeSelector.js", type:"js"}*/
 			);
 			if (localStorage["Main"]) {
 				try {
@@ -520,67 +523,126 @@ function updateSettings() {
 			return false;
 		}
 		
-		function updateActiveSites(site, autostart) {
-			var activeSites; 
-			var defaultActive = {}; defaultActive.value = getSetting("temp-activesites-defaultenabled", true);
+		function updateActiveSites(mode, site, autostart) {
+			var activeSites, allSites, settingChanged; 
+			var defaultActive = {}; 
 			
 			// Initialize the active sites
 			if (arguments.length < 1) {
 				debug_log("Initialize the active sites list.");
-				activeSites = [], defaultActive.value = false;
+				allSites = [], activeSites = [], defaultActive.value = false;
+				
 				getAllScripts(["ss", "dss"], function(allscripts) {
 					// On complete
+					
+					// initialize all sites pattern
+					updateAllSitesPattern(allSites)
+				  
+				  // initialize active sites pattern
 					updateStatus(activeSites, defaultActive.value);
+					
+					updateRules();
 				}, function(id, type, obj) {
 					// On iterate
-					if (type == "dss" && id == "Default" && obj.autostart)
-						defaultActive.value = true;
-					else if (type == "ss" && obj.autostart)
-						activeSites.push(obj.id);
+					if (type == "dss" && id == "Default") {
+					  if (obj.autostart) {
+						  defaultActive.value = true;
+						}
+					} else if (type == "ss") {
+						allSites.push(obj.id);
+					  if (obj.autostart) {
+						  activeSites.push(obj.id);
+						}
+					}
 				});
+				
+				return;
 			} 
 			
+			// update status on single script change.
+			settingChanged = false;
+			allSites = getSetting("temp-rules-allsites", true);
+			
+			console.log("mode", mode, "site", site, "autostart", autostart);
+						
+			if (mode.indexOf("add") >= 0 && !allSites.contains(site)) {
+			  allSites.push(site);
+				settingChanged = true;
+			}
+			
+			if (mode.indexOf("delete") >= 0) {
+			  allSites = allSites.filter(function(ele) { return ele != site; } );
+				settingChanged = true;
+			}
+			
+			if (settingChanged) {
+			  // allSite is changed
+        updateAllSitesPattern(allSites)
+			}
+			
 			// Update the active sites according to site status given by the arguments
-			else {
+			if (mode.indexOf("active") >= 0) {
 				debug_log("Update the active sites list. site=", site, "autostart=", autostart);
-				activeSites = getSetting("temp-activesites", true);
+				
+				activeSites = getSetting("temp-rules-activesites", true);
+				defaultActive.value = getSetting("temp-rules-defaultenabled", true);
 				
 				if (site == "Default") {
 					defaultActive.value = autostart;
 				} else {
-					if (autostart && !(site in activeSites))
+					if (autostart && !activeSites.contains(site))
 						activeSites.push(site);
 					else if (!autostart)
 						activeSites = activeSites.filter(function(ele) { return ele != site; } );
 				}
 				
 				updateStatus(activeSites, defaultActive.value);
+				settingChanged = true;
 			}
 			
+			if (settingChanged) {
+				updateRules();
+			}
+			// end of function execution flow
+			
+			// Inline function definition
+			function getSitePattern(site) {
+			  return "(" + ('://' + site + "/").getTextRegexpPattern() + ".*" + ")";
+			}
+			
+			// Inline function definition
+			function updateAllSitesPattern(allSites) {
+        var allSitesPattern = "(" + allSites.map(getSitePattern).join("|") + ")";
+        setSetting("temp-rules-allsites", allSites, true);
+        setSetting("temp-rules-allsites-pattern", allSitesPattern);
+			}
+			
+			// Inline function definition
 			function updateStatus(activeSites, defaultActive) {
 				debug_log("All active sites:", activeSites, "default is", defaultActive ? "active" : "inactive");
 				
-				var activeSitesPattern;
+				var activeSitesPattern, allSitesPattern;
 				
-				// Default script is autostarted, so the pattern should match any site url.
-				if (defaultActive) {
+				if ( !(getSetting("enabled") !== 'false') ) {
+				  // extension is disabled
+				  activeSitesPattern = "^dummy$";
+				} else if (defaultActive) {
+				  // Default script is autostarted, so the pattern should match any site url.
 					activeSitesPattern = ".*";
-				} 
-				
-				else {
-					activeSitesPattern = activeSites.map(function(site0) {
-						 var sitepattern = "(" + ('://' + site0 + "/").getTextRegexpPattern() + ".*" + ")";
-						 return sitepattern;
-					}).join("|");
-					activeSitesPattern = "(" + activeSitesPattern + ")";
+				} else {
+          activeSitesPattern = "(" + activeSites.map(getSitePattern).join("|") + ")";
 				}
 			
 				// Save status
-				setSetting("temp-activesites", activeSites, true);
-				setSetting("temp-activesites-defaultenabled", defaultActive, true);
-				setSetting("temp-activesites-pattern", activeSitesPattern);
+				setSetting("temp-rules-defaultenabled", defaultActive, true);
+				setSetting("temp-rules-activesites", activeSites, true);
+				setSetting("temp-rules-activesites-pattern", activeSitesPattern);
+				
 				debug_log("activeSitesPattern=", activeSitesPattern);
+			}
 			
+			// Inline function definition
+			function updateRules() {			
 				// call resetDeclarativeRules() in bg_declaration.js
 				resetDeclarativeRules();
 			}

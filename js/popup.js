@@ -36,6 +36,7 @@ if (inExtensionPage && localStorage["$setting.DEBUG"] == "true")
 	DEBUG = true;
 var RUN_BUTTON_CODE = localStorage["$setting.DEBUG_runbuttoncode"] == "true";
 var DISABLE_RUN_BUTTON_CODE = localStorage["$setting.popupwindow_disableRunCodeButton"] != "false";
+var ENABLED = getSetting("enabled") !== 'false';
 	
 
 // iframe.contentWindow.postMessage({ type: "RestoreEditDialogContextResponse", tabid:NS_tabid, context:NS_editDialogContext }, "*");
@@ -175,19 +176,23 @@ function log() {
 			if (!inExtensionPage)
 				return;
 				
-			var enabled = getSetting("enabled") == "true";
+			ENABLED = getSetting("enabled") == "true";
 			
-			if (enabled) {
+			if (ENABLED) {
 				// Disable
 				setSetting("enabled", "false");
+				$(".for-disabled").show();
 				//API_SetIcon({path:"icon/icon24_disabled.png"});
 			} else {
 				// Enable
 				chrome.runtime.sendMessage({tabid:tabID, method: "JSTinjectScript"});
 				setSetting("enabled", "true");
+				$(".for-disabled").hide();
 				//API_SetIcon({path:"icon/icon24.png"});
 			}
-			chrome.runtime.sendMessage({tabid:tabID, method: "EnableDisableExt", date: (enabled ? "false" : "true") });
+			ENABLED = !ENABLED;
+			
+			chrome.runtime.sendMessage({tabid:tabID, method: "EnableDisableExt", data: (ENABLED ? "true" : "false") });
 			setEnableDisableBtnImage();
 		}
 		
@@ -207,8 +212,8 @@ function log() {
 			API_GetTabURL(function(url) {
 				var domain = url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
 				delete localStorage[domain];
-				  
-				API_SetIcon({path:"icon/icon24.png"});
+				
+			  chrome.runtime.sendMessage({method:"UpdateActiveSites", data: {mode:"delete", site:domain} });
 			
 				// Update status to let user know options were saved.
 				var status = document.getElementById("title");
@@ -400,6 +405,12 @@ function log() {
 		var editorDemo=null;
 		var editors = [];
 		$(function(){//on popup load
+		  // hide the cover for disabled mode
+		  if (ENABLED) {
+		    $(".for-disabled").hide();
+		  } else {
+		    $(".for-disabled").show();
+		  }
 			
 			$("#runBtn").click(run);
 			$("#runSelectedBtn").click(runSelected);
@@ -612,7 +623,7 @@ function log() {
 			
 			var lineCount = editor.lineCount();
 			
-			chrome.runtime.sendMessage({method:"UpdateActiveSites", data: {site:tabSite, autostart:autostart} });
+			chrome.runtime.sendMessage({method:"UpdateActiveSites", data: {mode:"add+active", site:tabSite, autostart:autostart} });
 			save_options();
 			
 			
