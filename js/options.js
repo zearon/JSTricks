@@ -89,6 +89,12 @@
 			var hid = $("#jshid").attr('checked');
 			var sf = $("#jsincludefile").val();
 			
+			var menuitem = $(`#menu .jstbox[data-site='${key}']`);
+			if (autos)
+				menuitem.addClass("autostart");
+			else
+				menuitem.removeClass("autostart");
+			
 			
       var tmp =  {"script": val, "autostart": autos, "hidden": hid , "sfile": sf, "css": cssval};
 			localStorage[key] = JSON.stringify(tmp);
@@ -159,6 +165,8 @@
 				jsonlint.parse(meta);
 				localStorage["meta"] = meta;
 				currentSavedStateMeta = editorMeta.getValue();
+				
+				updateMetaData(meta);
 			} catch (ex) {
 				console.log(ex);
 				
@@ -325,12 +333,15 @@
 		}
 		function addMenuBox(v,lsd)
 		{
-			var $divbox = $(`<div class='jstbox' data-site='${v}'></div>`);
-			$divbox.append($("<div class='jsttitle'>").text(v));	
+			var autostartclass = lsd.autostart ? " autostart" : "";
+			var autostartStatus = lsd.autostart ? "active" : "inactive";
+			var $divbox = $(`<div class='jstbox siteScriptKey${autostartclass}' title='Site script for ${v} is ${autostartStatus}' data-site='${v}' style='position:relative;'><nobr></nobr></div>`);
+			var $divcontainer = $divbox.find("nobr:first");
 					
 			$divbox.click(function(){ 
 				selectSite(this);
 			});
+			$divcontainer.append($("<div class='jsttitle' >").text(v));	
 			
 			if(v!="Default" && v!= "Main")
 			{
@@ -348,7 +359,7 @@
 						chrome.tabs.create({"url":"http://"+v});
 					});
 				}
-				$divbox.append($imgLink);
+				$divcontainer.append($imgLink);
 			}
 			
 			if(lsd.hidden == 'checked')
@@ -794,10 +805,28 @@
 		
 		function loadMetaData() {
 			var metadata = localStorage["meta"];			
-			if (metadata)
+			if (metadata) {
 				editorMeta.setValue(metadata);
-			else
+				updateMetaData(metadata);
+			} else {
 				editorMeta.setValue("");
+			}
+		}
+		
+		function updateMetaData(metadata) {				
+			try {
+				var meta = JSON.parse(metadata);
+				var includes = meta.include;	
+				
+				var menuItem = $('.contentScriptKey.jstbox');
+				menuItem.removeClass("autostart").attr("title", menuItem.attr("name"));
+				if (includes)
+					for (var i = 0; i < includes.length; ++i) {
+						var include = includes[i];
+						menuItem = $(`.contentScriptKey.jstbox[name='${include}']`);
+						menuItem.addClass("autostart").attr("title", menuItem.attr("name") + " will be automatically loaded.");;
+					}
+			} catch (ex) { console.error(ex);}
 		}
 		
 		var focusNotOnMenuList = true;

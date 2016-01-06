@@ -21,6 +21,7 @@ html body.theme-dark { background:#0f0f0f; color:#eeeeee; }
 }
 .theme-dark .jstbox:hover { background:  rgba(64,64,64,1); }
 .theme-dark .jstbox.selected { background: rgba(50,50,50,1); }
+.theme-dark .jstbox.autostart { background-image: url(img/autostart.png); background-repeat: no-repeat; }
 .theme-dark #jstmessage {
 	background: #1C77FF;
 	box-shadow:rgba(0,0,0,0.4) 0 3px 10px;

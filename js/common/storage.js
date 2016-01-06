@@ -115,7 +115,7 @@
 	 * Initialize the storage.
 	 */
 	function initStorage() {
-	}	 
+	}
 	 
 	 
 	/*********************************************
