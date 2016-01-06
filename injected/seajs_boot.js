@@ -276,7 +276,7 @@
 ${srcCode};
 	
 	// End of AMD module definition
-}) (this);
+}) (window);
 `;
         	break;
         case "CommonJS":
@@ -340,7 +340,7 @@ ${srcCode};
 
 	delete define;
 	delete _define;
-}) (this);
+}) (window);
 `;
         	break;
         }

@@ -142,9 +142,11 @@ input.select-domnode-btn {
 }
 #enableDisableBtn {
 	width:30px;
+	z-index: 999999;
 }
 #optionsBtn {
 	width:30px;
+	z-index: 999999;
 	background:   url('img/setting.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
 }
 input[type=button].add-script-btn {
@@ -205,4 +207,26 @@ input[type=button].add-script-btn {
 	background-image: url("theme/img/target.jpg");
 	background-size:contain;
 	width:20px;
+}
+#cover-center {
+	top: 28px;
+	height: calc(100% - 28px);
+}
+#cover-top {
+	width: calc(100% - 60px);
+	height: 28px;
+}
+.for-disabled {
+	z-index: 5000;
+	position:absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(255,255,255,0.8);
+}
+.for-disabled h1 {
+	color: black;
+	text-align: center;
+	padding: 250px 0;
 }

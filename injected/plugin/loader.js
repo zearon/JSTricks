@@ -10,6 +10,11 @@
 //   ...
 // }
 
+var pattern = `((:\/\/chrome\.google\.com\/.*)|(:\/\/cli\.im\/.*)|(:\/\/forum\.kerbalspaceprogram\.com\/.*)|(:\/\/jsonlint\.com\/.*)|(:\/\/m\.81zw\.com\/.*)|(:\/\/www\.23us\.la\/.*)|(:\/\/www\.23wx\.com\/.*)|(:\/\/www\.2kxs\.com\/.*)|(:\/\/www\.365xs\.org\/.*)|(:\/\/www\.88zw\.com\/.*)|(:\/\/www\.biquge\.tw\/.*)|(:\/\/www\.bookbao\.com\/.*)|(:\/\/www\.booktxt\.net\/.*)|(:\/\/www\.bxwx\.cc\/.*)|(:\/\/www\.bxwx\.org\/.*)|(:\/\/www\.geiliwx\.com\/.*)|(:\/\/www\.jjwxc\.net\/.*)|(:\/\/www\.lewenxiaoshuo\.com\/.*)|(:\/\/www\.lingdiankanshu\.com\/.*)|(:\/\/www\.qb5\.com\/.*)|(:\/\/www\.qqxs\.cc\/.*)|(:\/\/www\.quledu\.com\/.*)|(:\/\/www\.shenmaxiaoshuo\.com\/.*)|(:\/\/www\.shubao22\.com\/.*)|(:\/\/www\.siluke\.info\/.*)|(:\/\/www\.xbiquge\.com\/.*)|(:\/\/www\.xbiquku\.com\/.*)|(:\/\/www\.xker\.com\/.*)|(:\/\/www\.xs222\.com\/.*))`;
+var url = location.href;
+var match = new RegExp(pattern).test(url);
+console.log("URL match", match, url, pattern);
+
 (function() {
   var debug, settings;
   chrome.storage.local.get(["INFO"], function(obj) { 
@@ -18,6 +23,7 @@
     
     //console.log("INFO obj in storage", obj.INFO);
   
+    if (!window.INFO) { window.INFO = obj.INFO; }
     debug = obj.INFO.debug;
     settings = obj.INFO.settings;
   
