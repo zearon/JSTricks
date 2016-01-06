@@ -811,6 +811,7 @@
 			} else {
 				editorMeta.setValue("");
 			}
+			editorMeta.clearHistory();
 		}
 		
 		function updateMetaData(metadata) {				
