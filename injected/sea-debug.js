@@ -1040,10 +1040,11 @@ Module.use = function (ids, callback, uri) {
       try {
         callback.apply(global, exports)
       } catch (ex) {
-        var match = ex.stack.match(/at .*?:(\d+):(\d+)/);
-        var err = ex.name + " at line " + match[1] + ": " + ex.message
-        	+ "\n" + callback.toString() ;
-        console.error(err);
+        var match = ex.stack.match(/at .*?:(\d+):(\d+)\)/g);
+        var err = match[0] + ": " + ex.message
+        	+ "\nInvoker script is:\n" + match[1] + "\n" + callback.toString() ;
+        console.error(ex);
+        console.info(err);
       }
     }
 

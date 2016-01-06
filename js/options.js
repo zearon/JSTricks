@@ -1,36 +1,3 @@
-	// 对Date的扩展，将 Date 转化为指定格式的String 
-	// 月(M)、日(d)、小时(h)、分(m)、秒(s)、季度(q) 可以用 1-2 个占位符， 
-	// 年(y)可以用 1-4 个占位符，毫秒(S)只能用 1 个占位符(是 1-3 位的数字) 
-	// 例子： 
-	// (new Date()).Format("yyyy-MM-dd hh:mm:ss.S") ==> 2006-07-02 08:09:04.423 
-	// (new Date()).Format("yyyy-M-d h:m:s.S")      ==> 2006-7-2 8:9:4.18 
-	Date.prototype.Format = function(fmt) 
-	{ //author: meizz 
-	  var o = { 
-		"M+" : this.getMonth()+1,                 //月份 
-		"d+" : this.getDate(),                    //日 
-		"h+" : this.getHours(),                   //小时 
-		"m+" : this.getMinutes(),                 //分 
-		"s+" : this.getSeconds(),                 //秒 
-		"q+" : Math.floor((this.getMonth()+3)/3), //季度 
-		"S"  : this.getMilliseconds()             //毫秒 
-	  }; 
-	  if(/(y+)/.test(fmt)) 
-		fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length)); 
-	  for(var k in o) 
-		if(new RegExp("("+ k +")").test(fmt)) 
-	  fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length))); 
-	  return fmt; 
-	}
-	
-	String.prototype.replaceAll = function(AFindText, ARepText) {
-		var raRegExp = new RegExp(AFindText.replace(
-			/([\(\)\[\]\{\}\^\$\+\-\*\?\.\"\'\|\/\\])/g, "\\$1"), "ig");
-		return this.replace(raRegExp, ARepText);
-	}
-	
-	function isArray(it) { return Object.prototype.toString.call(it) === '[object Array]'; }
-	function isFunction(it) { return Object.prototype.toString.call(it) === '[object Function]'; }
 
 	// jQuery UI Dialog: Double click dialog title bar to toggle dialog content
 	$(function() {
@@ -39,12 +6,37 @@
 		});
 	});
 
+		
+		var mapSiteScriptFunc = dummyMapFunc;
+		var mapContentScriptFunc = dummyMapFunc;
 
+		var editorJs = null;
+		var editorCss = null;
+		var editorMeta = null;
+		var editorDynScript = null;
+		var editorJsonFile = null;
+		var editorJsonObjectValue = null;
+		var editors = [];
+		var hlLineJs = null;
+		var hlLineCss = null;
 
+		var currentSavedState=null;
+		var currentSavedStateCss=null;
+		var currentSavedStateMeta=null;
+
+		var focusNotOnMenuList = true;
+		var focusedMenuItem = null;
+		var hiddenOpt = true;
+		
+		var dialog;
+		
+		var jsonFileAnchor = 0;
+		var __index_cs = 1;
+		var selectedContentScript = "";
+		var currentSavedStateDCS = "";
 
 
 		var optionPageParams = {};
-		parsePageParams();
 		function parsePageParams() {
 			var paramStr = location.href.match(/\?(.*)/);
 			if (paramStr)	
@@ -52,7 +44,7 @@
 			else 
 				return;
 				
-			var params = paramStr.split(/&/).filter(function(str) { return str != ""; });
+			var params = paramStr.split(/&/).filter(function(str) { return str !== ""; });
 			for (var i = 0; i < params.length; ++ i) {
 				var parts = params[i].split(/=/);
 				var name = parts[0];
@@ -61,10 +53,8 @@
 					optionPageParams[name] = decodeURIComponent(value);
 			}
 		}
+		parsePageParams();
 
-		
-		var mapSiteScriptFunc = dummyMapFunc;
-		var mapContentScriptFunc = dummyMapFunc;
 
 		var selectedTitle = "";		
 		var scripts = ["lib/jquery.js"];
@@ -76,12 +66,12 @@
 			var xhr = new XMLHttpRequest();
 
 			xhr.onreadystatechange = function() {
-				if (xhr.readyState == 4) {
+				if (xhr.readyState === 4) {
 					manifestObject = JSON.parse(xhr.responseText);
 				}
 			};
-			if (chrome.extension) {
-				xhr.open("GET", chrome.extension.getURL('/manifest.json'), false);
+			if (chrome.runtime) {
+				xhr.open("GET", chrome.runtime.getURL('/manifest.json'), false);
 			}
 			try {
 				xhr.send();
@@ -102,17 +92,17 @@
 		}
 		function dummySaveFunc() {}
 		function saveDisabledForPreviewFunc() {
-			alert("Save is disabled in preview mode.")
+			alert("Save is disabled in preview mode.");
 		}
 		function saveSiteScript()
 		{
-			if (mapSiteScriptFunc == findReplaceDialog_mapReplacedScript) {
+			if (mapSiteScriptFunc === findReplaceDialog_mapReplacedScript) {
 				saveDisabledForPreviewFunc();
 				return;
 			}
 			
 			console.log("Save the site script.");
-			if(selectedTitle == "")
+			if(selectedTitle === "")
 				return;
 			
 			var key = selectedTitle;
@@ -121,6 +111,12 @@
       var autos = $("#jscb")[0].checked;
 			var hid = $("#jshid").attr('checked');
 			var sf = $("#jsincludefile").val();
+			
+			var menuitem = $(`#menu .jstbox[data-site='${key}']`);
+			if (autos)
+				menuitem.addClass("autostart");
+			else
+				menuitem.removeClass("autostart");
 			
 			
       var tmp =  {"script": val, "autostart": autos, "hidden": hid , "sfile": sf, "css": cssval};
@@ -149,7 +145,7 @@
 		function showJSSyntaxCheckReport(editor, data) {
 			var warnings = [];
 			var errors = data.errors ? data.errors.filter(function(err) {
-				if (err == null) {
+				if (err === null) {
 					return false;
 				} else if (err.raw === "Expected a conditional expression and instead saw an assignment.") {
 					return false;
@@ -189,9 +185,14 @@
 			try {
 				var meta = editorMeta.getValue();
 				JSON.parse(meta);
-				jsonlint.parse(meta);
+				var metadata = jsonlint.parse(meta);
 				localStorage["meta"] = meta;
 				currentSavedStateMeta = editorMeta.getValue();
+				
+				updateMetaData(meta);
+				
+				// update meta data into chrome.storage.locale
+				updateSettings();
 			} catch (ex) {
 				console.log(ex);
 				
@@ -205,9 +206,9 @@
 		
 		function deleteRecord()
 		{
-			if(selectedTitle == "")
+			if(selectedTitle === "")
 				return;
-			if(selectedTitle == "Default")
+			if(selectedTitle === "Default")
 			{
 				showMessage("You can't delete 'Default' trick, sorry...");
 				return;
@@ -238,7 +239,7 @@
 					$("#jstmessage").animate({top:"-50px"},
 						function(){
 							$message.text("");
-					})},1750);
+					} )},1750);
 			
 		}
 		function run(invoker){
@@ -256,13 +257,13 @@
 				selectedTitle="";
 			}
 			
-			if (invoker && invoker == "save") {}
+			if (invoker && invoker === "save") {}
 			else {
 				loadSiteScripts();
 			}
 		}
 		function isSiteScriptName(v) {
-			if(v!='Default' && v!='Main' && v!='cacheCss' && v!='cacheScript' && v!='info' && v!='meta' && v!='$setting' 
+			if(v!=='Default' && v!=='Main' && v!=='cacheCss' && v!=='cacheScript' && v!=='info' && v!=='meta' && v!=='$setting' 
 					&& !(/^\$setting\./.test(v))   && !(/^\$cs-/.test(v))  ) /**/ {
 				
 				return true;
@@ -275,10 +276,10 @@
 		}
 		function loadSiteScripts(filterOptions, contentType, nameFilter) {			
 			$("#menu").empty();
-			if(localStorage && localStorage.length != 0)
+			if(localStorage && localStorage.length !== 0)
 			{
-				var keys = new Array();
-				for(v in localStorage)
+				var keys = [];
+				for(var v in localStorage)
 				{
 					if(isSiteScriptName(v) ) /**/ {
 						
@@ -287,14 +288,14 @@
 				}
 				keys.sort();
 				keys.unshift("Default");
-				if (localStorage["$setting.sitescripts_showMainScript"] == "true")
+				if (localStorage["$setting.sitescripts_showMainScript"] === "true")
 					keys.unshift("Main");
 				//console.log(keys);
 					
 				
-				for(k in keys) {	
+				for(var k in keys) {	
 					try {
-						var v = keys[k]; 			
+						v = keys[k]; 			
 						if (nameFilter) {
 							if (!nameFilter(v))
 								continue;
@@ -312,7 +313,7 @@
 							var name = filterOptions["name"];
 							
 							if (name) {
-								if (name != v)
+								if (name !== v)
 									continue;
 								else
 									addFlag = true;			
@@ -320,23 +321,23 @@
 								if (contentType) {
 									var content = "";
 										
-									if (contentType == "js") {
+									if (contentType === "js") {
 										content = lsd.script;
-									} else if (contentType == "css") {
+									} else if (contentType === "css") {
 										content = lsd.css;
-									} else if (contentType == "js+css") {
+									} else if (contentType === "js+css") {
 										content = lsd.script + "\n" + lsd.css;
 									}
 									
 									contentFlag = content.match(textPattern);
 								}
 								
-								if (autostartValue == "any")
+								if (autostartValue === "any")
 									autostartFlag = true;
 								else
-									autostartFlag = lsd.autostart ? autostartValue == "true" : autostartValue == "false";
+									autostartFlag = lsd.autostart ? autostartValue === "true" : autostartValue === "false";
 								
-								if (andorAutostart == "and")
+								if (andorAutostart === "and")
 									addFlag = contentFlag && autostartFlag;
 								else
 									addFlag = contentFlag || autostartFlag;
@@ -358,17 +359,20 @@
 		}
 		function addMenuBox(v,lsd)
 		{
-			var $divbox = $(`<div class='jstbox' data-site='${v}'></div>`);
-			$divbox.append($("<div class='jsttitle'>").text(v));	
+			var autostartclass = lsd.autostart ? " autostart" : "";
+			var autostartStatus = lsd.autostart ? "active" : "inactive";
+			var $divbox = $(`<div class='jstbox siteScriptKey${autostartclass}' title='Site script for ${v} is ${autostartStatus}' data-site='${v}' style='position:relative;'><nobr></nobr></div>`);
+			var $divcontainer = $divbox.find("nobr:first");
 					
 			$divbox.click(function(){ 
 				selectSite(this);
 			});
+			$divcontainer.append($("<div class='jsttitle' >").text(v));	
 			
-			if(v!="Default" && v!= "Main")
+			if(v!=="Default" && v!== "Main")
 			{
 				var $imgLink = $("<img class='goto' border=0 src='css/theme/img/url_icon.gif'>");
-				if(lsd.hidden == 'checked')
+				if(lsd.hidden === 'checked')
 				{
 					$imgLink.click(function(){
 						chrome.windows.create({"url":"http://"+v, "incognito": true});
@@ -381,32 +385,29 @@
 						chrome.tabs.create({"url":"http://"+v});
 					});
 				}
-				$divbox.append($imgLink);
+				$divcontainer.append($imgLink);
 			}
 			
-			if(lsd.hidden == 'checked')
+			if(lsd.hidden === 'checked')
 			{
 				if(hiddenOpt)
 					$divbox.hide();
 				$divbox.addClass('hiddenFlag');
 			}
 			
-			if(selectedTitle == v)
+			if(selectedTitle === v)
 				$divbox.addClass("selected");
 				
 			$("#menu").append($divbox);
 		}
 		
 		
-		var currentSavedState=null;
-		var currentSavedStateCss=null;
-		var currentSavedStateMeta=null;
 		function selectSite(obj)
 		{
 			if( changed() )
 				return;
 			
-			if( $("#editorJs").css("visibility") == "hidden")
+			if( $("#editorJs").css("visibility") === "hidden")
 				$("#editorJs").hide().css({"visibility":""}).fadeIn();
 			
 			var v = $(obj).text();
@@ -451,7 +452,7 @@
 				
 			set=false;
 			$("#jsscriptfile option").each(function(ind,el){
-				if($(el).val() == lsd.sfile)
+				if($(el).val() === lsd.sfile)
 				{
 					$(el).attr("selected",true);
 					set=true;
@@ -475,20 +476,20 @@
 		}
 		function editTitle($box)
 		{
-			$(".jsttitle", box)
+			$(".jsttitle", box);
 		}
 		function changed()
 		{
-			if(currentSavedState!=null)
+			if(currentSavedState!==null)
 			{
-				if(currentSavedState != editorJs.getValue() )
+				if(currentSavedState !== editorJs.getValue() )
 				{
 					return !confirm("Script changed! Discard?");
 				}
 			}
-			if(currentSavedStateCss!=null)
+			if(currentSavedStateCss!==null)
 			{
-				if(currentSavedStateCss != editorCss.getValue() )
+				if(currentSavedStateCss !== editorCss.getValue() )
 				{
 					return !confirm("Css changed! Discard?");
 				}
@@ -540,22 +541,13 @@
 			}
 		}
 		
-		var editorJs = null;
-		var editorCss = null;
-		var editorMeta = null;
-		var editorDynScript = null;
-		var editorJsonFile = null;
-		var editorJsonObjectValue = null;
-		var editors = [];
-		var hlLineJs = null;
-		var hlLineCss = null;
 		
 		$(function(){//on load
 			$("#theme").change(function() {
 				var theme = $(this).val();
 				setTheme(theme);
 			});
-			$("#testtest").click(cloudStorageGenCode);
+// 			$("#testtest").click(cloudStorageGenCode);
 		
 			$("#jscontentfilterbtn").click(filterSiteScriptByJSContent);
 			$("#csscontentfilterbtn").click(filterSiteScriptByCSSContent);
@@ -567,8 +559,8 @@
 			$("#jsdelete").click(deleteRecord);	
 			$("#exportbtn").click(exportSettings);
 			$(".findReplaceDialogBtn").click(showFindReplaceDialog);
-			$("input:button.textSizeUpBtn").click(function(){textSize(1)});
-			$("input:button.textSizeDownBtn").click(function(){textSize(-1)});				
+			$("input:button.textSizeUpBtn").click(function(){textSize(1);});
+			$("input:button.textSizeDownBtn").click(function(){textSize(-1);});				
 			$("#findDialog-findBtn").click(findReplaceDialog_find);
 			$("#findDialog-previewBtn").click(findReplaceDialog_preview);
 			$("#findDialog-cancelBtn").click(findReplaceDialog_cancel);
@@ -576,6 +568,7 @@
 					
 			$('#backupbtn').click(backup);
 			$('#restorebtn').click(restore);
+			$('#loadDftSettingsBtn').click(loadDefaultSettings);
 			$('#genInitSettingbtn').click(backupInitialSettings);
 			$("#cloudsave-savesettings").click(cloudStorageSaveSettings);
 			$('input:button.cloudbackup').click(cloudBackup);
@@ -664,7 +657,7 @@
 			$(window).resize();
 			
 			$(document).keydown(function(ev){
-				if(ev.keyCode==112)
+				if(ev.keyCode===112)
 					return false;
 			});
 			editorJs = generateEditor("taedit", "text/javascript"); 
@@ -681,12 +674,12 @@
 			//hide some menu
 			$(document).keydown(function(event){
 					
-				if(event.altKey && modifier && String.fromCharCode( event.which ).toLowerCase() == 'h')
+				if(event.altKey && modifier && String.fromCharCode( event.which ).toLowerCase() === 'h')
 				{
-					$(".jstbox.hiddenFlag").each(function(ind,el){$(el).delay(ind*100).slideToggle()});
+					$(".jstbox.hiddenFlag").each(function(ind,el){$(el).delay(ind*100).slideToggle();});
 					$("#jshid, label[for=jshid]").fadeToggle();
 					
-					if(hiddenOpt == true)
+					if(hiddenOpt === true)
 					{
 						showMessage("WOOOOH! Hidden options!");
 						hiddenOpt = false;
@@ -781,7 +774,8 @@
 		function generateEditor(textareaID, mode, extraOptions) {
 			var options = {
 				mode: mode,					
-				tabMode: 'indent',
+				indentWithTabs: false,
+				tabSize: 2,
 				lineNumbers:true,
 				styleActiveLine: true,
 				matchBrackets :true,
@@ -789,7 +783,7 @@
 				theme: getCodeMirrorTheme(), //_yellow, abcdef, default
 				foldGutter: true,
 				lint: {"esversion":6, "expr":true, "indent":2, "globals":
-						{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, 
+						{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, "ready":false, 
 						"INFO":false, "window":false, "navigator":false, "document":false, "alert":false, "confirm":false, 
 						"prompt":false, "setTimeout":false, "setInterval":false, "location":false,
 						"localStorage":false, "FileReader":false} },
@@ -826,14 +820,31 @@
 		
 		function loadMetaData() {
 			var metadata = localStorage["meta"];			
-			if (metadata)
+			if (metadata) {
 				editorMeta.setValue(metadata);
-			else
+				updateMetaData(metadata);
+			} else {
 				editorMeta.setValue("");
+			}
+			editorMeta.clearHistory();
 		}
 		
-		var focusNotOnMenuList = true;
-		var focusedMenuItem = null;
+		function updateMetaData(metadata) {				
+			try {
+				var meta = JSON.parse(metadata);
+				var includes = meta.include;	
+				
+				var menuItem = $('.contentScriptKey.jstbox');
+				menuItem.removeClass("autostart").attr("title", menuItem.attr("name"));
+				if (includes)
+					for (var i = 0; i < includes.length; ++i) {
+						var include = includes[i];
+						menuItem = $(`.contentScriptKey.jstbox[name='${include}']`);
+						menuItem.addClass("autostart").attr("title", menuItem.attr("name") + " will be automatically loaded.");
+					}
+			} catch (ex) { console.error(ex);}
+		}
+		
 		function setupKeyEventHandler() {
 			var mac_os = navigator.userAgent.indexOf("Mac OS") > -1;
 			if (mac_os)
@@ -856,7 +867,7 @@
 				}
 				// console.log(event.which);// 打印出具体是按的哪个按键。
 				
-				if(modifier && String.fromCharCode( key ).toLowerCase() == 's')
+				if(modifier && String.fromCharCode( key ).toLowerCase() === 's')
 				{
 					save();
 					event.preventDefault();
@@ -864,7 +875,7 @@
 				}
 				
 				// Up and down keys
-				if (key == 38 || key == 40) {
+				if (key === 38 || key === 40) {
 					
 					if (focusNotOnMenuList)
 						return;
@@ -872,9 +883,9 @@
 					event.preventDefault();
 					var node = null;
 					
-					if(event.which == 38) {
+					if(event.which === 38) {
 						node = focusedMenuItem.prev();
-					} else if (event.which == 40) {
+					} else if (event.which === 40) {
 						node = focusedMenuItem.next();
 					}
 					
@@ -899,7 +910,6 @@
 			});
 		}
 		
-		var hiddenOpt = true;
 		function tabs()
 		{
 			$("div.tabs").each(function(ind, tabs) {
@@ -913,7 +923,7 @@
 						
 						$(tabs).find("> div").each(function(ind,el){
 							$(el).css({"z-index":100});
-							if(el.id == target)
+							if(el.id === target)
 								$(el).css({"z-index":200}).animate({"margin-left":0});
 							else
 								$(el).animate({"margin-left":-$(tabs).width()});
@@ -962,13 +972,12 @@
 					nav.find('.settingKey').removeClass('selected');
 					$(this).addClass('selected');
 					var target = $(this).attr('target');
-					nav.find('.settingPanel').hide()
-					$('#'+target).show()
+					nav.find('.settingPanel').hide();
+					$('#'+target).show();
 				});
 			});
 		}
 		
-		var dialog;
 		function openJQueryHelp()
 		{
 			var pos = editorJs.getCursor();
@@ -997,7 +1006,7 @@
 			$opt.empty().append("<img class='loadingimg' src='css/theme/img/loading.gif?seed' alt=''/>").dialog('open');
 			
 			$opt.load("http://api.jquery.com/"+word+"/ #content",function(){
-				if($opt.text() == "")
+				if($opt.text() === "")
 				{
 					searchJqueryDoc(word);
 					return;
@@ -1027,7 +1036,7 @@
 				}
 				else
 				{
-					if(href[0] == "/" || !href.match(/^http/))
+					if(href[0] === "/" || !href.match(/^http/))
 					{
 						href = "http://api.jquery.com"+href;
 					}
@@ -1075,9 +1084,9 @@
 						$(el).attr("href","#");
 						$(el).click(function(){
 							loadJqueryDoc($(this).data("href").match(/\/[^\/]+\/$/g,"")[0].replace(/\//g,""));
-						})
+						});
 					
-					})
+					});
 				}
 				else //search box
 				{
@@ -1094,9 +1103,9 @@
 		{
 			var w = window.open();
 			w.document.write("<pre>");
-			if(localStorage && localStorage.length != 0)
+			if(localStorage && localStorage.length !== 0)
 			{
-				for(v in localStorage)
+				for(var v in localStorage)
 				{
 					w.document.write("exported['"+v+"'] = \"" + localStorage[v].replace(/\"/g,"\\\"") + "\" \n");
 				}
@@ -1119,7 +1128,7 @@
 			//var autostart = document.getElementById("jscb").checked;
 			//console.log(autostart);
 			
-			if (selectedTitle != "Default") {					
+			if (selectedTitle !== "Default") {					
 				/*			
 				if (autostart) {
 					// change from autostart to not autostart
@@ -1141,6 +1150,9 @@
 					editorJs.setValue(srccode);
 				}	*/	
 			}	
+			
+			var autos = $("#jscb")[0].checked;
+			chrome.runtime.sendMessage({method:"UpdateActiveSites", data: {site:selectedTitle, autostart:autos} });
 			
 			saveSiteScript();
 		}
@@ -1169,7 +1181,7 @@
 					text = this.result;
 					console.log(text);
 					var values = JSON.parse(text);
-					for (v in localStorage) {
+					for (var v in localStorage) {
 						delete localStorage[v];
 					}
 					for (v in values) {
@@ -1189,8 +1201,8 @@
 			settings["$setting.enabled"] = "true";
 			settings["$setting.startuptab"] = "0";
 			$.extend(settings, defaultSettings);
-			for ( key in localStorage) {
-				if (isSiteScriptName(key) || key == "Default" || key == "info") // info is the version
+			for (var key in localStorage) {
+				if (isSiteScriptName(key) || key === "Default" || key === "info") // info is the version
 					continue;
 					
 				if (key.startsWith("$cs-") && false)
@@ -1219,13 +1231,16 @@
 			});
 		}
 		
+		function loadDefaultSettings() {
+			chrome.runtime.sendMessage({method:"LoadDefaultSettings"});
+		}
 		
 		function updateSettings() {
 			chrome.runtime.sendMessage({method:"UpdateSettings"});
 		}
 		
 		function removeTempSettings() {
-			for (key in localStorage) {
+			for (var key in localStorage) {
 				if (key.startsWith("$setting.temp-"))
 					delete localStorage[key];
 			}
@@ -1265,14 +1280,14 @@
 					return node.val();
 				}
 			}
-			var refreshOnSaveAnOption = localStorage["$setting.misc_refreshOnSaveAnOption"] == "true";
-			var refreshOnSaveAllOptions = localStorage["$setting.misc_refreshOnSaveAllOptions"] == "true";
+			var refreshOnSaveAnOption = localStorage["$setting.misc_refreshOnSaveAnOption"] === "true";
+			var refreshOnSaveAllOptions = localStorage["$setting.misc_refreshOnSaveAllOptions"] === "true";
 			
 			$(".localstorage_itemvalue").each(function(ind, ele) {
 				var node = $(this);
 				var key = $(this).attr("target");
 				var defaultValue = $(this).attr("defaultvalue");
-				if (!(defaultValue == undefined))
+				if (defaultValue !== undefined)
 					defaultSettings[key] = defaultValue;
 				
 				if (localStorage[key])
@@ -1406,7 +1421,7 @@
 					var findstr = $("#findDialog-findstring").val() ;
 									// + String.fromCharCode(event.which);
 					
-					if ($("#findDialog-replacement").val() == "")
+					if ($("#findDialog-replacement").val() === "")
 						$("#findDialog-replacement").val(findstr);
 				});
 			}
@@ -1418,14 +1433,14 @@
 			
 			var mode = $("#findDialog-searchfor")[0].selectedIndex;
 			var targetType = "js";
-			if (mode == 1) 
+			if (mode === 1) 
 				targetType = "css";
-			else if (mode == 2) 
+			else if (mode === 2) 
 				targetType = "js+css";
 						
 			var pattern = $("#findDialog-findstring").val();
 			var method  = $("#findDialog-searchmethod")[0].selectedIndex;
-			if (method == 0) {
+			if (method === 0) {
 				// Search for strings
 				pattern = pattern.replace(/([\(\)\[\]\{\}\^\$\+\-\*\?\.\"\'\|\/\\])/g, "\\$1");
 			} else {
@@ -1458,18 +1473,18 @@
 			findReplaceDialog_replaceKey["replacementPattern"] = replacementPattern;
 			findReplaceDialog_replaceKey["andorAutostart"] = $("#findDialog-andor-autostart").val(); // and, or
 			findReplaceDialog_replaceKey["autostart"] = $("#findDialog-filter-autostart").val(); // true, false, any
-			findReplaceDialog_replaceKey["containsDefaultScript"] = $("#findDialog-contains-default-script").val() == "true";
+			findReplaceDialog_replaceKey["containsDefaultScript"] = $("#findDialog-contains-default-script").val() === "true";
 			findReplaceDialog_replaceKey["setAutostart"] = $("#findDialog-set-autostart").val(); // true, false, unchanged
 			
 			
 			switch(findReplaceDialog_target) {
 			case 0:
 				// Site scripts.
-				if (searchRange == "current") { findReplaceDialog_replaceKey["name"] = selectedTitle };
+				if (searchRange === "current") { findReplaceDialog_replaceKey["name"] = selectedTitle; }
 				break;
 			case 1:
 				// Content scripts
-				if (searchRange == "current") { findReplaceDialog_replaceKey["name"] = selectedContentScript };
+				if (searchRange === "current") { findReplaceDialog_replaceKey["name"] = selectedContentScript; }
 				findReplaceDialog_replaceKey["targetType"] 	= "js";
 				findReplaceDialog_replaceKey["setAutostart"] = "unchanged";
 				break;
@@ -1556,7 +1571,7 @@
 					loadSiteScripts(findReplaceDialog_replaceKey, findReplaceDialog_replaceKey["targetType"],
 					  function(name) {
 					  	if (findReplaceDialog_replaceKey["containsDefaultScript"]) {
-							return isSiteScriptName(name) || name == "Default"; 
+							return isSiteScriptName(name) || name === "Default"; 
 					  	} else {
 							return isSiteScriptName(name); 
 					  	}
@@ -1573,9 +1588,9 @@
 			
 			// Switch editor to JS/CSS according to search target
 			if (options.switcheditor) {
-				if (findReplaceDialog_replaceKey["targetType"] == "js") {
+				if (findReplaceDialog_replaceKey["targetType"] === "js") {
 					$("#tabs-sss .tabs > ul li:eq(0)").click();
-				} else if (findReplaceDialog_replaceKey["targetType"] == "css") {
+				} else if (findReplaceDialog_replaceKey["targetType"] === "css") {
 					$("#tabs-sss .tabs > ul li:eq(1)").click();
 				}
 			}
@@ -1622,18 +1637,18 @@
 		// Highlight matches in CodeMirror editor.
 		// cm is editor, and indexes is an array of {from, to}
 		function highlightMatchesInEditor(cmeditor, indexes) {
-			var pos = [];
+			var i, pos = [];
 			
 			// remove markers
 			if (cmeditor.searchMarkers) {
-				for (var i = 0; i < cmeditor.searchMarkers.length; ++ i) {
+				for (i = 0; i < cmeditor.searchMarkers.length; ++ i) {
 					cmeditor.searchMarkers[i].clear();
 				}
 			}
 			cmeditor.searchMarkers = [];
 			
 			// highlight matches
-			for (var i = 0; i < indexes.length; ++ i) {
+			for (i = 0; i < indexes.length; ++ i) {
 				var from = cmeditor.posFromIndex(indexes[i].from);
 				var to = cmeditor.posFromIndex(indexes[i].to);
 				pos.push({from:from, to:to});
@@ -1708,23 +1723,24 @@
 			
 			var replaceScript = targetType.indexOf("js") > -1;
 			var replaceCss = targetType.indexOf("css") > -1;
+			var oldtext;
 			
 			if (replaceScript) {
-				var oldtext = s.script;
+				oldtext = s.script;
 				s.script = s.script.replace(pattern, "$1" + replacement);
 				options.indexes = getHighlightMatchingLinesInEditor(options, options.editor, oldtext, pattern, replacement);
 			}
 			
 			if (replaceCss) {
-				var oldtext = s.css
+				oldtext = s.css;
 				s.css = s.css.replace(pattern, "$1" + replacement);
 				options.indexes2 = getHighlightMatchingLinesInEditor(options, options.editor2, oldtext, pattern, replacement);
 			}
 				
-			if (setAutostart != "unchanged")
-				setAutostart == "true" ? s.autostart = true : s.autostart = false;
+			if (setAutostart !== "unchanged")
+				setAutostart === "true" ? s.autostart = true : s.autostart = false;
 				
-			if (options && options.command == "HightlightMatchedText") {
+			if (options && options.command === "HightlightMatchedText") {
 				var editor = options.editor, editor2 = options.editor2;
 			}
 			
@@ -1735,14 +1751,14 @@
 			findReplaceDialog_updateReplaceKey();
 			var name = findReplaceDialog_replaceKey["name"];
 			
-			for(v in localStorage) {	
-				if (name && name != v)
+			for(var v in localStorage) {	
+				if (name && name !== v)
 					continue;
 					
 				try {
 					var isSiteScript = false;		
 					if (findReplaceDialog_replaceKey["containsDefaultScript"]) {
-						isSiteScript = isSiteScriptName(v) || v == "Default"; 
+						isSiteScript = isSiteScriptName(v) || v === "Default"; 
 					} else {
 						isSiteScript = isSiteScriptName(v); 
 					}
@@ -1763,8 +1779,8 @@
 			findReplaceDialog_updateReplaceKey();
 			var name = findReplaceDialog_replaceKey["name"];
 			
-			for(v in localStorage) {
-				if (name && ("$cs-"+name) != v)
+			for(var v in localStorage) {
+				if (name && ("$cs-"+name) !== v)
 					continue;
 					
 				try {
@@ -1794,71 +1810,38 @@
 			alert($(this).prev().val());
 		}
 		
+		function cloudGetSaveObj() {
+			var url = localStorage["$setting.cloud-url"];
+			var path = localStorage["$setting.cloud-path"];
+			var passphrase = localStorage["$setting.cloud-passphrase"];
+			var keyiv = localStorage["$setting.cloud-keyiv"];
+			
+			return new CloudSave(url, path, passphrase, keyiv);
+		}
+		
 		function cloudStorageGenKey() {
-			chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFYHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+{}|[]:;<>,.?/';
-			length = chars.length;
-			key = '';
-			for (var i = 0; i < 16; ++ i) {
-				var index = Math.round((Math.random() * 1000000)) % 88;
-				key += chars[index];
-			}
+			var key = cloudGetSaveObj().genKeyIV();
 			
 			$("#cloudsave-key").val(key);
 			$(this).next().text(key);
 			alert("Copy the following key value and change the $PRIVATEKEY variable in cloudsave.php.\n" + key);
 		}
 		
-		function cloudStorageGenCode(text, passphrase, keyiv) {			
-			var key_hash = CryptoJS.MD5(passphrase); 
-			var key = CryptoJS.enc.Utf8.parse(key_hash); 			
-			var iv  = CryptoJS.enc.Utf8.parse(keyiv); 
-			// var iv  = CryptoJS.enc.Utf8.parse('1234567812345678'); 
-			var encrypted = CryptoJS.AES.encrypt(text, key, { iv: iv,mode:CryptoJS.mode.CBC, padding:CryptoJS.pad.ZeroPadding}); 
-			var encryptedText = "" + encrypted;
-			//console.log(text)
-			//console.log(keyiv)
-			//console.log(encryptedText);
-			return encryptedText;
-		}
-		
-		function cloudStoragePost(data, callback) {
-			var url = localStorage["$setting.cloud-url"];
-			var path = localStorage["$setting.cloud-path"];
-			var passphrase = localStorage["$setting.cloud-passphrase"];
-			var keyiv = localStorage["$setting.cloud-keyiv"];
-			
-			if (!url || !passphrase || !keyiv) {
-				alert("Cannot backup. Cloud storage is not set yet.");
-				return;
-			}
-			
-			var timestr = (new Date()).Format("yyyyMMddhhmmssS");
-			data["path"] = path;			
-			data["time"] = timestr;
-			// function defined in aes.js, md5.js, pad-zeropadding.js in js/cryptojs
-			data["token"] = cloudStorageGenCode(timestr, passphrase, keyiv);
-			
-			$.post(url, data)
-			.done(callback)
-			.fail(function(data) { alert("Error occurred when visiting:\n" + url + "\n" + data.status + "\n" + data.statusText); console.log(data); });
-		}
-		
 		function cloudBackup() {
 			showMessage("Start backing configuration up in cloud.");	
 			var data = JSON.stringify(localStorage);
-			data = formatter.formatJson(data)
+			data = formatter.formatJson(data);
 			var filename = (new Date()).Format("yyyyMMdd-hhmmss");
-			// cloudsave.php?method=save&path=chrome-ext&key=file2&value=hello2323
-			cloudStoragePost({"method":"save", "key":filename, "value":data}, 
-			function(data) {
-				if (data.code == 0) {
+			
+			cloudGetSaveObj().backupSingleFile(filename, data, function(data) {
+				// on ok
 					localStorage["$setting.cloud-lastsave"] = filename;
 					$("#cloudrestore-key").val(filename);
 					showMessage("Configurations are backup up in cloud.");
-				} else {
-					alert("Failed to save configuration. \n" + data.message);
-				}
 				
+			}, 	function(err) {
+				// on err
+					alert("Failed to list configurations. \n" + err.message);
 			});
 		}
 		
@@ -1868,11 +1851,11 @@
 				return;
 				
 			showMessage("Start backing configuration up in cloud.");	
-			//cloudsave.php?method=load&path=chrome-ext&key=20151101-185152
-			cloudStoragePost({"method":"load", "key":key} , 
-			function(data) {
+			
+			cloudGetSaveObj().restoreFromSingleFile(key, function(data) {
+				// on ok
 				console.log(data);
-				var values = JSON.parse(data);
+				var v, values = JSON.parse(data);
 				for (v in localStorage) {
 					delete localStorage[v];
 				}
@@ -1882,36 +1865,39 @@
 				}
 				alert("Selected configuration is restored.");
 				location.reload();
+				
 			});
 		}
 		
 		function cloudStorageList() {
-			// cloudsave.php?method=list&path=chrome-ext&key=file2
-			cloudStoragePost({"method":"list"} , 
-			function(data) {
-				if (data.code == 0) {
-					cloudStorageAddKeysToUI(data.result);					
-					showMessage("Configurations are listed out of cloud.");
-				} else {
-					alert("Failed to list configurations. \n" + data.message);
-				}
+			cloudGetSaveObj().list(function(data) {
+				// on ok
+				cloudStorageAddKeysToUI(data.result);					
+				showMessage("Configurations are listed out of cloud.");
+				
+			}, 	function(err) {
+				// on err
+					alert("Failed to list configurations. \n" + err.message);
 			});
 		}
 		
 		function cloudStorageView() {
 			var key = $("#cloudrestore-key").val();
-				
-			//cloudsave.php?method=load&path=chrome-ext&key=20151101-185152
-			cloudStoragePost({"method":"load", "key":key} , 
-			function(data) {
+			
+			cloudGetSaveObj().view(key, function(data) {
+				// on ok
 				$("#settings-list .jstbox:eq(1)").click();
 				showConfiguration(data);
+				
+			}, 	function(err) {
+				// on err
+					alert("Failed to view configurations. \n" + err.message);
 			});
 		}
 		
 		function cloudStorageDelete() {
 			var selectmode = $("#cloudtoggleselect").attr("data-selectmode");
-			if (selectmode == "radio") {
+			if (selectmode === "radio") {
 				var key = $("#cloudrestore-key").val();
 				if (!confirm("Are you sure you want to delete configuration named " + key + "?"))
 					return;
@@ -1936,23 +1922,34 @@
 			}
 		}
 		
+		function cloudStorageDeleteItem(key) {	
+			cloudGetSaveObj().remove(key, function(data) {
+				// on ok
+					$(`#cloudrestore-keys div.key[name='${key}']`).remove();
+					showMessage("Selected onfiguration is deleted.");
+				
+			}, 	function(err) {
+				// on err
+					alert("Failed to delete the configuration. \n" + data.message);
+			});
+		}
+		
 		function cloudStorageLeaveLast10() {
-			// cloudsave.php?method=removeExceptLast10&path=chrome-ext
-			cloudStoragePost({"method":"removeExceptLast10"} , 
-			function(data) {
-				if (data.code == 0) {
-					cloudStorageAddKeysToUI(data.result);
-					showMessage(data.message);
-				} else {
-					alert("Failed to remove configurations. \n" + data.message);
-				}
+			cloudGetSaveObj().leaveLast10(function(data) {
+				// on ok
+					$(`#cloudrestore-keys div.key[name='${key}']`).remove();
+					showMessage("Selected onfiguration is deleted.");
+				
+			}, 	function(err) {
+				// on err
+					alert("Failed to delete the configuration. \n" + data.message);
 			});
 		}
 		
 		function cloudToggleSelect() {
 			var button = $("#cloudtoggleselect");
 			var type = button.attr("data-selectmode");
-			if (type == "checkbox") {
+			if (type === "checkbox") {
 				$("#cloudrestore-keys input:checkbox").attr("type", "radio");
 				button.attr("data-selectmode", "radio");
 				button.val("Multiple Select");
@@ -1972,7 +1969,7 @@
 			// with specific class pattern on html elements.
 			
 			var keyiv = $("#cloudsave-keyiv").val();
-			if (keyiv.length != 16)
+			if (keyiv.length !== 16)
 				alert("Invalid key-iv length. The key has to be a text with 16 characters.");
 			else
 				showMessage("Cloud storage settings saved");
@@ -1983,32 +1980,23 @@
 			$("#cloudrestore-keys").children("*").remove();
 			for ( var i=0; i<keys.length; ++i) {
 				var key = keys[i];
-				var inputType = selectmode == "radio" ? "radio" : "checkbox";
+				var inputType = selectmode === "radio" ? "radio" : "checkbox";
 				// console.log(key);
 				// <div name="Key1" class="key"><input type="radio" name="cloudrestore-keychosen"><span>20151012-121003</span></div>
 				$("#cloudrestore-keys").append(
 					`<div name="${key}" class="key" name="${key}"><input type="${inputType}" name="cloudrestore-keychosen" value="${key}"><span>${key}</span></div>`
 				);
-				$("#cloudrestore-keys span").click(function() { $(this).prev().click(); });
+				$("#cloudrestore-keys span").click(onclick);
 				$("#cloudrestore-keys input:radio").click(cloudStorageKeyClicked);
+			}
+			
+			function onclick() {
+			 $(this).prev().click(); 
 			}
 		}
 		
 		function cloudStorageKeyClicked() {
 			$("#cloudrestore-key").val($(this).val());
-		}
-		
-		function cloudStorageDeleteItem(key) {				
-			//cloudsave.php?method=delete&path=chrome-ext&key=20151101-181410
-			cloudStoragePost({"method":"delete", "key":key} , 
-			function(data) {
-				if (data.code == 0) {
-					$(`#cloudrestore-keys div.key[name='${key}']`).remove();
-					showMessage("Selected onfiguration is deleted.");
-				} else {
-					alert("Failed to delete the configuration. \n" + data.message);
-				}
-			});
 		}
 		
 		
@@ -2043,13 +2031,12 @@
 			
 			var container = $("#json-viewer-site-list");
 			container.text("");
-			for (v in obj) {
+			for (var v in obj) {
 				container.append(`<input type="button" value="${v}" name="${v}" class="json-viewer-site"/>`);
 			}
 			$("input:button.json-viewer-site").click(showSiteScript);
 		}
 		
-		var jsonFileAnchor = 0;
 		function loadJsonFile() {
 			loadFile("#jsonFilePath", showConfiguration);
 		}
@@ -2076,16 +2063,13 @@
 			var obj = window.__JScriptTricks_JsonViewer.obj;
 			var key = $('#jsonObjPath').val();
 			var data = JSON.parse(obj[key]);
-			var script = data['script']
+			var script = data['script'];
 			editorJsonObjectValue.setValue(script);
 		}
 		
 		// *******************************************************
 		// **              Dynamic Content Scripts              **
 		// *******************************************************
-		var __index_cs = 1;
-		var selectedContentScript = "";
-		var currentSavedStateDCS = "";
 		
 		function addContentScript() {			
 			if (!contentScriptSaved())
@@ -2125,7 +2109,7 @@
 					
 		function loadContentScriptTemplate() {
 			var selectNode = $("#dcsgencodebytemplate");
-			for (key in template_content_script_all) {
+			for (var key in template_content_script_all) {
 				selectNode.append(`<option value="${key}">${key}</option>`);
 			}
 			
@@ -2141,7 +2125,7 @@
 			var tmpl = template_content_script_all[tmplName];
 			if (tmpl) {
 				var context = {name: selectedContentScript, comments: {define: "", run: ""}};
-				if (localStorage["$setting.contentcripts_generateComments"] != "false") {
+				if (localStorage["$setting.contentcripts_generateComments"] !== "false") {
 					context.comments.define = template_content_script_comment_define;
 					context.comments.run = template_content_script_comment_run;
 				}
@@ -2154,10 +2138,10 @@
 		function saveContentScript() {
 			console.log("Save the content script.");
 			
-			if(selectedContentScript == "")
+			if(selectedContentScript === "")
 				return;
 				
-			if (mapContentScriptFunc == findReplaceDialog_mapReplacedScript) {
+			if (mapContentScriptFunc === findReplaceDialog_mapReplacedScript) {
 				saveDisabledForPreviewFunc();
 				return;
 			}
@@ -2193,7 +2177,7 @@
 		function renameContentScript() {
 			console.log('renameContentScript');
 			
-			if(selectedContentScript == "")
+			if(selectedContentScript === "")
 				return;
 			
 			if (!contentScriptSaved(true))
@@ -2214,7 +2198,7 @@
 					alert("A script with the given name already exists. Please change a name.");
 				} else {
 					break;
-				};
+				}
 			} while (true);
 				
 			var key = "$cs-" + selectedContentScript;
@@ -2225,7 +2209,7 @@
 			
 			//var commentRegExp = "(\\/\\*([\\s\\S]*?)\\*\\/|([^:]|^)\\/\\/(.*)$)";
 			script = script.replace(new RegExp("(define\\s*\\(\\s*['`\"]#)"+name+"(['`\"])"), '$1'+newName+'$2');
-			script = script.replace(new RegExp("((\\brun\\s*\\(\\s*\\[[^\\]]*)['`\"]#)"+name+"(['`\"][^\\]]*\\]\\s*,)", "g"), '$1'+newName+'$3')
+			script = script.replace(new RegExp("((\\brun\\s*\\(\\s*\\[[^\\]]*)['`\"]#)"+name+"(['`\"][^\\]]*\\]\\s*,)", "g"), '$1'+newName+'$3');
 			
 			lsd.script = script;
 			editorDynScript.setValue(script);
@@ -2244,7 +2228,7 @@
 		
 		function deleteContentScript() {
 			console.log('deleteContentScript');
-			if (selectedContentScript == "")
+			if (selectedContentScript === "")
 				return;
 			
 			if (confirm(`Do you realy want to delete content script ${selectedContentScript}?`)) {
@@ -2272,7 +2256,7 @@
 		
 		function moveUpContentScript() {
 			console.log('moveUpContentScript');
-			if (selectedContentScript == "")
+			if (selectedContentScript === "")
 				return;
 			
 			var node = $(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`);
@@ -2308,7 +2292,7 @@
 		
 		function moveDownContentScript() {
 			console.log('moveDownContentScript');
-			if (selectedContentScript == "")
+			if (selectedContentScript === "")
 				return;
 			
 			var node = $(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`);
@@ -2409,9 +2393,9 @@
 			$(this).addClass("selected");
 			
 			selectedContentScript = name;
-			var value = localStorage["$cs-"+name];
+			var data, value = localStorage["$cs-"+name];
 			try {
-				var data = JSON.parse(value);
+				data = JSON.parse(value);
 			} catch (exception) {
 				console.error(value);
 				return;
@@ -2449,23 +2433,23 @@
 					return true;
 					
 				if (filter.name)
-					return s.name == filter.name;
+					return s.name === filter.name;
 				
 				// otherwise, only load content scripts whose script text matches the content filter.
 				var contentFilter = filter.pattern;
 				
 				// If searched text is /msg/g then /([\s\S]*?)msg/g should be used for searching
 				var match = s.script.match(contentFilter);
-				return match != null;
+				return match !== null;
 			});
 		}
 		
 		function loadAllContentScripts_internal(addMenu, procItem) {
-			var keys = new Array();
-			for ( key in localStorage ) {
+			var keys = [], key, name, value;
+			for (key in localStorage ) {
 				if (/^\$cs-/.test(key)) {
-					var name = key.replace(/^\$cs-/, "");				
-					var value = localStorage["$cs-"+name];
+					name = key.replace(/^\$cs-/, "");				
+					value = localStorage["$cs-"+name];
 					var data = JSON.parse(value);					
 					data['name'] = name;
 					
@@ -2475,10 +2459,10 @@
 				}
 			}
 			keys.sort(sortContentScriptByDefault);
-			for ( i in keys ) {
+			for ( var i = 0; i < keys.length; ++ i ) {
 				var item = keys[i];
-				var name = item['name'];
-				var key = "$cs-" + name;
+				name = item['name'];
+				key = "$cs-" + name;
 				if (addMenu) {
 					var flag = addMenu;
 					if (isFunction(addMenu))
@@ -2508,8 +2492,8 @@
 		}
 		
 		function contentScriptSaved(noConfirm) {
-			//if(currentSavedStateDCS!=null) {
-				if(currentSavedStateDCS != editorDynScript.getValue() ) {
+			//if(currentSavedStateDCS!==null) {
+				if(currentSavedStateDCS !== editorDynScript.getValue() ) {
 					if (noConfirm)
 						return false;
 					else

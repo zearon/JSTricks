@@ -1,239 +1,210 @@
-chrome.runtime.onMessage.addListener(function(request, sender) {
-	if (request.method == "UpdateSettings") {
-		optionValueChanged();
-	} else if (request.method == "UpdateContextMenu") {
-		scriptGroups = request.data;
-		console.log("Update Context Menu");
-		console.log(scriptGroups);
-		updateScriptConextMenu();
-	} 
-});
-        
-var preferencesMenuID;
+//if (!Object.prototype.clear)	
+//	Object.prototype.clear = function() { for (var key in this) { delete this[key]; } };
 
-var scriptGroups = {};
-var scriptMenuDict = {};
-function scriptMenuClick(info, tab) {
-	var menuID = info.menuItemId;
-	var file = scriptMenuDict[menuID];
-	file = file.replace(/^\$cs\-/, "");
-	debug_log(`Menu ${menuID} clicked: load file ${file}`, "Context menu item info:", info);
+(function() {
 	
-	/*
-	var text = localStorage[file];
-	var script = JSON.parse(text)["script"];
-	*/
-	
-	function execScriptInTab(tabid) {
-		chrome.tabs.executeScript(tabid, {code:'delete INFO.contextMenuInfo; INFO.contextMenuInfo = JSON.parse(decodeURIComponent("'+encodeURIComponent(JSON.stringify(info))+'")); if (INFO.debug) { console.debug(INFO); }'});
-		chrome.runtime.sendMessage({tabid: tabid, method: "ExecuteContentScript", data: file});
+	/* Register events */
+	chrome.runtime.onInstalled.addListener(onExtensionInstalled);
+	chrome.runtime.onMessage.addListener(onMessageReceived);
+	chrome.contextMenus.onClicked.addListener(onContextMenuItemClicked);
+
+	/* Event listeners */
+	function onExtensionInstalled(details) {
+		initConextMenu();
 	}
 	
-	if (tab.id >= 0) {
-		execScriptInTab(tab.id);
-	} else {		
-		chrome.tabs.query({active:true, windowId:chrome.windows.WINDOW_ID_CURRENT}, function(tabs) {
-			if (chrome.runtime.lastError) {
-				// cannot get current selected tab.
-			} else {
-				execScriptInTab(tabs[0].id);
+	function onMessageReceived(request, sender) {
+		if (request.method == "UpdateSettings") {
+			onOptionValueChanged();
+		} else if (request.method == "UpdateContextMenu") {
+			var scriptGroups = request.data;
+			console.log("Update Context Menu");
+			console.log(scriptGroups);
+			updateConextMenu(scriptGroups);
+		} 
+	}
+	
+	function onContextMenuItemClicked(info, tab) {
+		var menuID = info.menuItemId;
+		// IDs of script menu items start from 1000
+		if (menuID >= 1000) {
+			onScriptMenuItemClick(info, tab);
+		}
+		
+		// IDs of option menu items start from 100
+		else if (menuID >= 100) {
+			onOptionMenuItemClick(info, tab);
+		}
+	}
+	/* End of event listeners */
+	
+	
+	/* Persistent states */
+	var scriptMenuDict = getSetting("temp-contextMenu-scriptMenuDict", true);	
+	var optionMenuDict = getSetting("temp-contextMenu-optionMenuDict", true);	
+	var optionMenuDictReverse = getSetting("temp-contextMenu-optionMenuDictReverse", true);
+	
+// 	if (!scriptMenuDict) { scriptMenuDict = {}; setSetting("temp-contextMenu-scriptMenuDict", {}, true); }
+// 	if (!optionMenuDict) { optionMenuDict = {}; setSetting("temp-contextMenu-optionMenuDict", {}, true); }
+// 	if (!optionMenuDictReverse) { scriptMenuDict = {}; setSetting("temp-contextMenu-optionMenuDictReverse", {}, true); }
+	
+
+	/* Event listener for onInstalled */
+	function initConextMenu() {
+		sortContentScriptByDefault = function(a, b) {
+			return a.group.localeCompare(b.group) * 100 + Math.sign(a.index - b.index);
+		};
+
+		var groups = {};
+		var keys = new Array();
+		for ( key in localStorage ) {
+			if (/^\$cs-/.test(key)) {
+				var name = key.replace(/^\$cs-/, "");				
+				var value = localStorage["$cs-"+name];
+				var data = JSON.parse(value);					
+				data['name'] = name;
+			
+				keys.push(data);					
 			}
-		});
-	}
-	
-	
-	// chrome.tabs.executeScript(tab.id, {code:script});
-}
-
-var optionMenuDict = {};
-var optionMenuDictReverse = {};
-function optionMenuClick(info, tab) {
-	var menuID = info.menuItemId;
-	var optionKey = optionMenuDict[menuID];
-	
-	var optionValue = localStorage[optionKey] != "false";
-	// make it the opposite and then save.
-	localStorage[optionKey] = optionValue ? "false" : "true";
-	chrome.contextMenus.update(menuID, {checked:!optionValue});
-	
-	// call update settings defined in bg.js
-	updateSettings();
-}
-
-function optionValueChanged() {
-	console.log("Option value changed");
-	for (key in optionMenuDictReverse) {
-		var menuID = optionMenuDictReverse[key];
-		var value = localStorage[key] != "false";
-		chrome.contextMenus.update(menuID, {checked:value});		
-	}
-}
-
-function reloadBackroundPage(info, tab) {
-	//var id = chrome.runtime.id;
-	// chrome.management need "management" permissions in manifest.json
-	//chrome.management.setEnabled(id, false, function() {
-	//	// re-enable
-	//	chrome.management.setEnabled(id, true, function() {} );
-	//});
-}
-
-
-function updateScriptConextMenu() {
-	// remove old menues
-	chrome.contextMenus.removeAll();
-	scriptMenuDict = {};
-	
-	// Create menus
-	for ( groupName in scriptGroups ) {
-		var group = scriptGroups[groupName];
-		var groupMenuID = null;
-		if (groupName == "") {
-		} else {
-			groupMenuID = chrome.contextMenus.create({"title": `Scripts [${groupName}]`, "contexts":["all"]});
 		}
+	
+		keys.sort(sortContentScriptByDefault);
+		for ( var i = 0; i < keys.length; ++ i ) {
+			var item = keys[i];
+			var name = item['name'];
+			var key = "$cs-" + name;
 		
-		var menuID = null;
-		for ( index in group ) {
-			var menu = group[index];
-			menuID = chrome.contextMenus.create({"title": `${menu.title}`, "contexts":["all"],
-							   "parentId": groupMenuID, "onclick": scriptMenuClick});
+			var group = item["group"];
+			if (!groups[group]) {
+				groups[group] = [];
+			}
+			groups[group].push({"title":item.title, "file":key});
+		}
+		delete keys;
+	
+		updateConextMenu(groups);
+	}
+	
+
+	function updateConextMenu(scriptGroups) {
+		// remove old menues
+		chrome.contextMenus.removeAll();
+		
+		scriptMenuDict = {}; 
+		var menuID = 1000;
+	
+		// Create menus
+		for ( groupName in scriptGroups ) {
+			var group = scriptGroups[groupName];
+			var groupMenuID;
+			if (groupName == "") {
+			} else {			
+				groupMenuID = "" + menuID;
+				chrome.contextMenus.create({"id":"" + menuID++,"title": `Scripts [${groupName}]`, "contexts":["all"]});
+			}
+		
+			for ( var index = 0; index < group.length; ++ index ) {
+				var menu = group[index];
+				menuID = chrome.contextMenus.create({"id":"" + menuID, "title": `${menu.title}`, "contexts":["all"],
+									 "parentId": groupMenuID});
 			
-			scriptMenuDict[menuID] = menu.file;
+				scriptMenuDict[menuID++] = menu.file;
+			}
 		}
+	
+		// Create a separator
+		chrome.contextMenus.create({"id":"0", "type": "separator", "contexts":["all"]});
+		chrome.contextMenus.create({"id":"1", "title": "Preferences", "contexts":["all"]});
+	
+		// Create default menus
+		createDefaultMenus();		
+
+		setSetting("temp-contextMenu-scriptMenuDict", scriptMenuDict, true);
 	}
-	
-	// Create a separator
-	chrome.contextMenus.create({"type": "separator", "contexts":["all"]});
-	preferencesMenuID = chrome.contextMenus.create({"title": "Preferences", "contexts":["all"]});
-	
-	// Create default menus
-	createDefaultMenus();
-}
 
-function createDefaultMenus() {
-	var menuReloadBackground = chrome.contextMenus.create(
-	  {"title": "Reload BG Page", "type": "normal", "contexts":["all"], "onclick":reloadBackroundPage});
-	  
-	createOptionMenu("Debug Mode", "$setting.DEBUG");
-	createOptionMenu("Run Code Mode", "$setting.DEBUG_runbuttoncode", preferencesMenuID);
-	createOptionMenu("Disable Run-Code Buttons", "$setting.popupwindow_disableRunCodeButton", preferencesMenuID);
-}
-
-function createOptionMenu(title, keyInLocalStorage, parentID) {
-	var options = {"title": title, "type": "checkbox", "contexts":["all"], "onclick":optionMenuClick, 
-	   "checked":("false" != localStorage[keyInLocalStorage]) };
-	
-	if (parentID)
-		options["parentId"] = parentID;
+	function createDefaultMenus() {
+	// 	var menuReloadBackground = chrome.contextMenus.create(
+	// 	  {"title": "Reload BG Page", "type": "normal", "contexts":["all"], "onclick":reloadBackroundPage});
 		
-	var menuID = chrome.contextMenus.create(options);
-	  
-	optionMenuDict[menuID] = keyInLocalStorage;
-	optionMenuDictReverse[keyInLocalStorage] = menuID;
-}
-        
-function initScriptConextMenu() {
-	sortContentScriptByDefault = function(a, b) {
-		return a.group.localeCompare(b.group) * 100 + Math.sign(a.index - b.index);
-	};
+		var menuID = 100;
+		optionMenuDict = {}; 
+		optionMenuDictReverse = {}; 
 
-	var groups = {};
-	var keys = new Array();
-	for ( key in localStorage ) {
-		if (/^\$cs-/.test(key)) {
-			var name = key.replace(/^\$cs-/, "");				
-			var value = localStorage["$cs-"+name];
-			var data = JSON.parse(value);					
-			data['name'] = name;
-			
-			keys.push(data);					
-		}
-	}
-	
-	keys.sort(sortContentScriptByDefault);
-	for ( i in keys ) {
-		var item = keys[i];
-		var name = item['name'];
-		var key = "$cs-" + name;
+		createOptionMenu("" + menuID++, "Debug Mode", "DEBUG");
+		createOptionMenu("" + menuID++, "Run Code Mode", "DEBUG_runbuttoncode", "1");
+		createOptionMenu("" + menuID++, "Disable Run-Code Buttons", "popupwindow_disableRunCodeButton", "1");
 		
-		var group = item["group"];
-		if (!groups[group]) {
-			groups[group] = [];
-		}
-		groups[group].push({"title":item.title, "file":key});
+		setSetting("temp-contextMenu-optionMenuDict", optionMenuDict, true);
+		setSetting("temp-contextMenu-optionMenuDictReverse", optionMenuDictReverse, true);
 	}
-	delete keys;
+
+	function createOptionMenu(id, title, keyInLocalStorage, parentID) {
+		var options = {"id":id, "title": title, "type": "checkbox", "contexts":["all"], 
+			 "checked":("false" != getSetting(keyInLocalStorage)) };
 	
-	scriptGroups = groups;
+		if (parentID)
+			options["parentId"] = parentID;
+		
+		chrome.contextMenus.create(options);
+		
+		optionMenuDict[id] = keyInLocalStorage;
+		optionMenuDictReverse[keyInLocalStorage] = id;
+	}	
 	
-	updateScriptConextMenu();
-}
+	
+	
+	/* Event listener for onMessage with method "UpdateSettings" */
+	function onOptionValueChanged() {
+		console.log("Option value changed");
+		for (key in optionMenuDictReverse) {
+			var menuID = optionMenuDictReverse[key];
+			var value = getSetting(key) != "false";
+			chrome.contextMenus.update(menuID, {checked:value});		
+		}
+	}
+	
 
-initScriptConextMenu();
+
+	/* Event listener for onClicked of context menues */
+	function onScriptMenuItemClick(info, tab) {
+		var menuID = info.menuItemId;
+		var file = scriptMenuDict[menuID];
+		file = file.replace(/^\$cs\-/, "");
+		debug_log(`Menu ${menuID} clicked: load file ${file}`, "Context menu item info:", info);
+	
+		function execScriptInTab(tabid) {
+		  var initCode = 'delete INFO.contextMenuInfo; INFO.contextMenuInfo = JSON.parse(decodeURIComponent("'+encodeURIComponent(JSON.stringify(info))+'")); if (INFO.debug) { console.debug(INFO); }';
+			chrome.runtime.sendMessage({tabid: tabid, method: "ExecuteContentScript", data: {name:file, initCode:initCode} });
+		}
+	
+		if (tab.id >= 0) {
+			execScriptInTab(tab.id);
+		} else {		
+			chrome.tabs.query({active:true, windowId:chrome.windows.WINDOW_ID_CURRENT}, function(tabs) {
+				if (chrome.runtime.lastError) {
+					// cannot get current selected tab.
+				} else {
+					execScriptInTab(tabs[0].id);
+				}
+			});
+		}
+	}
+	
+	function onOptionMenuItemClick(info, tab) {
+		var menuID = info.menuItemId;
+		var optionKey = optionMenuDict[menuID];
+	
+		var optionValue = getSetting(optionKey) != "false";
+		// make it the opposite and then save.
+		setSetting(optionKey, optionValue ? "false" : "true");
+		chrome.contextMenus.update(menuID, {checked:!optionValue});
+	
+		// call update settings defined in bg.js
+		updateSettings();
+	}
+
+// 	function reloadBackroundPage(info, tab) {
+// 	}
 
 
-
-
-
-
-
-
-
-
-
-// A generic onclick callback function.
-function genericOnClick(info, tab) {
-  console.log("item " + info.menuItemId + " was clicked");
-  console.log("info: " + JSON.stringify(info));
-  console.log("tab: " + JSON.stringify(tab));
-}
-
-// Create some radio items.
-/*
-function radioOnClick(info, tab) {
-  console.log("radio item " + info.menuItemId +
-              " was clicked (previous checked state was "  +
-              info.wasChecked + ")");
-}
-var radio1 = chrome.contextMenus.create({"title": "Radio 1", "type": "radio",
-                                         "onclick":radioOnClick});
-var radio2 = chrome.contextMenus.create({"title": "Radio 2", "type": "radio",
-                                         "onclick":radioOnClick});
-console.log("radio1:" + radio1 + " radio2:" + radio2);
-
-// Create some checkbox items.
-function checkboxOnClick(info, tab) {
-  console.log(JSON.stringify(info));
-  console.log("checkbox item " + info.menuItemId +
-              " was clicked, state is now: " + info.checked +
-              "(previous state was " + info.wasChecked + ")");
-
-}
-*/
-
-/*
-var functions = chrome.contextMenus.create({"title": "Local storage backup and restore", "contexts":["page"],
-									   "onclick": genericOnClick});
-
-// Dynamic loaded scripts
-var preferences = chrome.contextMenus.create({"title": "Dynamic loaded scripts"});
-*/
-/*
-// Test menus
-// Create one test item for each context type.
-var testMenu = chrome.contextMenus.create({"title": "Test menus"});
-var contexts = ["page","selection","link","editable"];
-			   // ,"image","video","audio"];
-for (var i = 0; i < contexts.length; i++) {
-  var context = contexts[i];
-  var title = "Test '" + context + "' menu item";
-  var id = chrome.contextMenus.create({"title": title, "parentId": testMenu, "contexts":[context],
-									   "onclick": genericOnClick});
-  // console.log("'" + context + "' item:" + id);
-}
-*/
-
-//var menuRefresh = chrome.contextMenus.create(
-//  {"title": "Update Context-Menu", "parentId": preferencesMenuID, "type": "normal", "onclick":initScriptConextMenu});
-// console.log("checkbox1:" + checkbox1 + " checkbox2:" + checkbox2);
+}) ();

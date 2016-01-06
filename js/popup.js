@@ -68,10 +68,10 @@ API_GetSelectedTab(function(tab) {
 
 
 function guid() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-        return v.toString(16);
-    });
+	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+		var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+		return v.toString(16);
+	});
 }
 
 
@@ -132,13 +132,14 @@ function API_InsertCssInTab(css) {
 	chrome.runtime.sendMessage(msg);
 }
 
-function API_SetIcon(arg) {
-	if (inExtensionPage) {
-		chrome.browserAction.setIcon(arg);   
-	} else {
-		API_SendRequest("SetIcon", arg);
-	}
-}
+
+// function API_SetIcon(arg) {
+// 	if (inExtensionPage) {
+// 		chrome.browserAction.setIcon(arg);   
+// 	} else {
+// 		API_SendRequest("SetIcon", arg);
+// 	}
+// }
 
 function API_SendMessageToTab(tabid, msg, callback) {
 	if (inExtensionPage) {
@@ -156,6 +157,10 @@ function API_OpenWindow(url, name) {
 	}
 }
 
+function API_ConsoleLog() {
+	API_SendRequest("ConsoleLog", arguments);
+}
+
 function log() {
 	console.log.apply(console, arguments);
 	
@@ -170,18 +175,19 @@ function log() {
 			if (!inExtensionPage)
 				return;
 				
-			var enabled = localStorage["$setting.enabled"] == "true";
+			var enabled = getSetting("enabled") == "true";
 			
 			if (enabled) {
 				// Disable
-				localStorage["$setting.enabled"] = "false";
-				API_SetIcon({path:"icon/icon24_disabled.png"});
+				setSetting("enabled", "false");
+				//API_SetIcon({path:"icon/icon24_disabled.png"});
 			} else {
 				// Enable
 				chrome.runtime.sendMessage({tabid:tabID, method: "JSTinjectScript"});
-				localStorage["$setting.enabled"] = "true";
-				API_SetIcon({path:"icon/icon24.png"});
+				setSetting("enabled", "true");
+				//API_SetIcon({path:"icon/icon24.png"});
 			}
+			chrome.runtime.sendMessage({tabid:tabID, method: "EnableDisableExt", date: (enabled ? "false" : "true") });
 			setEnableDisableBtnImage();
 		}
 		
@@ -202,8 +208,8 @@ function log() {
 				var domain = url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
 				delete localStorage[domain];
 				  
-            	API_SetIcon({path:"icon/icon24.png"});
-            
+				API_SetIcon({path:"icon/icon24.png"});
+			
 				// Update status to let user know options were saved.
 				var status = document.getElementById("title");
 				status.innerHTML = "Options deleted. <br/>Please refresh the page.";
@@ -221,24 +227,24 @@ function log() {
 		}
 		function saveBody(url)
 		{
-            var tmpp = {script:"",autostart:false};
-    		if(localStorage[url])
-            {
+			var tmpp = {script:"",autostart:false};
+			if(localStorage[url])
+			{
 				 tmpp = JSON.parse(localStorage[url]);
 			}	
-            
-            tmpp.script = editor.getValue();
+			
+			tmpp.script = editor.getValue();
 			tmpp.css = editorCss.getValue();
-            tmpp.autostart = document.getElementById("jstcb").checked;
+			tmpp.autostart = document.getElementById("jstcb").checked;
 			tmpp.sfile  = $("#jsincludefile").val();
 			
-			if (tmpp.autostart)
-				API_SetIcon({path:"icon/icon24_auto.png"});
-			else
-				API_SetIcon({path:"icon/icon24.png"});
+// 			if (tmpp.autostart)
+// 				API_SetIcon({path:"icon/icon24_auto.png"});
+// 			else
+// 				API_SetIcon({path:"icon/icon24.png"});
 			
-            localStorage[url] = JSON.stringify(tmpp);
-            
+			localStorage[url] = JSON.stringify(tmpp);
+			
 			// Update status to let user know options were saved.
 			var status = document.getElementById("title");
 			status.innerHTML = "Options Saved.";
@@ -402,14 +408,14 @@ function log() {
 			$("#editInOptionPageBtn").click(editInOptionPage);
 			$("#deleteBtn").click(remove);
 			$("#showInDialogBtn").click(showInDialog);
-			$("#forjstcb").click(changeAutostart);
+			//$("#forjstcb").click(changeAutostart);
 			$("#enableDisableBtn").click(toggleExtension);
 			$("#optionsBtn").click(function() { window.open(chrome.runtime.getURL("options.html"), "OptionPage"); });
 			
 			$("#jstcb").button({icons: {
 						primary: "ui-icon-close"
 					}
-				}).click(save_options);
+				}).click(changeAutostart);
 				
 			if (!inExtensionPage) {
 				$("#img-icon").hide();
@@ -511,15 +517,16 @@ function log() {
 		
 		function generateEditor(textareaID, mode, extraOptions) {
 			var options = {
-				mode: mode,					
-				tabMode: 'indent',
+				mode: mode,				
+				indentWithTabs: false,
+				tabSize: 2,
 				lineNumbers:true,
 				styleActiveLine: true,
 				matchBrackets :true,
 				theme: getCodeMirrorTheme(), //_yellow
 				foldGutter: true,
 				lint: {"esversion":6, "expr":true, "indent":2, "globals":
-						{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, 
+						{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, "ready":false,
 						"INFO":false, "window":false, "navigator":false, "document":false, "alert":false, "confirm":false, 
 						"prompt":false, "setTimeout":false, "setInterval":false, "location":false,
 						"localStorage":false, "FileReader":false} },
@@ -599,9 +606,16 @@ function log() {
 			
 		}
 		
-		function changeAutostart() {
+		function changeAutostart() {			
+			//$("#jstcb").button("refresh");
 			var autostart = document.getElementById("jstcb").checked;
+			
 			var lineCount = editor.lineCount();
+			
+			chrome.runtime.sendMessage({method:"UpdateActiveSites", data: {site:tabSite, autostart:autostart} });
+			save_options();
+			
+			
 			//console.log("linecount=" + lineCount);
 			/*if (autostart) {
 				// change from autostart to not autostart
@@ -687,13 +701,14 @@ function log() {
 			sections = metadataSetting["modules"];
 			for (var i=0; i < sections.length; ++ i) {
 				var section = sections[i];
+				var addRequires = section.addRequires;
 				var divID = "genUITab-" + section.moduleName.replace("#", "");	
 				var title = "Click button to add module dependency. Other buttons cannot work properly without adding module dependency.";			
 				$("#editor-script-gen-ui-title ul").append(`<li class="tab-title tab-level tab-path-0-${i}" tab-path="tab-path-0-${i}" module="${section.moduleName}" target="${divID}">${section.title}</li>`);
 				$("#editor-script-gen-ui").append('<div id="'+divID+'" class="tab-pane"></div>');
 				var sectionDiv = $('#' + divID);
 				//sectionDiv.append('<div><h3 class="section-title" data="'+section.objName+' = Object.create">'+section.title+'<input type="text" value="'+section.title+'" style="display:none" /></h3></div>');
-				sectionDiv.append(`<div style="display:inline; margin-right:5px;"><input class="add-script-btn init-script-btn" type="button" value="Init" title="${title}" data-module="${section.moduleName}" data-obj="${section.objName}" data-code="" /></div>`);
+				sectionDiv.append(`<div style="display:inline; margin-right:5px;"><input class="add-script-btn init-script-btn" type="button" value="Init" title="${title}" data-module="${section.moduleName}" data-obj="${section.objName}" data-addRequires="${addRequires}" data-code="" /></div>`);
 				for (var j=0; j < section.commands.length; ++ j) {
 					var command = section.commands[j];
 					var statementType = command.statement ? command.statement : "common";
@@ -719,7 +734,7 @@ function log() {
 					var moduleName = command.moduleName ? command.moduleName : section.moduleName;
 					var objName = command.objName ? command.objName : section.objName;
 					if (command.loadModule == "true") {
-						var element = `<div style="display:inline"><input class="add-script-btn${runClass} init-script-btn" type="button" value="${command.title}" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-code="" /></div>`
+						var element = `<div style="display:inline"><input class="add-script-btn${runClass} init-script-btn" type="button" value="${command.title}" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-addRequires="${addRequires}" data-code="" /></div>`
 						sectionDiv.append(element);
 					} else if (code) {
 						var element = `<div style="display:inline"><input class="add-script-btn${runClass}" type="button" value="${command.title}" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-code="${command.code}" /></div>`
@@ -1083,6 +1098,7 @@ function log() {
 		function addRequireFile() {
 			var node = $(this);
 			var className = node.attr("data-module");
+			var addRequires = node.attr("data-addRequires") === "true";
 			var objName = node.attr("data-obj");
 			
 			var code = editor.getValue();
@@ -1103,26 +1119,20 @@ function log() {
 			editor.setValue(code);
 		
 		
-//		 Require filed is not needed with sea.js
-//		
-//			var url = $(this).attr("data-require");
-//			var requireInput = $("#jsincludefile");
-//			var requireFilesText = requireInput.val();
-//			var requireFiles = requireFilesText.split(/\s*,\s*/);
-//			var contains = false;
-//			for ( var i = 0; i < requireFiles.length; ++i ) {
-//				if (requireFiles[i] == url) {
-//					contains = true;
-//					break;
-//				}
-//			}
-//			if (!contains)
-//				requireFiles.push(url);
-//				
-//			requireFilesText = requireFiles.filter(function(str) {return str != ""; }).join(", ");
-//			requireInput.val(requireFilesText);
-//		
-		
+      // Set require filed 
+      if (addRequires) {
+        var requireInput = $("#jsincludefile");
+        var requireFilesText = requireInput.val();
+        var requireFiles = requireFilesText.split(/\s*,\s*/);
+
+        if (!requireFiles.contains(className))
+          requireFiles.push(className);
+        else
+          requireFiles = requireFiles.filter(function(str) {return str != className; });
+      
+        requireFilesText = requireFiles.filter(function(str) {return str != ""; }).join(", ");
+        requireInput.val(requireFilesText);
+      }
 		}
 		
 		function runCodeOnRunButtonClicked(codesnippet, moduleName, objName) {

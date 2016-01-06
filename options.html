@@ -8,9 +8,6 @@
   <head>	
 	<meta charset="utf-8" />
 	<title>Javascript Tricks - Options</title>
-	<script type="text/javascript" src="lib/cryptojs/aes.js" ></script>	
-	<script type="text/javascript" src="lib/cryptojs/md5.js" ></script>	
-	<script type="text/javascript" src="lib/cryptojs/pad-zeropadding.js" ></script>	
 
 	<!-- CodeMirror stylesheets and scripts -->
 	<link rel="stylesheet" href="lib/codemirror/lib/codemirror.css">
@@ -56,10 +53,18 @@
 
 	<script src="usrlib/localStorageBackup.js"></script>
 	
+	<script src="js/common/commonext.js" ></script>	
+	<script src="js/common/templating.js" ></script>	
+	<script src="js/common/templates.js" ></script>	
+	<script src="js/common/storage.js" ></script>	
+	<script src="js/common/codesnippet.js" ></script>	
 	<script src="js/theme.js" ></script>	
-	<script src="js/templating.js" ></script>	
-	<script src="js/templates.js" ></script>	
-	<script src="js/codesnippet.js" ></script>	
+	
+	<script src="js/common/cloudsave/cryptojs/aes.js" ></script>	
+	<script src="js/common/cloudsave/cryptojs/md5.js" ></script>	
+	<script src="js/common/cloudsave/cryptojs/pad-zeropadding.js" ></script>	
+	<script src="js/common/cloudsave/cloudsave.js" ></script>
+	
 	<script src="js/options.js"></script>
 	
 	
@@ -93,7 +98,7 @@
 			<span id="backupToolbar" class="hide" style="display:block;margin-right:60px;float:right;position:relative;top:-25px;">
 				<input id="testtest" type="button" value="Test" class="hide" style="display:none" />
 				Theme:
-				<select id="theme" class="localstorage_itemvalue" target="$setting.temp-theme" title="Theme. Automatic means automatically change between a day theme and a night theme.">
+				<select id="theme" class="localstorage_itemvalue" target="$setting.theme" defaultvalue="_yellow" title="Theme. Automatic means automatically change between a day theme and a night theme.">
 					<option value="light">Light</option>
 					<option value="_yellow">Yellow</option>
 					<option value="dark">Dark</option>
@@ -256,7 +261,7 @@
 			<div id="tabs-dcs" class="tab">
 				<div class="editwrap" >
 					<div id="script-list" class="navbar" style="overflow:hidden">
-						<div class="" style="height:28px; border-bottom:white 1px solid; padding-top:4px; padding-left: 0px;">
+						<div class="" style="height:28px; border:white solid; border-width:1px 1px 0 0; padding-top:4px; padding-left: 0px;">
 							<input id="dcsadd" type='button' value="Add" />
 							<input id="dcssort" type='button' value="Sort" />
 							<input id="dcsreindex" type='button' value="Reindex" />
@@ -689,9 +694,14 @@
 							Local storage backup file:
 							<input id="__LocalStorageFP__" type="file" title="Please select the backup file to restore" style="width:150px"/>
 							<input type="button" id="restorebtn" value="Restore" style='height:25px' />
+							<hr/>
+							
+							<h2>Restore with default settings</h2>
+							<input type="button" id="loadDftSettingsBtn" value="Load Default Settings" style='height:25px' />
+							<br/>
+							<hr/>
 							
 							<div class="hide0">
-								<hr/>
 								<h2>Generate Initial Settings (only for development use)</h2>
 								<input type="button" id="genInitSettingbtn" value="Generate" style='height:25px' />
 								<a id="__UI_dialog__link_init_setting" download="init_settings.json" title="Click to download and view the init_settings.json file." style="display:none;position:relative;top:5px">Download and View</a>
