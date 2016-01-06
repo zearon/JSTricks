@@ -1,4 +1,8 @@
 (function() {
+
+  if (seajs.mod_boot)
+    return;
+
   function guid() {
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
           var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
@@ -415,5 +419,22 @@ ${srcCode};
         callback(error);
       }
   });
+  
+  seajs.mod_boot = "v0.1";
+  
+  // Add some default settings
+	seajs.config({
+	"base": ("chrome-extension://" + chrome.runtime.id + "/injected/"),
+	"paths": {
+		"lib": "chrome-extension://" + chrome.runtime.id + "/lib"
+	},
+	"alias": {
+	  "jquery": "lib/jquery[AMD]",  //"[AMD]jquery.sea.js", "[CommonJS]jquery.sea.js"
+	  "jquery-ui": "lib/jquery-ui[AMD]",
+	  "ready": "ready[AMD]",
+	  "msgbox": "msgbox",
+	  "selectbox": "selectionBox"
+	}
+	});
 
 }) ();

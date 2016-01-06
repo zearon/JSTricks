@@ -1,3 +1,5 @@
+/* globals chrome, Image, document, getSetting, getExtDisabledPattern */
+
 	// DO NOT register onInstalled event here, because resetDeclarativeRules is invoked
 	// by a function registered with onInstalled event in bg.js
 	//chrome.runtime.onInstalled.addListener(resetDeclarativeRules);
@@ -72,7 +74,7 @@
 				
 							// And shows the extension's page action.
 							actions: [  new chrome.declarativeContent.RequestContentScript({
-								"js": [ "injected/sea-debug.js", "injected/seajs_boot.js", "injected/autoload.js"],
+								"js": [ "injected/dom.js", "injected/sea-debug.js", "injected/seajs_boot.js", "injected/autoload.js"],
 								"allFrames": false,
 								"matchAboutBlank": false}) ]
 						} );				
@@ -122,9 +124,9 @@
 						imageData: {19: imageData19, 38: imageData38}
 					});
 					callback(action);
-				}
+				};
 				image38.src = chrome.runtime.getURL(path38);
-			}
+			};
 			image19.src = chrome.runtime.getURL(path19);
 		}
 	

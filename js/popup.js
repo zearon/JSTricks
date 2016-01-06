@@ -525,7 +525,7 @@ function log() {
 				theme: getCodeMirrorTheme(), //_yellow
 				foldGutter: true,
 				lint: {"esversion":6, "expr":true, "indent":2, "globals":
-						{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, 
+						{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, "ready":false,
 						"INFO":false, "window":false, "navigator":false, "document":false, "alert":false, "confirm":false, 
 						"prompt":false, "setTimeout":false, "setInterval":false, "location":false,
 						"localStorage":false, "FileReader":false} },
@@ -700,13 +700,14 @@ function log() {
 			sections = metadataSetting["modules"];
 			for (var i=0; i < sections.length; ++ i) {
 				var section = sections[i];
+				var addRequires = section.addRequires;
 				var divID = "genUITab-" + section.moduleName.replace("#", "");	
 				var title = "Click button to add module dependency. Other buttons cannot work properly without adding module dependency.";			
 				$("#editor-script-gen-ui-title ul").append(`<li class="tab-title tab-level tab-path-0-${i}" tab-path="tab-path-0-${i}" module="${section.moduleName}" target="${divID}">${section.title}</li>`);
 				$("#editor-script-gen-ui").append('<div id="'+divID+'" class="tab-pane"></div>');
 				var sectionDiv = $('#' + divID);
 				//sectionDiv.append('<div><h3 class="section-title" data="'+section.objName+' = Object.create">'+section.title+'<input type="text" value="'+section.title+'" style="display:none" /></h3></div>');
-				sectionDiv.append(`<div style="display:inline; margin-right:5px;"><input class="add-script-btn init-script-btn" type="button" value="Init" title="${title}" data-module="${section.moduleName}" data-obj="${section.objName}" data-code="" /></div>`);
+				sectionDiv.append(`<div style="display:inline; margin-right:5px;"><input class="add-script-btn init-script-btn" type="button" value="Init" title="${title}" data-module="${section.moduleName}" data-obj="${section.objName}" data-addRequires="${addRequires}" data-code="" /></div>`);
 				for (var j=0; j < section.commands.length; ++ j) {
 					var command = section.commands[j];
 					var statementType = command.statement ? command.statement : "common";
@@ -732,7 +733,7 @@ function log() {
 					var moduleName = command.moduleName ? command.moduleName : section.moduleName;
 					var objName = command.objName ? command.objName : section.objName;
 					if (command.loadModule == "true") {
-						var element = `<div style="display:inline"><input class="add-script-btn${runClass} init-script-btn" type="button" value="${command.title}" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-code="" /></div>`
+						var element = `<div style="display:inline"><input class="add-script-btn${runClass} init-script-btn" type="button" value="${command.title}" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-addRequires="${addRequires}" data-code="" /></div>`
 						sectionDiv.append(element);
 					} else if (code) {
 						var element = `<div style="display:inline"><input class="add-script-btn${runClass}" type="button" value="${command.title}" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-code="${command.code}" /></div>`
@@ -1096,6 +1097,7 @@ function log() {
 		function addRequireFile() {
 			var node = $(this);
 			var className = node.attr("data-module");
+			var addRequires = node.attr("data-addRequires") === "true";
 			var objName = node.attr("data-obj");
 			
 			var code = editor.getValue();
@@ -1116,26 +1118,20 @@ function log() {
 			editor.setValue(code);
 		
 		
-//		 Require filed is not needed with sea.js
-//		
-//			var url = $(this).attr("data-require");
-//			var requireInput = $("#jsincludefile");
-//			var requireFilesText = requireInput.val();
-//			var requireFiles = requireFilesText.split(/\s*,\s*/);
-//			var contains = false;
-//			for ( var i = 0; i < requireFiles.length; ++i ) {
-//				if (requireFiles[i] == url) {
-//					contains = true;
-//					break;
-//				}
-//			}
-//			if (!contains)
-//				requireFiles.push(url);
-//				
-//			requireFilesText = requireFiles.filter(function(str) {return str != ""; }).join(", ");
-//			requireInput.val(requireFilesText);
-//		
-		
+      // Set require filed 
+      if (addRequires) {
+        var requireInput = $("#jsincludefile");
+        var requireFilesText = requireInput.val();
+        var requireFiles = requireFilesText.split(/\s*,\s*/);
+
+        if (!requireFiles.contains(className))
+          requireFiles.push(className);
+        else
+          requireFiles = requireFiles.filter(function(str) {return str != className; });
+      
+        requireFilesText = requireFiles.filter(function(str) {return str != ""; }).join(", ");
+        requireInput.val(requireFilesText);
+      }
 		}
 		
 		function runCodeOnRunButtonClicked(codesnippet, moduleName, objName) {

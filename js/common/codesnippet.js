@@ -26,56 +26,60 @@ var codesnippit_showPopupInWebpage =
 	});
 `
 
-// Invoked in bg.js
-var codesnippet_addScriptNodeToDOM = 
-`
-	function InjectCodeToOriginalSpace(src, onload) {
-		var s = document.createElement('script');
-		s.setAttribute('src', src);
-		s.setAttribute('type', 'text/javascript');
-		s.onload = function() {
-			console.log("Script is loaded: " + src);
-			if (onload) { onload.apply(this, arguments); }
-		};
-		(document.head||document.documentElement).appendChild(s);
-	}
-	function InjectLinkElementToDom_____(rel, href) {
-		var s = document.createElement('link');
-		s.setAttribute('rel', rel);
-		s.setAttribute('href', href);
-		/*if (onload) { s.onload = onload; }*/
-		(document.head||document.documentElement).appendChild(s);
-	}
-	function DecorateStyleItems_____(style) {
-		return style.replace(/(\\S)(\\s*)(\\/\\*[\\s\\S]*?\\*\\/)?(\\s*\\})/g, function(s, g1, g2, g3, g4) {
-						if (g1==";")
-							return s;
-						else
-							return g1+";"+g2+(g3?g3:"")+g4;
-					})
-					.replace(/;/g, " !important;");
-	}
-	function AppendStyleNodeToDom_____(styles) {
-		var id = 'javascript-tricks';
-		var os = document.getElementById(id);
-		if (os) {
-			os.parentNode.removeChild(os);
-		}
-		
-		var s = document.createElement('style');
-		s.setAttribute('type', 'text/css');
-		s.setAttribute('id', id);
-		s.innerHTML = DecorateStyleItems_____(styles);
-		//(document.body||document.documentElement).appendChild(s);
-		//document.documentElement.insertBefore(s, document.documentElement.childNodes[1]);
-		document.documentElement.appendChild(s);
-	}
-`;
+// Invoked in bg.js. THIS CODE IS MOVED TO injected/dom.js as static injection.
+// var codesnippet_addScriptNodeToDOM = 
+// `    
+// 	function InjectCodeToOriginalSpace(src, onload) {
+// 		var s = document.createElement('script');
+// 		s.setAttribute('src', src);
+// 		s.setAttribute('type', 'text/javascript');
+// 		s.onload = function() {
+// 			console.log("Script is loaded: " + src);
+// 			if (onload) { onload.apply(this, arguments); }
+// 		};
+// 		(document.head||document.documentElement).appendChild(s);
+// 	}
+// 	function InjectLinkElementToDom_____(rel, href) {
+// 		var s = document.createElement('link');
+// 		s.setAttribute('rel', rel);
+// 		s.setAttribute('href', href);
+// 		/*if (onload) { s.onload = onload; }*/
+// 		(document.head||document.documentElement).appendChild(s);
+// 	}
+// 	function DecorateStyleItems_____(style) {
+// 		return style.replace(/(\\S)(\\s*)(\\/\\*[\\s\\S]*?\\*\\/)?(\\s*\\})/g, function(s, g1, g2, g3, g4) {
+// 						if (g1==";")
+// 							return s;
+// 						else
+// 							return g1+";"+g2+(g3?g3:"")+g4;
+// 					})
+// 					.replace(/;/g, " !important;");
+// 	}
+// 	function AppendStyleNodeToDom_____(styles) {
+// 		var id = 'javascript-tricks';
+// 		var os = document.getElementById(id);
+// 		if (os) {
+// 			os.parentNode.removeChild(os);
+// 		}
+// 		
+// 		var s = document.createElement('style');
+// 		s.setAttribute('type', 'text/css');
+// 		s.setAttribute('id', id);
+// 		s.innerHTML = DecorateStyleItems_____(styles);
+// 		//(document.body||document.documentElement).appendChild(s);
+// 		//document.documentElement.insertBefore(s, document.documentElement.childNodes[1]);
+// 		document.documentElement.appendChild(s);
+// 	}
+// `;
 
 // Invoked by addNecessaryScriptsToHead() in bg.js
 var codesnippet_onBootCode = 
 `
-	var INFO = JSON.parse(decodeURIComponent("{{infoStr}}"));
+(function() {
+  if (window.INFO)
+    return;
+  
+	window.INFO = JSON.parse(decodeURIComponent("{{infoStr}}"));
 	INFO.desc = "Javascript Tricks";
 	INFO.tabid = {{tabid}};
 	INFO.taburl = "{{url}}";
@@ -91,7 +95,7 @@ var codesnippet_onBootCode =
 		seajs.config(config);
 	}
 	
-	// Add some default settings
+	// Recover some default settings defined in seajs_boot.js
 	seajs.config({
 	"base": ("chrome-extension://" + chrome.runtime.id + "/injected/"),
 	"paths": {
@@ -100,11 +104,12 @@ var codesnippet_onBootCode =
 	"alias": {
 	  "jquery": "lib/jquery[AMD]",  //"[AMD]jquery.sea.js", "[CommonJS]jquery.sea.js"
 	  "jquery-ui": "lib/jquery-ui[AMD]",
-	  "ready": "domReady[AMD]",
+	  "ready": "ready[AMD]",
 	  "msgbox": "msgbox",
 	  "selectbox": "selectionBox"
 	}
 	});
+}) ();
 `
 
 function codesnippet_getOnBootCode(tabid, url, infoStr) {
