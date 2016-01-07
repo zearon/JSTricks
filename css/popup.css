@@ -229,4 +229,5 @@ input[type=button].add-script-btn {
 	color: black;
 	text-align: center;
 	padding: 250px 0;
+	cursor: default;
 }
