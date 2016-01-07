@@ -14,8 +14,9 @@ function debug_log() {
 	}
 }
 
-function updateSettings() {
-	DEBUG = getSetting("DEBUG") == "true";
+function updateSettings(extraAttribute) {
+	DEBUG = getSetting("DEBUG") === "true";
+	var enabled = getSetting("enabled") !== "false";
 	var setting = {};
 	iterateSettings(function(name, val) {
 		// iteration
@@ -25,14 +26,14 @@ function updateSettings() {
 		setting[name] = val;
 	}, function() {
 		// on complete
-		var INFO = { settings: setting, debug: DEBUG,
-			meta_data: getMetadata() };
+		var INFO = { enabled:enabled, settings: setting, debug: DEBUG, meta_data: getMetadata() };
 	
 		infoStr = encodeURIComponent(JSON.stringify(INFO));
-		setSetting("temp-infostr", infoStr);		
+		setSetting("temp-infostr", infoStr);
 				
 		// Save the meta object into chrome.storage.local
 		chrome.storage.local.set({"INFO": INFO});
+		chrome.storage.local.set({"enabled": enabled});
 
 
 		console.log("Settings are updated, and new INFO is", INFO);
@@ -43,8 +44,6 @@ function updateSettings() {
 (function(global) {
 
 	chrome.runtime.onInstalled.addListener(initExtension);
-
-
 
 
 
@@ -74,8 +73,6 @@ function updateSettings() {
 //       if (frameid == 0)
 // 		    setIconSet(tabid, "inactive");
 //     }
-
-
 		  
 		
 		//chrome.extension.onRequest.addListener(function(request, sender) {
@@ -115,17 +112,26 @@ function updateSettings() {
 		}
 		
 		function processRequest(tabid, url, requestMethod, requestData) {	
-		  var domain_ = url ? url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/) : "";
-		  var domain = domain_ ? domain_[1] : undefined;
+		  var domain = getDomainFromUrl(url);
 		  
 			// Load _Main script as the entry-point of requireJS
 			if (requestMethod == "EnableDisableExt") {
-				var enabled = requestData == "true";
-				// call resetDeclarativeRules() in bg_declaration.js
-				resetDeclarativeRules();
-				//updateActiveSites();
+				var enabled = requestData === "true";
+        chrome.storage.local.set({"enabled": enabled});
+        
+        resetDeclarativeRules(function() {
+          setIconSet(tabid, domain, enabled ? "enabled" : "disabled");
+				  debug_log("Set enabled status to " + enabled);
+        });
 				
-				debug_log("Set enabled status to " + enabled);
+			}
+			
+			// Set icon. Message sent from autoload.js
+			if (requestMethod == "SetIcon") {
+				var iconStatus = requestData;
+        setIconSet(tabid, domain, iconStatus);
+				
+				debug_log("Set icon status to " + iconStatus);
 			}
 			
 			// Inject site-specific scripts on website loaded.
@@ -268,6 +274,7 @@ function updateSettings() {
 				var site = requestData.site;
 				var autostart = requestData.autostart
 				updateActiveSites(mode, site, autostart);
+				updateIconSetInCurrentTab();
 			}
 			
 			// Invoked by DEBUG content script. Other script can send this message as well. For example:
@@ -296,18 +303,30 @@ function updateSettings() {
 			}
 		}
 		
-		function setIconSet(tabid, status) {
-		  if (!status) { status = "default"; }
+		function setIconSet(tabid, domain, status) {
+		  if (status === undefined || status === "enabled") {
+		    // one of "default+active", "default", "active", "inactive", "none"
+        status = getSiteStatus(domain);
+		  }
+		  
+		  console.log("Set icon status to", status);
+		  
 		  var iconPath = null;
 		  switch (status) {
+		  case "disabled":
+		    iconPath = {"19":"icon/ICON19_disabled.png", "38":"icon/ICON38_disabled.png"};
+		    break;
 		  case "inactive":
 		    iconPath = {"19":"icon/ICON19_inactive.png", "38":"icon/ICON38_inactive.png"};
 		    break;
 		  case "active":
 		    iconPath = {"19":"icon/ICON19_active.png", "38":"icon/ICON38_active.png"};
 		    break;
-		  case "disabled":
-		    iconPath = {"19":"icon/ICON19_disabled.png", "38":"icon/ICON38_disabled.png"};
+		  case "default":
+		    iconPath = {"19":"icon/ICON19_dft.png", "38":"icon/ICON38_dft.png"};
+		    break;
+		  case "default+active":
+		    iconPath = {"19":"icon/ICON19_dft_active.png", "38":"icon/ICON38_dft_active.png"};
 		    break;
 		  default:
 		    iconPath = {"19":"icon/ICON19.png", "38":"icon/ICON38.png"};
@@ -315,6 +334,12 @@ function updateSettings() {
 		  }
 		  
 		  chrome.pageAction.setIcon( {tabId: tabid, path: iconPath} );
+		}
+		
+		function updateIconSetInCurrentTab() {
+		  getCurrentTab(function(id, url, tab) {
+		    setIconSet(id, getDomainFromUrl(url));
+		  });
 		}
 		
 		function addNecessaryScriptsForAllSiteToHead(tabid, url, autoloadFileList, loadProperty) {
@@ -471,7 +496,7 @@ function updateSettings() {
 				//debug_log("result of executing content script:");
 				//debug_log(result);
 				if (chrome.runtime.lastError) {
-				  console.error("Error occurs when executing", execDetail);
+				  console.error("Error occurs when executing", execDetail, chrome.runtime.lastError);
 				}
 				
 				if (index <autoloadFileList.length - 1)
@@ -576,8 +601,6 @@ function updateSettings() {
 				  
 				  // initialize active sites pattern
 					updateStatus(activeSites, inactiveSites, defaultActive.value);
-					
-					updateRules(true);
 				}, function(id, type, obj) {
 					// On iterate
 					if (type == "dss" && id == "Default") {
@@ -645,31 +668,17 @@ function updateSettings() {
 				updateStatus(activeSites, inactiveSites, defaultActive.value);
 				settingChanged = true;
 			}
-			
-			if (settingChanged) {
-				updateRules();
-			}
 			// end of function execution flow
 			
 			// Inline function definition
-			function getSitePattern(site) {
-			  return "(" + ('://' + site + "/").getTextRegexpPattern() + ".*" + ")";
-			}
-			
-			function getPositivePattern(sites) {
-			}
-			
-			function getNegativePattern(sites) {
-			  var negative = sites.map(function(str) { return "(" + str.getTextRegexpPattern() + ")"; }).join("|");
-			  return ":\\/\\/" + "((?!" + negative + ").)+";
-			}
-			
-			// Inline function definition
 			function updateAllSitesPattern(allSites) {
-//         var allSitesPattern = "(" + allSites.map(getSitePattern).join("|") + ")";
+//         var allSitesPattern = getPositivePattern(allSites);
         allSitesPattern = getNegativePattern(allSites);
         setSetting("temp-rules-allsites", allSites, true);
         setSetting("temp-rules-allsites-pattern", allSitesPattern);
+        
+        // Save to chrome.storage.local for content scripts access
+        chrome.storage.local.set({"allSites": allSites});
         
 				debug_log("allSitesPattern=", allSitesPattern);
 			}
@@ -689,8 +698,8 @@ function updateSettings() {
 					activeSitesPattern = ".*";
 				  inactiveSitesPattern = "^dummy$";
 				} else {
-          activeSitesPattern = "(" + activeSites.map(getSitePattern).join("|") + ")";
-          inactiveSitesPattern = "(" + inactiveSites.map(getSitePattern).join("|") + ")";
+          activeSitesPattern = getPositivePattern(activeSites);
+          inactiveSitesPattern = getPositivePattern(inactiveSites);
 				}
 			
 				// Save status
@@ -699,17 +708,49 @@ function updateSettings() {
 				setSetting("temp-rules-inactivesites", inactiveSites, true);
 				setSetting("temp-rules-activesites-pattern", activeSitesPattern);
 				setSetting("temp-rules-inactivesites-pattern", inactiveSitesPattern);
+        
+        // Save to chrome.storage.local for content scripts access
+        var iconStatus = {"defaultEnabled":defaultActive, "activeSites": activeSites, "inactiveSites": inactiveSites}
+        chrome.storage.local.set({"iconStatus": iconStatus});
 				
 				debug_log("activeSitesPattern=", activeSitesPattern);
 				debug_log("inactiveSitesPattern=", inactiveSitesPattern);
 			}
 			
-			// Inline function definition
-			function updateRules(forInit) {			
-				// call resetDeclarativeRules() in bg_declaration.js
-				resetDeclarativeRules(forInit);
+			// Inline function definition			
+			function getPositivePattern(sites) {
+			  return "(" + sites.map(function(site) {
+			    return "(" + ('://' + site + "/").getTextRegexpPattern() + ".*" + ")";
+			  }).join("|") + ")";
 			}
-		}
+			
+			function getNegativePattern(sites) {
+			  var negative = sites.map(function(str) { return "(" + str.getTextRegexpPattern() + ")"; }).join("|");
+			  return ":\\/\\/" + "((?!" + negative + ").)+";
+			}
+		}		
+  
+    function getSiteStatus(domain) {
+      var defaultEnabled = getSetting("temp-rules-defaultenabled", true);
+      var activeSites = getSetting("temp-rules-activesites", true);				
+      var inactiveSites = getSetting("temp-rules-inactivesites", true);
+      var siteStatus, active = activeSites.contains(domain), inactive = inactiveSites.contains(domain);
+    
+      if (defaultEnabled) {
+        if (active)
+          siteStatus = "default+active";
+        else 
+          siteStatus = "default";
+      } else if (active) {
+        siteStatus = "active";
+      } else if (inactive) {
+        siteStatus = "inactive";
+      } else {
+        siteStatus = "none";
+      }
+      
+      return siteStatus;
+    }
 		
 		/*
 		chrome.tabs.onActiveChanged.addListener(function(tabId) {
@@ -757,7 +798,26 @@ function updateSettings() {
 // 						chrome.browserAction.setIcon({path:"icon/icon24_disabled.png"});    
 // 					}
 //         }
-	
+
+
+  function getCurrentTab(callback) {
+    chrome.tabs.query({active:true, windowId:chrome.windows.WINDOW_ID_CURRENT}, function(tabs) {
+    if (chrome.runtime.lastError) {
+      // tab is not fetched successfully
+      console.error("Cannot get selected tab.");
+    } else {
+      var tab = tabs[0];
+      callback(tab.id, tab.url, tab);
+    }
+    });
+  }
+  
+  function getDomainFromUrl(url) {
+    var domain_ = url ? url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/) : "";
+    var domain = domain_ ? domain_[1] : undefined;
+    return domain;
+  }
+  	
 	
 	function initExtension() {
 		chrome.manifest = (function() {
@@ -782,7 +842,7 @@ function updateSettings() {
 		})();
 		
 		setSetting("enabled", "true");
-		localStorage["info"] = chrome.manifest.version;
+		chrome.storage.local.set({"iconStatus": "default"});
 		
 		if( localStorage["info"] == undefined) {		
 			loadDefaultSettings();
@@ -795,6 +855,8 @@ function updateSettings() {
 				
 			loadDefaultSettings();
 		}
+		
+		localStorage["info"] = chrome.manifest.version;
 		
 		updateActiveSites();
 		updateSettings();	

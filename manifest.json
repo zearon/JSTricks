@@ -11,11 +11,10 @@
 		"default_popup": "popup.html"
 	},
 	"content_scripts": [ {
-		"js": ["injected/dom.js", "injected/sea-debug.js", "injected/seajs_boot.js", 
-			"injected/ready.js", 
-			"injected/autoload.js", 
-			"injected/plugin/loader.js", "injected/plugin/care-your-eyes.js",
-			"injected/nodeSelector.js"],
+		"js": [
+			"injected/plugin/care-your-eyes.js",
+			"injected/dom.js", "injected/sea-debug.js", "injected/seajs_boot.js", "injected/ready.js", 
+			"injected/autoload.js", "injected/plugin/loader.js", "injected/nodeSelector.js"],
 		"css": ["css/jquery-ui.structure.css", "css/theme/jqueryui/jquery-ui.theme-light.css"],
 		"matches": [ "http://*/*", "https://*/*", "file://*/*" ],
 		"run_at": "document_start"
@@ -35,7 +34,7 @@
 	"name": "JavaScript Tricks",
 	"options_page": "options.html",
 	"permissions": [ "declarativeContent", "webNavigation", "contextMenus", "activeTab", 
-		"tabs", "cookies", "storage", "http://*/*", "https://*/*"],
+		"tabs", "cookies", "storage", "unlimitedStorage", "http://*/*", "https://*/*"],
 	"update_url": "https://clients2.google.com/service/update2/crx",
 	"version": "1.1.1.002"
 }

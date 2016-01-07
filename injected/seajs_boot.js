@@ -11,7 +11,9 @@
   }
   
   var debug = false;
-  window.setSeajsBootDebug = function(isDebug) {
+  
+  seajs.mod_boot = {version:"v0.1"};
+  seajs.mod_boot.setDebug = function(isDebug) {
   	debug = isDebug;
   }
   
@@ -420,21 +422,23 @@ ${srcCode};
       }
   });
   
-  seajs.mod_boot = "v0.1";
+  seajs.mod_boot.getDefaultConfig = function () { 
+    return {
+      "base": ("chrome-extension://" + chrome.runtime.id + "/injected/"),
+      "paths": {
+        "lib": "chrome-extension://" + chrome.runtime.id + "/lib"
+      },
+      "alias": {
+        "jquery": "lib/jquery[AMD]",  //"[AMD]jquery.sea.js", "[CommonJS]jquery.sea.js"
+        "jquery-ui": "lib/jquery-ui[AMD]",
+        "ready": "ready[AMD]",
+        "msgbox": "msgbox",
+        "selectbox": "selectionBox"
+      }
+    };
+  };
   
   // Add some default settings
-	seajs.config({
-	"base": ("chrome-extension://" + chrome.runtime.id + "/injected/"),
-	"paths": {
-		"lib": "chrome-extension://" + chrome.runtime.id + "/lib"
-	},
-	"alias": {
-	  "jquery": "lib/jquery[AMD]",  //"[AMD]jquery.sea.js", "[CommonJS]jquery.sea.js"
-	  "jquery-ui": "lib/jquery-ui[AMD]",
-	  "ready": "ready[AMD]",
-	  "msgbox": "msgbox",
-	  "selectbox": "selectionBox"
-	}
-	});
+	seajs.config(seajs.mod_boot.getDefaultConfig());
 
 }) ();

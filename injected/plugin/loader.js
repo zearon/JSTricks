@@ -13,16 +13,6 @@
 (function() {
   var debug, settings;
   autoload.addOnInitedListener(function(obj) {
-//   chrome.storage.local.get(["INFO"], function(obj) { 
-    if (chrome.runtime.lastError)
-      chrome.error("Cannot get object from chrome local storage.");
-    
-    //console.log("INFO obj in storage", obj.INFO);
-  
-    if (!window.INFO) { window.INFO = obj.INFO; }
-    debug = obj.INFO.debug;
-    settings = obj.INFO.settings;
-  
     loadPlugins(obj.INFO.meta_data.plugins);
   });
 
