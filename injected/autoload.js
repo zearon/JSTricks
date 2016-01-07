@@ -14,6 +14,7 @@ function createAutoload() {
     this.loaded = false;
     this.storage = null;
     this.INFO = null;
+    this.debug = null;
     this.onInitedListeners = [];
     
     var url = location.href;
@@ -28,8 +29,7 @@ function createAutoload() {
          
     self.onInitedListeners.push(listener);
     if (self.storage) {
-      listener(self.storage);
-      listener.called = true;
+      callListner(self, listener);
     }
   };
 
@@ -43,15 +43,18 @@ function createAutoload() {
     chrome.storage.local.get(["enabled", "INFO", "iconStatus"], function(storage) { 
       if (chrome.runtime.lastError)
         chrome.error("Cannot get object from chrome local storage.");
-    
-      console.log("Object in storage", storage);
+      
+      self.storage = storage;
+      self.INFO = storage.INFO;
+      self.debug = storage.INFO.debug;
   
       if (!window.INFO) { 
         window.INFO = storage.INFO; 
       }
-      
-      self.storage = storage;
-      self.INFO = storage.INFO;
+    
+      if (self.debug) {
+        console.log("Object in storage", storage);
+      }
        
       prepare(self, storage);
     });
@@ -62,7 +65,10 @@ function createAutoload() {
     
     if (!iconStatus) { iconStatus = getIconStatus(self); }
     
-    console.log("autoload.js set icon to", iconStatus);
+    if (self.debug) {
+      console.log("autoload.js set icon to", iconStatus);
+    }
+    
     if (iconStatus === "unchanged")
       return;
     
@@ -108,14 +114,22 @@ function createAutoload() {
   function callListeners(self, storage) {
     for (var i = 0; i < self.onInitedListeners.length; ++ i) {
       var listener = self.onInitedListeners[i];
-      if (!listener.called)
-        listener(storage);
+      callListner(self, listener);
     }
   }
 
+  function callListner(self, listener) {
+    if (!listener.called) {
+      listener(self.storage);
+      listener.called = true;
+    }
+  }
+  
   function startLoading (self) {
     getSiteStatus(self);
-    console.log("Site status code is", self.siteStatusCode);
+    if (self.debug) {
+      console.log("Site status code is", self.siteStatusCode);
+    }
     
     if (!self.storage.enabled) {
       console.log("[Javascript Tricks is disabled.]");
