@@ -223,14 +223,18 @@ function log() {
 				}, 2750);
 			});
 		}
-	// Saves options to localStorage.
-		function save_options() {
+	  // Saves options event handler for UI event.	  
+		function save_options_() {
+		  save_options();
+		}
+	  // Saves options to localStorage.
+		function save_options(options) {
 			API_GetTabURL(function(url) {
 				var domain = url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
-				saveBody(domain);
+				saveBody(domain, options);
 			});
 		}
-		function saveBody(url)
+		function saveBody(url, options)
 		{
 			var tmpp = {script:"",autostart:false};
 			if(localStorage[url])
@@ -249,6 +253,13 @@ function log() {
 // 				API_SetIcon({path:"icon/icon24.png"});
 			
 			localStorage[url] = JSON.stringify(tmpp);
+			
+			//
+			var updateActiveSitesMsg =  {mode:"add", site:url, autostart:tmpp.autostart};
+		  //options may be set in changeAutostart with value {"updateActiveSites": {mode:"add+active", site:tabSite, autostart:autostart}
+			if (options && options.updateActiveSites) {
+			  updateActiveSitesMsg.mode += "+" + options.updateActiveSites.mode; }
+      chrome.runtime.sendMessage({method:"UpdateActiveSites", data: updateActiveSitesMsg });
 			
 			// Update status to let user know options were saved.
 			var status = document.getElementById("title");
@@ -414,7 +425,7 @@ function log() {
 			
 			$("#runBtn").click(run);
 			$("#runSelectedBtn").click(runSelected);
-			$("#saveOptBtn").click(save_options);
+			$("#saveOptBtn").click(save_options_);
 			$("#laodCacheBtn").click(load_cache_all);
 			$("#editInOptionPageBtn").click(editInOptionPage);
 			$("#deleteBtn").click(remove);
@@ -623,8 +634,8 @@ function log() {
 			
 			var lineCount = editor.lineCount();
 			
-			chrome.runtime.sendMessage({method:"UpdateActiveSites", data: {mode:"add+active", site:tabSite, autostart:autostart} });
-			save_options();
+			//in save options chrome.runtime.sendMessage({method:"UpdateActiveSites", data: {mode:"add+active", site:tabSite, autostart:autostart} });
+			save_options({"updateActiveSites": {mode:"active", site:tabSite, autostart:autostart}});
 			
 			
 			//console.log("linecount=" + lineCount);
@@ -661,6 +672,10 @@ function log() {
 				var srccode = srccode.replace(/main\s*\(\s*\)\s*;(\s*\}\s*\)\s*\(\s*jQuery\s*\)\s*;\s*)$/, "$(main);$1");
 				editor.setValue(srccode);
 			}*/
+		}
+		
+		function updateBgRules(mode, site, autostart) {
+			chrome.runtime.sendMessage({method:"UpdateActiveSites", data: {mode:mode, site:site, autostart:autostart} })
 		}
 		
 		function showInDialog() {

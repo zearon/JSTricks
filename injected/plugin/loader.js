@@ -1,4 +1,4 @@
-/* global chrome:false, location:false, document:false */
+/* global chrome:false, location:false, document:false, window:false, autoload:false */
 
 // Load plugin content scripts defined in Meta data like:
 // {
@@ -10,14 +10,10 @@
 //   ...
 // }
 
-var pattern = `((:\/\/chrome\.google\.com\/.*)|(:\/\/cli\.im\/.*)|(:\/\/forum\.kerbalspaceprogram\.com\/.*)|(:\/\/jsonlint\.com\/.*)|(:\/\/m\.81zw\.com\/.*)|(:\/\/www\.23us\.la\/.*)|(:\/\/www\.23wx\.com\/.*)|(:\/\/www\.2kxs\.com\/.*)|(:\/\/www\.365xs\.org\/.*)|(:\/\/www\.88zw\.com\/.*)|(:\/\/www\.biquge\.tw\/.*)|(:\/\/www\.bookbao\.com\/.*)|(:\/\/www\.booktxt\.net\/.*)|(:\/\/www\.bxwx\.cc\/.*)|(:\/\/www\.bxwx\.org\/.*)|(:\/\/www\.geiliwx\.com\/.*)|(:\/\/www\.jjwxc\.net\/.*)|(:\/\/www\.lewenxiaoshuo\.com\/.*)|(:\/\/www\.lingdiankanshu\.com\/.*)|(:\/\/www\.qb5\.com\/.*)|(:\/\/www\.qqxs\.cc\/.*)|(:\/\/www\.quledu\.com\/.*)|(:\/\/www\.shenmaxiaoshuo\.com\/.*)|(:\/\/www\.shubao22\.com\/.*)|(:\/\/www\.siluke\.info\/.*)|(:\/\/www\.xbiquge\.com\/.*)|(:\/\/www\.xbiquku\.com\/.*)|(:\/\/www\.xker\.com\/.*)|(:\/\/www\.xs222\.com\/.*))`;
-var url = location.href;
-var match = new RegExp(pattern).test(url);
-console.log("URL match", match, url, pattern);
-
 (function() {
   var debug, settings;
-  chrome.storage.local.get(["INFO"], function(obj) { 
+  autoload.addOnInitedListener(function(obj) {
+//   chrome.storage.local.get(["INFO"], function(obj) { 
     if (chrome.runtime.lastError)
       chrome.error("Cannot get object from chrome local storage.");
     
@@ -32,6 +28,12 @@ console.log("URL match", match, url, pattern);
 
   function loadPlugins(plugins) {
     //console.log("plugins obj in storage", plugins);
+    
+    plugins.sort(function(p1, p2) {
+      var index1 = p1.index ? p1.index : 0;
+      var index2 = p2.index ? p2.index : 0;
+      return index1 - index2;
+    });
   
     for (var i = 0; i < plugins.length; ++ i) {
       var plugin = plugins[i];
@@ -40,9 +42,15 @@ console.log("URL match", match, url, pattern);
   }
 
   function loadPlugin(plugin) {
+    var enabled = plugin.enabled !== false;
+    if (!enabled)
+      return;
+      
+    var info = plugin.info;
     var conditions = plugin.conditions;
     var action = plugin.action;
     action.notdone = true;
+    action.info = info;
   
     for (var i = 0; i < conditions.length; ++i) {
       if (testCondition(conditions[i], action)) {
@@ -124,8 +132,11 @@ console.log("URL match", match, url, pattern);
   }
 
   function doAction(action) {
+    if (action.info)
+      console.log("[Plugin Loader] " + action.info);
     var script = action.script, code = action.code; var msgData = {name:script};
-    console.log("[Plugin Loader] Loading content script", action.script, "with code:", code);
+    if (debug)
+      console.log("[Plugin Loader] Loading content script", action.script, "with code:", code);
     
     if (!!code) { msgData.extraCode = code; }
     

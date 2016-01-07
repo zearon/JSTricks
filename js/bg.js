@@ -56,12 +56,27 @@ function updateSettings() {
 		// Fix a chrome bug which mess up tab id for prerendered page
 		// webNavigation.onTabReplaced
 		//chrome.tabs.onReplaced.addListener(function(newTabId, oldTabId) {
-		chrome.webNavigation.onTabReplaced.addListener(function(oldTabId, newTabId) {
-			console.log(`TAB-REPLACEMENT: Tab ${oldTabId} is replaced by tab ${newTabId}`);
-			
-			processTab(newTabId, "JSTinjectScript");
-		});
+// 		chrome.webNavigation.onTabReplaced.addListener(function(oldTabId, newTabId) {
+// 			console.log(`TAB-REPLACEMENT: Tab ${oldTabId} is replaced by tab ${newTabId}`);
+// 			
+// 			processTab(newTabId, "JSTinjectScript");
+// 		});
+		
+// 		chrome.webNavigation.onDOMContentLoaded.addListener(onUpdateTab);
+// 		chrome.webNavigation.onCompleted.addListener(onUpdateTab);
+//     
+//     function onUpdateTab(details) {
+//       var tabid = details.tabId;
+//       var frameid = details.frameId;
+//       var timestamp = details.timeStamp;
+//       
+//       // The top frame
+//       if (frameid == 0)
+// 		    setIconSet(tabid, "inactive");
+//     }
 
+
+		  
 		
 		//chrome.extension.onRequest.addListener(function(request, sender) {
 		chrome.runtime.onMessage.addListener(function(request, sender) {
@@ -279,6 +294,27 @@ function updateSettings() {
 			else if (requestMethod == "ReloadBackroundPage") {
 				location.reload();
 			}
+		}
+		
+		function setIconSet(tabid, status) {
+		  if (!status) { status = "default"; }
+		  var iconPath = null;
+		  switch (status) {
+		  case "inactive":
+		    iconPath = {"19":"icon/ICON19_inactive.png", "38":"icon/ICON38_inactive.png"};
+		    break;
+		  case "active":
+		    iconPath = {"19":"icon/ICON19_active.png", "38":"icon/ICON38_active.png"};
+		    break;
+		  case "disabled":
+		    iconPath = {"19":"icon/ICON19_disabled.png", "38":"icon/ICON38_disabled.png"};
+		    break;
+		  default:
+		    iconPath = {"19":"icon/ICON19.png", "38":"icon/ICON38.png"};
+		    break;
+		  }
+		  
+		  chrome.pageAction.setIcon( {tabId: tabid, path: iconPath} );
 		}
 		
 		function addNecessaryScriptsForAllSiteToHead(tabid, url, autoloadFileList, loadProperty) {
@@ -524,13 +560,13 @@ function updateSettings() {
 		}
 		
 		function updateActiveSites(mode, site, autostart) {
-			var activeSites, allSites, settingChanged; 
+			var activeSites, inactiveSites, allSites, settingChanged; 
 			var defaultActive = {}; 
 			
 			// Initialize the active sites
 			if (arguments.length < 1) {
 				debug_log("Initialize the active sites list.");
-				allSites = [], activeSites = [], defaultActive.value = false;
+				allSites = [], activeSites = [], inactiveSites = [], defaultActive.value = false;
 				
 				getAllScripts(["ss", "dss"], function(allscripts) {
 					// On complete
@@ -539,9 +575,9 @@ function updateSettings() {
 					updateAllSitesPattern(allSites)
 				  
 				  // initialize active sites pattern
-					updateStatus(activeSites, defaultActive.value);
+					updateStatus(activeSites, inactiveSites, defaultActive.value);
 					
-					updateRules();
+					updateRules(true);
 				}, function(id, type, obj) {
 					// On iterate
 					if (type == "dss" && id == "Default") {
@@ -552,6 +588,8 @@ function updateSettings() {
 						allSites.push(obj.id);
 					  if (obj.autostart) {
 						  activeSites.push(obj.id);
+						} else {
+						  inactiveSites.push(obj.id);
 						}
 					}
 				});
@@ -582,21 +620,29 @@ function updateSettings() {
 			
 			// Update the active sites according to site status given by the arguments
 			if (mode.indexOf("active") >= 0) {
-				debug_log("Update the active sites list. site=", site, "autostart=", autostart);
+				debug_log("Update the active sites list. Arguments given: site=", site, "autostart=", autostart);
 				
 				activeSites = getSetting("temp-rules-activesites", true);
+				inactiveSites = getSetting("temp-rules-inactivesites", true);
 				defaultActive.value = getSetting("temp-rules-defaultenabled", true);
+				
+				debug_log("Update the active sites list. Use value: site=", site, "autostart=", defaultActive.value);
 				
 				if (site == "Default") {
 					defaultActive.value = autostart;
 				} else {
-					if (autostart && !activeSites.contains(site))
-						activeSites.push(site);
-					else if (!autostart)
+					if (autostart) {
+						inactiveSites = inactiveSites.filter(function(ele) { return ele != site; } );
+						if (!activeSites.contains(site))
+						  activeSites.push(site);
+					} else {
 						activeSites = activeSites.filter(function(ele) { return ele != site; } );
+						if (!inactiveSites.contains(site))
+						  inactiveSites.push(site);
+					}
 				}
 				
-				updateStatus(activeSites, defaultActive.value);
+				updateStatus(activeSites, inactiveSites, defaultActive.value);
 				settingChanged = true;
 			}
 			
@@ -610,41 +656,58 @@ function updateSettings() {
 			  return "(" + ('://' + site + "/").getTextRegexpPattern() + ".*" + ")";
 			}
 			
-			// Inline function definition
-			function updateAllSitesPattern(allSites) {
-        var allSitesPattern = "(" + allSites.map(getSitePattern).join("|") + ")";
-        setSetting("temp-rules-allsites", allSites, true);
-        setSetting("temp-rules-allsites-pattern", allSitesPattern);
+			function getPositivePattern(sites) {
+			}
+			
+			function getNegativePattern(sites) {
+			  var negative = sites.map(function(str) { return "(" + str.getTextRegexpPattern() + ")"; }).join("|");
+			  return ":\\/\\/" + "((?!" + negative + ").)+";
 			}
 			
 			// Inline function definition
-			function updateStatus(activeSites, defaultActive) {
-				debug_log("All active sites:", activeSites, "default is", defaultActive ? "active" : "inactive");
+			function updateAllSitesPattern(allSites) {
+//         var allSitesPattern = "(" + allSites.map(getSitePattern).join("|") + ")";
+        allSitesPattern = getNegativePattern(allSites);
+        setSetting("temp-rules-allsites", allSites, true);
+        setSetting("temp-rules-allsites-pattern", allSitesPattern);
+        
+				debug_log("allSitesPattern=", allSitesPattern);
+			}
+			
+			// Inline function definition
+			function updateStatus(activeSites, inactiveSites, defaultActive) {
+				debug_log("All active sites:", activeSites, "inactive sites:", inactiveSites, "default is", defaultActive ? "active" : "inactive");
 				
-				var activeSitesPattern, allSitesPattern;
+				var activeSitesPattern, inactiveSitesPattern, allSitesPattern;
 				
 				if ( !(getSetting("enabled") !== 'false') ) {
 				  // extension is disabled
 				  activeSitesPattern = "^dummy$";
+				  inactiveSitesPattern = "^dummy$";
 				} else if (defaultActive) {
 				  // Default script is autostarted, so the pattern should match any site url.
 					activeSitesPattern = ".*";
+				  inactiveSitesPattern = "^dummy$";
 				} else {
           activeSitesPattern = "(" + activeSites.map(getSitePattern).join("|") + ")";
+          inactiveSitesPattern = "(" + inactiveSites.map(getSitePattern).join("|") + ")";
 				}
 			
 				// Save status
 				setSetting("temp-rules-defaultenabled", defaultActive, true);
-				setSetting("temp-rules-activesites", activeSites, true);
+				setSetting("temp-rules-activesites", activeSites, true);				
+				setSetting("temp-rules-inactivesites", inactiveSites, true);
 				setSetting("temp-rules-activesites-pattern", activeSitesPattern);
+				setSetting("temp-rules-inactivesites-pattern", inactiveSitesPattern);
 				
 				debug_log("activeSitesPattern=", activeSitesPattern);
+				debug_log("inactiveSitesPattern=", inactiveSitesPattern);
 			}
 			
 			// Inline function definition
-			function updateRules() {			
+			function updateRules(forInit) {			
 				// call resetDeclarativeRules() in bg_declaration.js
-				resetDeclarativeRules();
+				resetDeclarativeRules(forInit);
 			}
 		}
 		
