@@ -4,7 +4,9 @@
 *.jpg
 *.gif
 *.jpeg
+*.psd
 
 doc/*
+icon/*
 icons/*
 images/*
