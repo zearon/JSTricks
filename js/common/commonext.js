@@ -42,5 +42,9 @@
 	}
 	
 	Array.prototype.contains = function (element) {
-		return this.filter(function(ele) { return ele == element; }).length > 0;
+		return this.some(function(ele) { return ele === element; });
+	}
+	
+	Array.prototype.removeElement = function (element) {
+	  return this.filter(function(ele) { return ele !== element; });
 	}
