@@ -1,31 +1,45 @@
 /* globals chrome, Image, document, getSetting, getExtDisabledPattern */
 
-	// DO NOT register onInstalled event here, because resetDeclarativeRules is invoked
-	// by a function registered with onInstalled event in bg.js
-	//chrome.runtime.onInstalled.addListener(resetDeclarativeRules);
+
+	chrome.runtime.onInstalled.addListener(function() {
+	  setSetting("temp-rules-baseindex", 0, true);
+    // DO NOT register onInstalled event here, because resetDeclarativeRules is invoked
+    // by a function registered with onInstalled event in bg.js
+	  //resetDeclarativeRules();
+	});
 	//chrome.runtime.onMessage.addListener();
 	
+	
 	/* Event listeners */
-	function resetDeclarativeRules() {
+	function resetDeclarativeRules(forInit) {
 		// Replace all rules ...
 		chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
 		       
 			if (chrome.runtime.lastError)
 				console.error(chrome.runtime.lastError);
+				
+			var baseIndex = getSetting("temp-rules-baseindex", true);
+			if (!baseIndex) {
+			  baseIndex = 0;
+			}
 			
-			// Set default icon
-			createSetIconAction("icon/ICON19.png", "icon/ICON38.png", function(setDefaultIconAction) {
-				// Set active icon
-				createSetIconAction("icon/ICON19_active.png", "icon/ICON38_active.png", function(setActiveIconAction) {
-          // Set auto icon
-          createSetIconAction("icon/ICON19_auto.png", "icon/ICON38_auto.png", function(setAutoIconAction) {
-            // Set disabled icon
-            createSetIconAction("icon/ICON19_disabled.png", "icon/ICON38_disabled.png", function(setDisabledIconAction) {					
+			//updateRules(baseIndex, forInit);
+		}); // end of removeRules	
+		
+		function updateRules(baseIndex, forInit) {
+// 			  
+// 			// Set default icon
+// 			createSetIconAction("icon/ICON19.png", "icon/ICON38.png", function(setDefaultIconAction) {
+// 				// Set active icon
+// 				createSetIconAction("icon/ICON19_active.png", "icon/ICON38_active.png", function(setActiveIconAction) {
+//           // Set auto icon
+//           createSetIconAction("icon/ICON19_auto.png", "icon/ICON38_auto.png", function(setAutoIconAction) {
+//             // Set disabled icon
+//             createSetIconAction("icon/ICON19_disabled.png", "icon/ICON38_disabled.png", function(setDisabledIconAction) {					
               var rules = [];
-            
-              // Set default icon and page action
+              // Set page action
               rules.push( {
-                id: "showPageAction", priority: 1000,
+                id: "showPageAction" + baseIndex, priority: 0,
                 conditions: [
                   new chrome.declarativeContent.PageStateMatcher({
                     pageUrl: { urlMatches: ".*" },
@@ -34,13 +48,16 @@
                 // And shows the extension's page action.
                 actions: [  new chrome.declarativeContent.ShowPageAction()]
               } );
+            /*
             
-              // Set default icon and page action
+              // Set default icon
               rules.push( {
-                id: "setDefaultIcon", priority: 100,
+                id: "setDefaultIcon" + baseIndex, priority: baseIndex++,
                 conditions: [
                   new chrome.declarativeContent.PageStateMatcher({
-                    pageUrl: { urlMatches: ".*" },
+                    pageUrl: { urlMatches: ".*"
+                    //getSetting("temp-rules-allsites-pattern") 
+                    },
                   })
                 ],
                 // And shows the extension's page action.
@@ -49,12 +66,11 @@
             
               // Set active icon
               rules.push( {
-                id: "setActiveIcon",
-                priority: 101,
+                id: "setActiveIcon" + baseIndex, priority: baseIndex++,
                 conditions: [
                   new chrome.declarativeContent.PageStateMatcher({
                     //pageUrl: { urlMatches: ('://' + 'www.baidu.com/').getTextRegexpPattern() + ".*" },
-                    pageUrl: { urlMatches: getSetting("temp-rules-allsites-pattern") },
+                    pageUrl: { urlMatches: getSetting("temp-rules-inactivesites-pattern") },
                   })
                 ],
                 actions: [  setActiveIconAction ]
@@ -62,8 +78,7 @@
             
               // Set auto icon
               rules.push( {
-                id: "setAutoIcon",
-                priority: 102,
+                id: "setAutoIcon" + baseIndex, priority: baseIndex++,
                 conditions: [
                   new chrome.declarativeContent.PageStateMatcher({
                     //pageUrl: { urlMatches: ('://' + 'www.baidu.com/').getTextRegexpPattern() + ".*" },
@@ -75,20 +90,18 @@
             
               // Set disabled icon
               rules.push( {
-                id: "setDisabledIcon",
-                priority: 103,
+                id: "setDisabledIcon" + baseIndex, priority: baseIndex++,
                 conditions: [
                   new chrome.declarativeContent.PageStateMatcher({
                     pageUrl: { urlMatches: getExtDisabledPattern() },
                   })
                 ],
                 actions: [  setDisabledIconAction ]
-              } );
+              } );*/
     
               // Load content script
               rules.push( {
-                id: "loadScript",
-                priority: 104,
+                id: "loadScript" + baseIndex, priority: 0,
                 conditions: [
                   new chrome.declarativeContent.PageStateMatcher({
                     pageUrl: { urlMatches: getSetting("temp-rules-activesites-pattern") },
@@ -118,17 +131,35 @@
                   "matchAboutBlank": false}) ]
               } );	*/		
             
-            
-              chrome.declarativeContent.onPageChanged.addRules(rules, 
-                function() { if (chrome.runtime.lastError) console.error(chrome.runtime.lastError); console.info("Set icon rules", rules); });
-              //chrome.declarativeContent.onPageChanged.getRules(undefined, function(rules) { console.log("rules:", rules)∂; });		
-            });
-          });
-        });
-			});			
+//               console.log("base index=", baseIndex);
+//               if (/*forInit && */(baseIndex % 40) != 0) {
+                    //setTimeout(function() { addRules(rules); }, 100);
+
+
+//               } else {
+//                 chrome.declarativeContent.onPageChanged.getRules(undefined, function(rules) { console.log("current rules:", rules); });		
+//               }
+
+                
+              addRules(rules);
+              setSetting("temp-rules-baseindex", baseIndex, true);
+              
+//             });
+//           });
+//         });
+// 			});		
 			
 			
-		}); // end of removeRules	
+		} // end of update rules
+		
+		function addRules(rules) {
+      chrome.declarativeContent.onPageChanged.addRules(rules, function() { 
+        if (chrome.runtime.lastError) 
+          console.error(chrome.runtime.lastError); 
+        
+        console.info("Set rules", rules); 
+      });
+		}
 		
 		// A workaround function to set icon, since {path} does not work for chrome.declarativeContent.SetIcon
 		function createSetIconAction(path19, path38, callback) {

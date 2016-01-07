@@ -1,4 +1,6 @@
+/* global window:false, chrome:false */
 // autoload.js
+
 // Content script autoload.js is an entry point for websites that has active site script.
 // It is configured in /js/bg_declaration.js with a Rule registed on 
 // chrome.declarativeContent.onPageChanged event as following.
@@ -28,20 +30,82 @@
 // is saved because only websites that are configureed to load some user scripts do the 
 // loading work.
 
-var loaded = false;
-function autoload() {
-	console.log("autoload.js is loaded.");
-	
-	if (loaded) {}
-	else {
-		console.log("Start to load content scripts.");
-		chrome.runtime.sendMessage({method: "JSTinjectScript"});
-	}
-}
-autoload();
+(function() {
+  if (window.autoload)
+    return;
 
+  var autoload = new Autoload();
 
+  function Autoload() {
+    this.storage = null;
+    this.onInitedListeners = [];
+  
+    // Start initialization
+  }
 
-function injectCode(code) {
-	$("head").append("<script type='text/javascript'>" + code + "</script>");
-}
+  Autoload.prototype.addOnInitedListener = function(listener) {      
+    this.onInitedListeners.push(listener);
+    if (this.storage) {
+      listener(storage);
+      listener.called = true;
+    }
+  }
+
+  Autoload.prototype.init = function() {
+    var instance = this;
+    
+    chrome.storage.local.get(["INFO"], function(storage) { 
+      if (chrome.runtime.lastError)
+        chrome.error("Cannot get object from chrome local storage.");
+    
+      console.log("Object in storage", storage);
+  
+      if (!window.INFO) { window.INFO = storage.INFO; }
+      debug = storage.INFO.debug;
+      settings = storage.INFO.settings;
+      
+      this.storage = storage; 
+      prepare.call(instance, storage);
+    });
+  }
+  
+  function prepare(storage) { 
+    this.setIcon();
+    startLoading.call(this);
+    
+    callListeners.call(this, storage);
+  }
+  
+  function callListeners(storage) {
+    for (var i = 0; i < this.onInitedListeners.length; ++ i) {
+      var listener = this.onInitedListeners[i];
+      if (!listener.called)
+        listener(storage);
+    }
+  }
+
+  function startLoading () {
+    console.log("autoload.js starts loading scripts.");
+    chrome.runtime.sendMessage({method: "JSTinjectScript"});
+  }
+
+  Autoload.prototype.setIcon = function (iconStatus) {
+    if (!iconStatus) { iconStatus = getIconStatus.call(this); }
+    
+    console.log("autoload.js set icon to", iconStatus);
+    if (iconStatus === "unchanged")
+      return;
+    
+    //chrome.runtime.sendMessage({method:"SetIcon", data:iconStatus});
+  };
+  
+  function getIconStatus() {
+  
+    return "unchanged";
+  }
+  
+  
+  window.autoload = autoload;
+  autoload.init();
+  //window.Autoload = Autoload;
+}) ();
