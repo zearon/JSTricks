@@ -697,7 +697,7 @@ function log() {
 		var metadataSettingStr;
 		var sections = null;
 		function createCustomizeUI() {
-			var metadataSetting = JSON.parse(localStorage["meta"]);
+			var metadataSetting = storage.getMetadata(true);
 			if (!metadataSetting)
 				return;
 			sections = metadataSetting["modules"];

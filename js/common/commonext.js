@@ -48,3 +48,20 @@
 	Array.prototype.removeElement = function (element) {
 	  return this.filter(function(ele) { return ele !== element; });
 	}
+	
+	function compareVersion(v1, v2) {
+	  var parts1 = v1.split("."), parts2 = v2.split(".");
+	  var len1 = parts1.length, len2 = parts2.length;
+	  var len = len1 >= len2 ? len1 : len2;
+	  
+	  var i = 0, diff = 0;
+	  do {
+	    var part1 = parts1[i] !== undefined ? parts1[i] : 0;
+	    var part2 = parts2[i] !== undefined ? parts2[i] : 0;
+	    diff = parseInt(part1) - parseInt(part2);
+	    
+	    ++ i;
+	  } while (i < len && diff === 0);
+	  
+	  return diff;
+	}
