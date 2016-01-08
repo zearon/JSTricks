@@ -165,6 +165,25 @@
 	}
 	
 	/**
+	 * Transfer all scripts from a storage area to another.
+	 */
+	Storage.fn.rebuildScriptIndexes = function(onok) {
+	  //
+	  
+	  /*
+        storage.setSetting("temp-index-allsites", allSites, true);
+				storage.setSetting("temp-index-defaultenabled", defaultActive, true);
+				storage.setSetting("temp-index-activesites", activeSites, true);				
+				storage.setSetting("temp-index-inactivesites", inactiveSites, true);
+        var iconStatus = {"defaultEnabled":defaultActive, "activeSites": activeSites, "inactiveSites": inactiveSites}
+        chrome.storage.local.set({"allSites": allSites});
+        chrome.storage.local.set({"iconStatus": iconStatus});
+	  */
+	  if (onok)
+	    onok();
+	}
+	
+	/**
 	 * Update the auto start status of a site script.
 	 */
 // 	Storage.fn.updateSiteScriptAutostart = function (id, options) {

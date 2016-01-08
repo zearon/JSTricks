@@ -291,12 +291,12 @@
 				}
 				keys.sort();
 				keys.unshift("Default");
-				if (localStorage["$setting.sitescripts_showMainScript"] === "true")
+				//if (localStorage["$setting.sitescripts_showMainScript"] === "true")
 					keys.unshift("Main");
 				//console.log(keys);
 					
 				
-				for(var i = 0; i < keys.length; ++ i) {	
+				for(var i = 0; i < keys.length; ++ i) {
 					try {
 						v = keys[i]; 			
 						if (nameFilter) {
@@ -353,6 +353,11 @@
 					} catch(e) {
 						console.log(`Invalid! localStorage[${v}]=${localStorage[v]}`);
 					}
+				}
+				
+				// Hide the Main script if set so in options
+				if (storage.getSetting("sitescripts_showMainScript") !== "true") {
+				  $(".siteScriptKey[data-site='Main']").hide();
 				}
 			}
 			else
@@ -594,6 +599,7 @@
 			$('#backupbtn').click(backup);
 			$('#restorebtn').click(restore);
 			$('#loadDftSettingsBtn').click(loadDefaultSettings);
+			$('#rebuildScriptIndexesBtn').click(rebuildScriptIndexes);
 			$('#genInitSettingbtn').click(backupInitialSettings);
 			$("#cloudsave-savesettings").click(cloudStorageSaveSettings);
 			$('input:button.cloudbackup').click(cloudBackup);
@@ -1241,6 +1247,8 @@
 				};
 				reader.readAsText(file);
 			}
+			
+			// REMEMBER TO CALL storage.rebuildScriptIndexes
 		}
 		
 		function backupInitialSettings() {
@@ -1281,6 +1289,10 @@
 		
 		function loadDefaultSettings() {
 			chrome.runtime.sendMessage({method:"LoadDefaultSettings"});
+		}
+		
+		function rebuildScriptIndexes() {
+		  storage.rebuildScriptIndexes(onok);
 		}
 		
 		function updateSettings() {
@@ -1927,6 +1939,8 @@
 				location.reload();
 				
 			});
+			
+			// REMEMBER TO CALL storage.rebuildScriptIndexes
 		}
 		
 		function cloudStorageList() {
