@@ -36,7 +36,7 @@
           id: "setDisabledIcon", priority: 0,
           conditions: [
             new chrome.declarativeContent.PageStateMatcher({
-              pageUrl: { urlMatches: getExtDisabledPattern() },
+              pageUrl: { urlMatches: storage.getExtDisabledPattern() },
             })
           ],
           // Set disabled icon

@@ -1,5 +1,5 @@
-var DEBUG = getSetting("DEBUG") == "true";
-var infoStr = getSetting("temp-infostr");
+var DEBUG = storage.getSetting("DEBUG") == "true";
+var infoStr = storage.getSetting("temp-infostr");
 
 function log() {
 	if (DEBUG) {
@@ -15,10 +15,10 @@ function debug_log() {
 }
 
 function updateSettings(extraAttribute) {
-	DEBUG = getSetting("DEBUG") === "true";
-	var enabled = getSetting("enabled") !== "false";
+	DEBUG = storage.getSetting("DEBUG") === "true";
+	var enabled = storage.getSetting("enabled") !== "false";
 	var setting = {};
-	iterateSettings(function(name, val) {
+	storage.iterateSettings(function(name, val) {
 		// iteration
 		if (name.startsWith("cloud-") || name.startsWith("temp-"))
 			return;
@@ -26,10 +26,10 @@ function updateSettings(extraAttribute) {
 		setting[name] = val;
 	}, function() {
 		// on complete
-		var INFO = { enabled:enabled, settings: setting, debug: DEBUG, meta_data: getMetadata() };
+		var INFO = { enabled:enabled, settings: setting, debug: DEBUG, meta_data: storage.getMetadata() };
 	
 		infoStr = encodeURIComponent(JSON.stringify(INFO));
-		setSetting("temp-infostr", infoStr);
+		storage.setSetting("temp-infostr", infoStr);
 				
 		// Save the meta object into chrome.storage.local
 		chrome.storage.local.set({"INFO": INFO});
@@ -350,7 +350,7 @@ function updateSettings(extraAttribute) {
 			// Only "ExecuteContentScript" and "ExecuteSiteScript" message will set this flag
 			// The "JSTinjectScript" message sent by autoload.js does not set this flag.
 			if (loadProperty.testURL) {
-			  var activeSitesPattern = getSetting("temp-activesites-pattern");
+			  var activeSitesPattern = storage.getSetting("temp-activesites-pattern");
 			  var isSiteActive = loadProperty.domain.match(activeSitesPattern);
 			  if (isSiteActive)
 			    return;
@@ -593,7 +593,7 @@ function updateSettings(extraAttribute) {
 				debug_log("Initialize the active sites list.");
 				allSites = [], activeSites = [], inactiveSites = [], defaultActive.value = false;
 				
-				getAllScripts(["ss", "dss"], function(allscripts) {
+				storage.getAllScripts(["ss", "dss"], function(allscripts) {
 					// On complete
 					
 					// initialize all sites pattern
@@ -622,7 +622,7 @@ function updateSettings(extraAttribute) {
 			
 			// update status on single script change.
 			settingChanged = false;
-			allSites = getSetting("temp-rules-allsites", true);
+			allSites = storage.getSetting("temp-rules-allsites", true);
 			
 			console.log("mode", mode, "site", site, "autostart", autostart);
 						
@@ -645,9 +645,9 @@ function updateSettings(extraAttribute) {
 			if (mode.indexOf("active") >= 0) {
 				debug_log("Update the active sites list. Arguments given: site=", site, "autostart=", autostart);
 				
-				activeSites = getSetting("temp-rules-activesites", true);
-				inactiveSites = getSetting("temp-rules-inactivesites", true);
-				defaultActive.value = getSetting("temp-rules-defaultenabled", true);
+				activeSites = storage.getSetting("temp-rules-activesites", true);
+				inactiveSites = storage.getSetting("temp-rules-inactivesites", true);
+				defaultActive.value = storage.getSetting("temp-rules-defaultenabled", true);
 				
 				debug_log("Update the active sites list. Use value: site=", site, "autostart=", defaultActive.value);
 				
@@ -674,8 +674,8 @@ function updateSettings(extraAttribute) {
 			function updateAllSitesPattern(allSites) {
 //         var allSitesPattern = getPositivePattern(allSites);
         allSitesPattern = getNegativePattern(allSites);
-        setSetting("temp-rules-allsites", allSites, true);
-        setSetting("temp-rules-allsites-pattern", allSitesPattern);
+        storage.setSetting("temp-rules-allsites", allSites, true);
+        storage.setSetting("temp-rules-allsites-pattern", allSitesPattern);
         
         // Save to chrome.storage.local for content scripts access
         chrome.storage.local.set({"allSites": allSites});
@@ -689,7 +689,7 @@ function updateSettings(extraAttribute) {
 				
 				var activeSitesPattern, inactiveSitesPattern, allSitesPattern;
 				
-				if ( !(getSetting("enabled") !== 'false') ) {
+				if ( !(storage.getSetting("enabled") !== 'false') ) {
 				  // extension is disabled
 				  activeSitesPattern = "^dummy$";
 				  inactiveSitesPattern = "^dummy$";
@@ -703,11 +703,11 @@ function updateSettings(extraAttribute) {
 				}
 			
 				// Save status
-				setSetting("temp-rules-defaultenabled", defaultActive, true);
-				setSetting("temp-rules-activesites", activeSites, true);				
-				setSetting("temp-rules-inactivesites", inactiveSites, true);
-				setSetting("temp-rules-activesites-pattern", activeSitesPattern);
-				setSetting("temp-rules-inactivesites-pattern", inactiveSitesPattern);
+				storage.setSetting("temp-rules-defaultenabled", defaultActive, true);
+				storage.setSetting("temp-rules-activesites", activeSites, true);				
+				storage.setSetting("temp-rules-inactivesites", inactiveSites, true);
+				storage.setSetting("temp-rules-activesites-pattern", activeSitesPattern);
+				storage.setSetting("temp-rules-inactivesites-pattern", inactiveSitesPattern);
         
         // Save to chrome.storage.local for content scripts access
         var iconStatus = {"defaultEnabled":defaultActive, "activeSites": activeSites, "inactiveSites": inactiveSites}
@@ -731,9 +731,9 @@ function updateSettings(extraAttribute) {
 		}		
   
     function getSiteStatus(domain) {
-      var defaultEnabled = getSetting("temp-rules-defaultenabled", true);
-      var activeSites = getSetting("temp-rules-activesites", true);				
-      var inactiveSites = getSetting("temp-rules-inactivesites", true);
+      var defaultEnabled = storage.getSetting("temp-rules-defaultenabled", true);
+      var activeSites = storage.getSetting("temp-rules-activesites", true);				
+      var inactiveSites = storage.getSetting("temp-rules-inactivesites", true);
       var siteStatus, active = activeSites.contains(domain), inactive = inactiveSites.contains(domain);
     
       if (defaultEnabled) {
@@ -841,7 +841,7 @@ function updateSettings(extraAttribute) {
 
 		})();
 		
-		setSetting("enabled", "true");
+		storage.setSetting("enabled", "true");
 		chrome.storage.local.set({"iconStatus": "default"});
 		
 		if( localStorage["info"] == undefined) {		

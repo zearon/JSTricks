@@ -12,7 +12,7 @@ if (inExtensionPage && localStorage["$setting.DEBUG"] == "true")
 	DEBUG = true;
 var RUN_BUTTON_CODE = localStorage["$setting.DEBUG_runbuttoncode"] == "true";
 var DISABLE_RUN_BUTTON_CODE = localStorage["$setting.popupwindow_disableRunCodeButton"] != "false";
-var ENABLED = getSetting("enabled") !== 'false';
+var ENABLED = storage.getSetting("enabled") !== 'false';
 	
 
 // iframe.contentWindow.postMessage({ type: "RestoreEditDialogContextResponse", tabid:NS_tabid, context:NS_editDialogContext }, "*");
@@ -152,17 +152,17 @@ function log() {
 			if (!inExtensionPage)
 				return;
 				
-			ENABLED = getSetting("enabled") == "true";
+			ENABLED = storage.getSetting("enabled") == "true";
 			
 			if (ENABLED) {
 				// Disable
-				setSetting("enabled", "false");
+				storage.setSetting("enabled", "false");
 				$(".for-disabled").show();
 				//API_SetIcon({path:"icon/icon24_disabled.png"});
 			} else {
 				// Enable
 				chrome.runtime.sendMessage({tabid:tabID, method: "JSTinjectScript"});
-				setSetting("enabled", "true");
+				storage.setSetting("enabled", "true");
 				$(".for-disabled").hide();
 				//API_SetIcon({path:"icon/icon24.png"});
 			}

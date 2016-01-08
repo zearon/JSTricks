@@ -40,13 +40,13 @@
 	
 	
 	/* Persistent states */
-	var scriptMenuDict = getSetting("temp-contextMenu-scriptMenuDict", true);	
-	var optionMenuDict = getSetting("temp-contextMenu-optionMenuDict", true);	
-	var optionMenuDictReverse = getSetting("temp-contextMenu-optionMenuDictReverse", true);
+	var scriptMenuDict = storage.getSetting("temp-contextMenu-scriptMenuDict", true);	
+	var optionMenuDict = storage.getSetting("temp-contextMenu-optionMenuDict", true);	
+	var optionMenuDictReverse = storage.getSetting("temp-contextMenu-optionMenuDictReverse", true);
 	
-// 	if (!scriptMenuDict) { scriptMenuDict = {}; setSetting("temp-contextMenu-scriptMenuDict", {}, true); }
-// 	if (!optionMenuDict) { optionMenuDict = {}; setSetting("temp-contextMenu-optionMenuDict", {}, true); }
-// 	if (!optionMenuDictReverse) { scriptMenuDict = {}; setSetting("temp-contextMenu-optionMenuDictReverse", {}, true); }
+// 	if (!scriptMenuDict) { scriptMenuDict = {}; storage.setSetting("temp-contextMenu-scriptMenuDict", {}, true); }
+// 	if (!optionMenuDict) { optionMenuDict = {}; storage.setSetting("temp-contextMenu-optionMenuDict", {}, true); }
+// 	if (!optionMenuDictReverse) { scriptMenuDict = {}; storage.setSetting("temp-contextMenu-optionMenuDictReverse", {}, true); }
 	
 
 	/* Event listener for onInstalled */
@@ -119,7 +119,7 @@
 		// Create default menus
 		createDefaultMenus();		
 
-		setSetting("temp-contextMenu-scriptMenuDict", scriptMenuDict, true);
+		storage.setSetting("temp-contextMenu-scriptMenuDict", scriptMenuDict, true);
 	}
 
 	function createDefaultMenus() {
@@ -134,13 +134,13 @@
 		createOptionMenu("" + menuID++, "Run Code Mode", "DEBUG_runbuttoncode", "1");
 		createOptionMenu("" + menuID++, "Disable Run-Code Buttons", "popupwindow_disableRunCodeButton", "1");
 		
-		setSetting("temp-contextMenu-optionMenuDict", optionMenuDict, true);
-		setSetting("temp-contextMenu-optionMenuDictReverse", optionMenuDictReverse, true);
+		storage.setSetting("temp-contextMenu-optionMenuDict", optionMenuDict, true);
+		storage.setSetting("temp-contextMenu-optionMenuDictReverse", optionMenuDictReverse, true);
 	}
 
 	function createOptionMenu(id, title, keyInLocalStorage, parentID) {
 		var options = {"id":id, "title": title, "type": "checkbox", "contexts":["all"], 
-			 "checked":("false" != getSetting(keyInLocalStorage)) };
+			 "checked":("false" != storage.getSetting(keyInLocalStorage)) };
 	
 		if (parentID)
 			options["parentId"] = parentID;
@@ -158,7 +158,7 @@
 		console.log("Option value changed");
 		for (key in optionMenuDictReverse) {
 			var menuID = optionMenuDictReverse[key];
-			var value = getSetting(key) != "false";
+			var value = storage.getSetting(key) != "false";
 			chrome.contextMenus.update(menuID, {checked:value});		
 		}
 	}
@@ -194,9 +194,9 @@
 		var menuID = info.menuItemId;
 		var optionKey = optionMenuDict[menuID];
 	
-		var optionValue = getSetting(optionKey) != "false";
+		var optionValue = storage.getSetting(optionKey) != "false";
 		// make it the opposite and then save.
-		setSetting(optionKey, optionValue ? "false" : "true");
+		storage.setSetting(optionKey, optionValue ? "false" : "true");
 		chrome.contextMenus.update(menuID, {checked:!optionValue});
 	
 		// call update settings defined in bg.js
