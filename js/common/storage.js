@@ -167,20 +167,43 @@
 	/**
 	 * Transfer all scripts from a storage area to another.
 	 */
-	Storage.fn.rebuildScriptIndexes = function(onok) {
-	  //
+	Storage.fn.rebuildScriptIndexes = function(onok, onerr) {
+	  var self = this, allSites = [], activeSites = [], inactiveSites = [], 
+	    contentScripts = [], defaultActive = {value:false};
 	  
-	  /*
-        storage.setSetting("temp-index-allsites", allSites, true);
-				storage.setSetting("temp-index-defaultenabled", defaultActive, true);
-				storage.setSetting("temp-index-activesites", activeSites, true);				
-				storage.setSetting("temp-index-inactivesites", inactiveSites, true);
-        var iconStatus = {"defaultEnabled":defaultActive, "activeSites": activeSites, "inactiveSites": inactiveSites}
-        chrome.storage.local.set({"allSites": allSites});
-        chrome.storage.local.set({"iconStatus": iconStatus});
-	  */
-	  if (onok)
-	    onok();
+	  this.getAllScripts(["dss", "ss", "cs"], function() {
+	    // on complete
+      self.setSetting("temp-index-defaultenabled", defaultActive.value, true);
+      self.setSetting("temp-index-allsites", allSites, true);
+      self.setSetting("temp-index-activesites", activeSites, true);				
+      self.setSetting("temp-index-inactivesites", inactiveSites, true);		
+      self.setSetting("temp-index-contentscripts", contentScripts, true);
+      
+      var siteIndex = {"defaultEnabled":defaultActive.value, "activeSites": activeSites, "inactiveSites": inactiveSites}
+      chrome.storage.local.set({"allSites": allSites});
+      chrome.storage.local.set({"siteIndex": siteIndex});
+	  
+      if (onok)
+        onok();	    
+	  }, function(name, type, obj) {
+	    // in filter 
+	    switch(type) {
+	    case "dss":
+	      defaultActive.value = obj.autostart;
+	      break;
+	    case "ss":
+	      obj.autostart ? activeSites.push(name) : inactiveSites.push(name);
+	      allSites.push(name);
+	      break;
+	    case "cs":
+	      contentScripts.push(name);
+	      break;
+	    default:
+	      break;
+	    }
+	    
+	    
+	  }, onerr);
 	}
 	
 	/**

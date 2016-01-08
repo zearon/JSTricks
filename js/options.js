@@ -279,92 +279,124 @@
 		}
 		function loadSiteScripts(filterOptions, contentType, nameFilter) {			
 			$("#menu").empty();
-			if(localStorage && localStorage.length !== 0)
-			{
-				var keys = [];
-				for(var v in localStorage)
-				{
-					if(isSiteScriptName(v) ) /**/ {
-						
-						keys.push(v);
-					}
-				}
-				keys.sort();
-				keys.unshift("Default");
-				//if (localStorage["$setting.sitescripts_showMainScript"] === "true")
-					keys.unshift("Main");
-				//console.log(keys);
-					
-				
-				for(var i = 0; i < keys.length; ++ i) {
-					try {
-						v = keys[i]; 			
-						if (nameFilter) {
-							if (!nameFilter(v))
-								continue;
-						}
-						
-						var lsd = JSON.parse(localStorage[v]);
-						//console.log(lsd);
-						var addFlag = false, contentFlag = false, autostartFlag = true;
-						if (!filterOptions) {
-							addFlag = true;
-						} else {
-							var textPattern = filterOptions["pattern"];
-							var andorAutostart = filterOptions["andorAutostart"]; // and, or
-							var autostartValue = filterOptions["autostart"]; // true, false, any
-							var name = filterOptions["name"];
-							
-							if (name) {
-								if (name !== v)
-									continue;
-								else
-									addFlag = true;			
-							} else {
-								if (contentType) {
-									var content = "";
-										
-									if (contentType === "js") {
-										content = lsd.script;
-									} else if (contentType === "css") {
-										content = lsd.css;
-									} else if (contentType === "js+css") {
-										content = lsd.script + "\n" + lsd.css;
-									}
-									
-									contentFlag = content.match(textPattern);
-								}
-								
-								if (autostartValue === "any")
-									autostartFlag = true;
-								else
-									autostartFlag = lsd.autostart ? autostartValue === "true" : autostartValue === "false";
-								
-								if (andorAutostart === "and")
-									addFlag = contentFlag && autostartFlag;
-								else
-									addFlag = contentFlag || autostartFlag;
-							}
-						}
-						
-						if (addFlag)
-							addMenuBox(v,lsd);
-						
-					} catch(e) {
-						console.log(`Invalid! localStorage[${v}]=${localStorage[v]}`);
-					}
-				}
-				
-				// Hide the Main script if set so in options
-				if (storage.getSetting("sitescripts_showMainScript") !== "true") {
-				  $(".siteScriptKey[data-site='Main']").hide();
-				}
-			}
-			else
-			{
-				$("#menu").text("Nothing saved...");
-			}
+
+      var keys = storage.getSetting("temp-index-allsites" ,true), values = null;
+      var activeSites = storage.getSetting("temp-index-activesites" ,true);
+      keys.sort();
+      keys.unshift("Main", "Default");
+      //console.log(keys);
+      
+      // Do not need to filter scripts by its content
+      if (!filterOptions) {
+        // only autostart property is used (in addMenuBox function), so there is no need
+        // to load all scripts. Just creating a list of object that has the autostart property
+        // is OK.
+        values = keys.map(function(site) {
+          return {site:site, autostart:activeSites.contains(site)}; 
+        }).reduce(function(prevVal, ele, inx, arr) {
+          //console.log(prevVal, ele, inx);
+          prevVal[ele.site] = ele;
+          return prevVal;
+        }, {});
+        //console.log(values);
+        
+        // Filter site scripts and add them to script menu list.
+        filterSiteScript(keys, values, filterOptions, contentType, nameFilter);
+      } 
+      
+      // Filter scripts by its content
+      else {
+        values = {};
+        // Load all default scripts and site scripts, and add them into values object
+        // in a filter (the third parameter)
+        storage.getAllScripts(["dss", "ss"], function(scripts) {
+          // on complete
+          //console.log(values);
+          
+          // Filter site scripts and add them to script menu list.
+          filterSiteScript(keys, values, filterOptions, contentType, nameFilter);
+        }, function(name, type, script) {
+          // in filter
+          values[name] = script;
+          
+          // values are already added to values object, so there is no need to add the item to a result set again.
+          return false;
+        }, function(err) {
+          // on err
+          console.log("Cannot load site scripts due to", err);
+          showMessage("Cannot load site scripts due to " + err);
+        });
+      }
+
+      
 		}
+		
+		function filterSiteScript(keys, values, filterOptions, contentType, nameFilter) {
+		
+		  for(var i = 0; i < keys.length; ++ i) {
+        try {
+          v = keys[i]; 			
+          if (nameFilter) {
+            if (!nameFilter(v))
+              continue;
+          }
+          
+          var lsd = values[v];
+          var addFlag = false, contentFlag = false, autostartFlag = true;
+          if (!filterOptions) {
+            addFlag = true;
+          } else {
+            var textPattern = filterOptions["pattern"];
+            var andorAutostart = filterOptions["andorAutostart"]; // and, or
+            var autostartValue = filterOptions["autostart"]; // true, false, any
+            var name = filterOptions["name"];
+            
+            if (name) {
+              if (name !== v)
+                continue;
+              else
+                addFlag = true;			
+            } else {
+              if (contentType) {
+                var content = "";
+                  
+                if (contentType === "js") {
+                  content = lsd.script;
+                } else if (contentType === "css") {
+                  content = lsd.css;
+                } else if (contentType === "js+css") {
+                  content = lsd.script + "\n" + lsd.css;
+                }
+                
+                contentFlag = content.match(textPattern);
+              }
+              
+              if (autostartValue === "any")
+                autostartFlag = true;
+              else
+                autostartFlag = lsd.autostart ? autostartValue === "true" : autostartValue === "false";
+              
+              if (andorAutostart === "and")
+                addFlag = contentFlag && autostartFlag;
+              else
+                addFlag = contentFlag || autostartFlag;
+            }
+          }
+          
+          if (addFlag)
+            addMenuBox(v,lsd);
+          
+        } catch(e) {
+          console.log(`Invalid! localStorage[${v}]=${localStorage[v]}`);
+        }
+      }      
+
+      // Hide the Main script if set so in options
+      if (storage.getSetting("sitescripts_showMainScript") !== "true") {
+        $(".siteScriptKey[data-site='Main']").hide();
+      }
+		}
+		
 		function addMenuBox(v,lsd)
 		{
 			var autostartclass = lsd.autostart ? " autostart" : "";
@@ -377,31 +409,30 @@
 			});
 			$divcontainer.append($("<div class='jsttitle' >").text(v));	
 			
-			if(v!=="Default" && v!== "Main")
-			{
+			if(v!=="Default" && v!== "Main") {
 				var $imgLink = $("<img class='goto' border=0 src='css/theme/img/url_icon.gif'>");
-				if(lsd.hidden === 'checked')
-				{
-					$imgLink.click(function(){
-						chrome.windows.create({"url":"http://"+v, "incognito": true});
-					});
-					$imgLink.attr("src","css/theme/img/url_icon_i.png");
-				}
-				else
-				{
+// 				if(lsd.hidden === 'checked')
+// 				{
+// 					$imgLink.click(function(){
+// 						chrome.windows.create({"url":"http://"+v, "incognito": true});
+// 					});
+// 					$imgLink.attr("src","css/theme/img/url_icon_i.png");
+// 				}
+// 				else
+// 				{
 					$imgLink.click(function(){
 						chrome.tabs.create({"url":"http://"+v});
 					});
-				}
+// 				}
 				$divcontainer.append($imgLink);
 			}
 			
-			if(lsd.hidden === 'checked')
-			{
-				if(hiddenOpt)
-					$divbox.hide();
-				$divbox.addClass('hiddenFlag');
-			}
+// 			if(lsd.hidden === 'checked')
+// 			{
+// 				if(hiddenOpt)
+// 					$divbox.hide();
+// 				$divbox.addClass('hiddenFlag');
+// 			}
 			
 			if(selectedTitle === v)
 				$divbox.addClass("selected");

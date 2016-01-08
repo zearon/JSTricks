@@ -587,39 +587,7 @@ function updateSettings(extraAttribute) {
 		
 		function updateActiveSites(mode, site, autostart) {
 			var activeSites, inactiveSites, allSites, settingChanged; 
-			var defaultActive = {}; 
-			
-			// Initialize the active sites
-			if (arguments.length < 1) {
-				debug_log("Initialize the active sites list.");
-				allSites = [], activeSites = [], inactiveSites = [], defaultActive.value = false;
-				
-				storage.getAllScripts(["ss", "dss"], function(allscripts) {
-					// On complete
-					
-					// initialize all sites pattern
-					updateAllSitesPattern(allSites)
-				  
-				  // initialize active sites pattern
-					updateStatus(activeSites, inactiveSites, defaultActive.value);
-				}, function(id, type, obj) {
-					// On iterate
-					if (type == "dss" && id == "Default") {
-					  if (obj.autostart) {
-						  defaultActive.value = true;
-						}
-					} else if (type == "ss") {
-						allSites.push(obj.name);
-					  if (obj.autostart) {
-						  activeSites.push(obj.name);
-						} else {
-						  inactiveSites.push(obj.name);
-						}
-					}
-				});
-				
-				return;
-			} 
+			var defaultActive = {};
 			
 			// update status on single script change.
 			settingChanged = false;
@@ -711,8 +679,8 @@ function updateSettings(extraAttribute) {
 				//storage.setSetting("temp-index-inactivesites-pattern", inactiveSitesPattern);
         
         // Save to chrome.storage.local for content scripts access
-        var iconStatus = {"defaultEnabled":defaultActive, "activeSites": activeSites, "inactiveSites": inactiveSites}
-        chrome.storage.local.set({"iconStatus": iconStatus});
+        var siteIndex = {"defaultEnabled":defaultActive, "activeSites": activeSites, "inactiveSites": inactiveSites}
+        chrome.storage.local.set({"siteIndex": siteIndex});
 				
 				debug_log("activeSitesPattern=", activeSitesPattern);
 				debug_log("inactiveSitesPattern=", inactiveSitesPattern);
@@ -842,8 +810,7 @@ function updateSettings(extraAttribute) {
 
 		})();
 		
-		storage.setSetting("enabled", "true");
-		chrome.storage.local.set({"iconStatus": "default"});
+		//chrome.storage.local.set({"iconStatus": "default"});
 		
 		if( localStorage["info"] == undefined) {		
 			loadDefaultSettings();
@@ -864,6 +831,7 @@ function updateSettings(extraAttribute) {
 		}
 		
 		localStorage["info"] = chrome.manifest.version;
+		storage.setSetting("enabled", "true");
 		
 		storage.rebuildScriptIndexes();
 		updateSettings();	

@@ -40,7 +40,7 @@ function createAutoload() {
       
     self.loaded = true;
     
-    chrome.storage.local.get(["enabled", "INFO", "iconStatus"], function(storage) { 
+    chrome.storage.local.get(["enabled", "INFO", "siteIndex"], function(storage) { 
       if (chrome.runtime.lastError)
         chrome.error("Cannot get object from chrome local storage.");
       
@@ -144,10 +144,10 @@ function createAutoload() {
     if (self.siteStatus)
       return self.siteStatus;
       
-    var iconStatus = self.storage.iconStatus;
-    var defaultEnabled = iconStatus.defaultEnabled;
-    var activeSites = iconStatus.activeSites;			
-    var inactiveSites = iconStatus.inactiveSites;
+    var siteIndex = self.storage.siteIndex;
+    var defaultEnabled = siteIndex.defaultEnabled;
+    var activeSites = siteIndex.activeSites;			
+    var inactiveSites = siteIndex.inactiveSites;
     var siteStatus, active = arrayContains(activeSites, self.domain), 
         inactive = arrayContains(inactiveSites, self.domain);
   
