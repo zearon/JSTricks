@@ -168,8 +168,9 @@
 	 * Transfer all scripts from a storage area to another.
 	 */
 	Storage.fn.rebuildScriptIndexes = function(onok, onerr) {
-	  var self = this, allSites = [], activeSites = [], inactiveSites = [], 
-	    contentScripts = [], defaultActive = {value:false};
+	  var self = this, index,
+	    allSites = [], activeSites = [], inactiveSites = [], 
+	    contentScripts = [], defaultActive = {value:false}, maxIndex = {value:0};
 	  
 	  this.getAllScripts(["dss", "ss", "cs"], function() {
 	    // on complete

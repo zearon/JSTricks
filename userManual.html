@@ -54,8 +54,8 @@ run(["ready"], function(ready) {
 	<p>It can be temporarily disabled by setting its autostart attribute to false and enabled by setting its autostart attribute back to true.</p>
 	
 	<h5>Main Script</h5>
-	<p>Main script is a very special script. Its CSS part has no sense. This is the very first script injected into in a tab, which is designed to do some initialization work, such as sea.js configuration, etc.</p>
-	<p>It is hidden in default, and can be displayed by turning on the "Show Main script" switch in the options tab. It is advised that this script should be hidden after any modification in case of operation mistakes.</p>
+	<p>Main script is a very special script. Its CSS part has no sense. This is the very first script injected into in a tab (if there are any scripts to be injected), which is designed to do some initialization work, such as sea.js configuration, etc.</p>
+	<p>It is hidden by default, and can be displayed by turning on the "Show Main script" switch in the options tab. It is strongly recommended that this script should be hidden after any modification in case of operation mistakes.</p>
 	
 	<h4>Dynamic Content Scripts</h4>
 	<p>Dynamic content script is a concept borrowed from Chrome which means the scripts are like the original content script concept in Chrome that could be injected in to target webpage, and "dynamic" suggests that they are editable, and not like the original content script concept in Chrome which is built in the extension as files and thus being unchangeable. </p>
@@ -67,14 +67,48 @@ run(["ready"], function(ready) {
 	<p></p>
 	<p></p>
 	
-	<h4>Loading Sequence of Scripts</h4>
-	<p>(to be completed)</p>
+</div>
+	
+<h3>Loading Sequence of Scripts</h3>
+<div>
+	<p>There are a lot of scripts injected into a webpage. Here is the sequence of their injection time:<p/>
+	<p><b>1</b>. Injected library content scripts defined in extension's manifest.json before autoload.js, including "injected/dom.js", "injected/sea-debug.js", "injected/seajs_boot.js", "injected/ready.js".</p>
+	<p><b>2</b>. <b>"injected/autoload.js"</b>. This script send an injection event to background page for site scripts and maybe content scripts, which is determined by their dependency relationship. Here, the execution flow forks into two <b>parallel</b> flows, 3.1 and 3.2 :</p>
+	<p>
+	<b>3.1</b> In the webpage, the remaining library content scripts after "autoload.js" defined in extension's manifest.json after autoload.js, including <b>"injected/plugin/loader.js"</b>, and "injected/nodeSelector.js". <br/><b>"injected/plugin/loader.js"</b> checks plugin configuration defined in "plugins" section in Meta Data (which can be edited in Dynamic Coontent Scripts Tab -> MetaData (Global) Tab), and load corresponding content scripts, as illustrated in 3.3.</p>
+	<p>
+	<b>3.2</b> In the extension's background page at the same time, once an injection event from autoload.js is received, it injects the following scripts into the webpage in sequence.</p>
+	<p style="margin-left:20px;">
+	<b>3.2.1</b> Main site script if it is set auto-started</p>
+	<p style="margin-left:20px;">
+	<b>3.2.2</b> Content scripts set in "include" attribute of the meta data and their dependency scripts.</p>
+	<p style="margin-left:20px;">
+	<b>3.2.3</b> Default site script if it is set auto-started</p>
+	<p style="margin-left:20px;">
+	<b>3.2.4</b> Site script matching url of the webpage.</p>
+	
+	<b>3.3</b> In the extension's background page, once an injection event from plugin loader (injected/plugin/loader) is received, it injects the following scripts into the webpage in sequence.</p>
+	<p style="margin-left:20px;">
+	<b>3.2.1</b> Main site script if it is set auto-started</p>
+	<p style="margin-left:20px;">
+	<b>3.2.2</b> Content scripts set in "include" attribute of the meta data and their dependency scripts.</p>
+	<p style="margin-left:20px;">
+	<b>3.2.3</b> The content script set in "plugins" section that matches the condition (url condition or css selector condition) in the meta data.</p>
+	
+	<p>If the extension is set disabled by clicking the Enable/Disable button in the popup window, only scripts defined in extension's menifest.json file will be injected, and the execution will stop at step 2 and never goes further.</p><br/>
+		
+	<h4>Choice of Injection Point</h4>	
+	<p>In general, there are two kinds or injection starting point, domain-name trigged, and plugin trigged, handled by injected/autoload.js and injected/plugin/loader.js respectively. Thus it is possible that a script is loaded multiple times by different triggers. If your script is sensitive to multiple times of execution, you should check within your script (maybe using a global variable, which is a feasible approach).</p>
+	<p></p><br/>
+	
+	
 </div>
 
 <h3>Meta Data and Code Generation</h3>
 <div>
 	<h4>Utilizing Code Generation Tools</h4>
 	<p>(to be completed)</p>
+	<p>(please just follow the existing meta data and try it several times.)</p>
 </div>
 
 <h3>Dependency Management</h3>
@@ -107,6 +141,19 @@ run(["jquery", "#Novel"], function($, novel) {
 				
 	</pre>
 </div>	
+
+<h3>Code Auto-Completion and Syntax Check</h3>
+<div>
+	<h4></h4>
+	<p>Pressing Ctrl+Space can show the auto-completion hints.</p>
+	<p><a href="http://jshint.com/" target="_blank">JSHint</a> is incorporated to do the syntax checking job with a preset of syntax rules. If you want to change them, you can use directives in individual files. Go to <a href="http://jshint.com/docs/" target="_blank">JSHint Doc</a> and skip to <b>Inline configuration</b> section for reference.</p>
+	<p>A typical example is putting the following comments at the beginning of your script. <p>
+	<pre>
+/* jshint undef: true, unused: true */
+/* globals MY_GLOBAL, MY_GLOBAL2 */	
+	</pre>
+	<p>The above directives tell the JSHint to report usage of undefined variables, as well as unused variables, and consider MY_GLOBAL and MY_GLOBAL2 as global variables.<p>
+</div>
 
 <h3>Built-in Scripts</h3>
 <div>

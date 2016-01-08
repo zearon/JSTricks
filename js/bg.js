@@ -454,18 +454,8 @@ function updateSettings(extraAttribute) {
 				var include = metadata["include"];
 				// autoloadFiles["length"] = include.length;
 				for ( var i = 0; i < include.length; ++i) {
-					var fileName = "$cs-" + include[i];
-					var text = localStorage[fileName];
-					var data = JSON.parse(text);
-					autoloadFiles[data["index"]] = {"name":include[i], "code":data["script"], "type":"js"};
-					fileCount ++;
+				  addAContentScriptToLoadList(autoloadFileList, include[i]);
 				}
-				for (index in autoloadFiles) {
-					autoloadFileList.push(autoloadFiles[index]);
-				}					
-				
-				// debug_log("autoloadFiles:");
-				// debug_log(autoloadFileList);
 			} catch(ex) {
 			  console.error(ex);
 			}
