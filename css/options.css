@@ -60,9 +60,12 @@
 		.jstbox.siteScriptKey.autostart {
 			background-position: 0 9px; 
 		}
+		.jstbox.contentScriptKey.autostart {
+			background-position: 20px 0; 
+		}
 		.jstbox.plugin .jsttitle {
 			background-repeat: no-repeat; 
-			background-position: 20px 0px; 
+			background-position: 0px 0px; 
 		}
 		#contentscript-menu .jstbox.contentScriptKey span
 		{
