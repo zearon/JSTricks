@@ -833,16 +833,37 @@
 		
 		function updateMetaData(metadata) {				
 			try {
-				var meta = JSON.parse(metadata);
-				var includes = meta.include;	
+			  var meta = JSON.parse(metadata);
+				var includes = meta.include;
+				var plugins = meta.plugins;
 				
 				var menuItem = $('.contentScriptKey.jstbox');
-				menuItem.removeClass("autostart").attr("title", menuItem.attr("name"));
+				menuItem.removeClass("autostart").removeClass("plugin");
+				var i, title = menuItem.attr("name");
+				
 				if (includes)
-					for (var i = 0; i < includes.length; ++i) {
+					for (i = 0; i < includes.length; ++i) {
 						var include = includes[i];
 						menuItem = $(`.contentScriptKey.jstbox[name='${include}']`);
-						menuItem.addClass("autostart").attr("title", menuItem.attr("name") + " will be automatically loaded.");
+						menuItem.addClass("autostart").attr("title", title + " will be automatically loaded");
+					}
+					
+				if (plugins)
+					for (i = 0; i < plugins.length; ++i) {
+						var plugin = plugins[i];
+						var action = plugin.action;
+						var pluginScript = action.script;
+						
+						if (pluginScript) {
+              menuItem = $(`.contentScriptKey.jstbox[name='${pluginScript}']`);
+              menuItem.addClass("plugin");
+              title = menuItem.attr("title");
+              if (menuItem.hasClass("autostart"))
+                title += " and also loaded as a plugin";
+              else
+                title += " will be loaded as a plugin";
+						  menuItem.attr("title", title);
+            }
 					}
 			} catch (ex) { console.error(ex);}
 		}
