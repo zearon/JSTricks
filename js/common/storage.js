@@ -1,21 +1,38 @@
-(function(global) {
-  var instance;
-
-  function Storage() {
-    if (instance)
-      return instance;
-    
-    instance = this;
-    this.global = global;
-    this.ls = new LocalStorage();
-//     this.db = new DBStorage();
-    // Script storage
-    this.sst = this.ls;
-    // this.sst = this.db;
-  }
-  Storage.fn = Storage.prototype;
+(function(global, Storage) {		 
+	/*********************************************
+	 *        Create object and export it        *
+	 *            as global variable.            *
+	 *                                           *
+	 *********************************************/	
   global.Storage = Storage;
   global.storage = new Storage();
+  // DEBUG
+  // global.storage.dbst.test();
+}) (this, 
+(function(global) {
+	/*********************************************
+	 *             Module definitions            *
+	 *                                           *
+	 *                including:                 *
+	 *     Storage, LocalStorage, DBStorage      *
+	 *                                           *
+	 *            only return Storage            *
+	 *********************************************/
+  var storageInst;
+
+  function Storage() {
+    if (storageInst)
+      return storageInst;
+    
+    storageInst = this;
+    this.global = global;
+    this.lsst = new LocalStorage();
+    this.dbst = new DBStorage();
+    // Script storage
+    //this.sst = this.lsst;
+    this.sst = this.dbst;
+  }
+  Storage.fn = Storage.prototype;
 	/*********************************************
 	 *             Public Interfaces             *
 	 *********************************************/
@@ -26,7 +43,7 @@
 	 *   asobj: get setting value as object.
 	 */
 	Storage.fn.getSetting = function (key, asobj) {
-		return this.ls.getSetting.apply(this.ls, arguments);
+		return this.lsst.getSetting.apply(this.lsst, arguments);
 	}	
 	
 	/**
@@ -36,7 +53,7 @@
 	 *   asobj: get setting value as object.
 	 */
 	Storage.fn.iterateSettings = function (iter, oncomplete, asobj) {
-		return this.ls.iterateSettings.apply(this.ls, arguments);
+		return this.lsst.iterateSettings.apply(this.lsst, arguments);
 	}
 	
 	/**
@@ -46,16 +63,20 @@
 	 *   asobj: get setting value as object.
 	 */
 	Storage.fn.setSetting = function(key, value, asobj) {
-		return this.ls.setSetting.apply(this.ls, arguments);
+		return this.lsst.setSetting.apply(this.lsst, arguments);
 	}
 	
-	Storage.fn.getMetadata = function() {
+	Storage.fn.getMetadata = function(asobj) {
 	  var val = localStorage["meta"];
-	  try {
-	    return JSON.parse(val);
-	  } catch (ex) {
-	    console.error("Cannot parse metadata string as an object.");
-	    throw ex;
+	  if (asobj) {
+      try {
+        return JSON.parse(val);
+      } catch (ex) {
+        console.error("Cannot parse metadata string as an object.");
+        throw ex;
+      }
+	  } else {
+	    return val;
 	  }
 	}
 	
@@ -76,43 +97,79 @@
 	 *   filter(id, type, obj) {... return true/false.} 
 	 * in which
 	 *   id: domain of site-script, name of content-script
-	 *   type: 'ss' for site-script, 'cs' for content-script, 'meta' for mata data
+	 *   type: 'ss' for site-script, 'cs' for content-script
 	 *   return value: determines if the obj should be in the result set.
 	 * The optional onerr callback should be like: onerr(err) {...}
 	 */
 	Storage.fn.getAllScripts = function (type, callback, filter, onerr) {
-		return this.ls.getAllScripts.apply(this.ls, arguments);
+		return this.sst.getAllScripts.apply(this.sst, arguments);
 	}
 	
 	/**
 	 * Find a script with a given id and a given type.
 	 * type: type of scripts, which can be "cs", "ss", "dss", …
 	 * The onok callback should be like:
-	 *   iterCallback(id, type, obj) {...} 
+	 *   onok(obj, id, type) {...} 
 	 * in which
 	 *   id: domain of site-script, name of content-script
-	 *   type: 'ss' for site-script, 'cs' for content-script, 'meta' for mata data
+	 *   type: 'ss' for site-script, 'cs' for content-script
 	 * The optional onerr callback should be like: onerr(err) {...}
 	 */
 	Storage.fn.getScript = function (id, type, onok, onerr) {
-		return this.ls.getScript.apply(this.ls, arguments);
+		return this.sst.getScript.apply(this.sst, arguments);
 	}
 
 	/**
 	 * Save a script into storage:
-	 *   id: domain of site-script, name of content-script
-	 *   type: 'ss' for site-script, 'cs' for content-script, 'meta' for mata data
+	 * script: a script object or an array of script objets. The script object should have 
+	 *   name and type properties.
+	 * The onsaved callback should be like:
+	 *   onsaved(err) {...} 
+	 * in which
+	 *   err: undefined if succeed and the Error object if error occurs.
+	 * The optional onerr callback should be like: onerr(err) {...}
 	 */
-	Storage.fn.saveScript = function (id, type, autoscript, include, script, css, hint, others) {
-		return this.ls.saveScript.apply(this.ls, arguments);
+	Storage.fn.saveScript = function (script, onsaved) {
+		return this.sst.saveScript.apply(this.sst, arguments);
+	}
+	
+	/**
+	 * Delete a script or several scripts.
+	 * deleteScript(id, type, onok)
+	 * deleteScript(filterFunc, onok), in which filterFunc(id, type, obj)
+	 */
+	Storage.fn.deleteScript = function (id, type, onok, onerr) {
+		return this.sst.deleteScript.apply(this.sst, arguments);
+	}
+	
+	/**
+	 * Delete all scripts.
+	 * onok: domain of site-script, name of content-script
+	 * type: 'ss' for site-script, 'cs' for content-script
+	 */
+	Storage.fn.clearScripts = function (onok) {
+		return this.sst.clearScript.apply(this.sst, arguments);
+	}	
+	
+	/**
+	 * Transfer all scripts from a storage area to another.
+	 */
+	Storage.fn.transferScripts = function(src, dest, oncomplete) {
+	  
+	  src.getAllScripts(["dss", "ss", "cs"], function(scripts) {
+	    // On complete
+	    console.log("Transfer", scripts.length, "scripts from", src, "to", dest);
+	    
+	    dest.saveScript(scripts, oncomplete);
+	  });
 	}
 	
 	/**
 	 * Update the auto start status of a site script.
 	 */
-	Storage.fn.updateSiteScriptAutostart = function (id, options) {
-		//if (options.autostart)
-	}
+// 	Storage.fn.updateSiteScriptAutostart = function (id, options) {
+// 		//if (options.autostart)
+// 	}
 	
 	/**
 	 * Get a regular expression string to test whether should load script for a url
@@ -143,15 +200,15 @@
 	/*********************************************
 	 *        Event Registration                 *
 	 *********************************************/
-	if (chrome.runtime.onInstalled)
-		chrome.runtime.onInstalled.addListener(initStorage);
+// 	if (chrome.runtime.onInstalled)
+// 		chrome.runtime.onInstalled.addListener(initStorage);
 	
 	/**
 	 * Initialize the storage.
 	 */
-	function initStorage() {
-	  console.log("Init storage.");
-	}
+// 	function initStorage() {
+// 	  console.log("Init storage.");
+// 	}
 	 
 	 
 	/*********************************************
@@ -164,6 +221,8 @@
 	  this.global = global;
 	}
 	LocalStorage.fn = LocalStorage.prototype;
+	
+	LocalStorage.fn.init = function() {}
 	
 	LocalStorage.fn.getSetting = function(key, asobj) {
 		var valtext = localStorage["$setting." + key];
@@ -209,19 +268,62 @@
 			var script = this.loadScript(key, types);
 			if (!script)
 				continue;
-				
-			if (filter && filter(script.id, script.type, script))
+			
+			script.name = this.getScriptNameByKey(key);
+			script.type = this.getScriptTypeByKey(key);
+			
+			if (!filter || filter(script.name, script.type, script))
 				allscripts.push(script);
 		}
 		
 		callback(allscripts);
 	}
 	
-	// onok(iterCallback(id, type, obj) {...} 
+	// onok(obj, id, type) {...} 
 	LocalStorage.fn.getScript = function(id, type, onok, onerr) {
 		var key = (type == "ss" || type == "dss") ? id : "$cs-" + id;
 		var script = this.loadScript(key, type);
-		onok(script);
+		onok(script, id, type);
+	}
+	
+	// onok()
+	LocalStorage.fn.saveScript = function(script, onok) {
+	  var scripts = script;
+	  if (!isArray(script))
+	    scripts = [script];
+	  
+	  for (var i = 0; i < scripts.length; ++ i) {
+      var key = this.getScriptKey(script.name, script.type);
+      localStorage[key] = JSON.stringify(script);
+	  }
+	  onok();
+	}
+	
+	// only support delete one script.
+	// onok()
+	LocalStorage.fn.deleteScript = function (id, type, onok) {
+	  var key = this.getScriptKey(id, type);
+	  delete localStorage[key];
+	  
+	  if (onok)
+	    onok();
+	}
+	
+	/**
+	 * Delete all scripts.
+	 * onok: domain of site-script, name of content-script
+	 * type: 'ss' for site-script, 'cs' for content-script
+	 */
+	LocalStorage.fn.clearScripts = function (onok) {
+		for (var key in localStorage) {
+			if (!this.isScriptName(key))
+				continue;
+			
+			delete localStorage[key];
+		}
+		
+		if (onok)
+		  onok();
 	}
 	
 	LocalStorage.fn.loadScript = function(key, types, onok, onerr) {
@@ -258,12 +360,6 @@
 		return obj
 	}
 	
-	LocalStorage.fn.saveScript = function(id, type, autoscript, include, script, css, hint, others) {
-	}
-	
-	LocalStorage.fn.getAllSiteScriptNames = function() {
-	}
-	
 	
 	/*********************************************
 	 *     LOCALSTORAGE API ONLY                 *
@@ -272,11 +368,11 @@
 	LocalStorage.fn.getScriptTypeByKey = function(v) {
 		if (v.startsWith("$setting."))
 			return "setting";
-		else if (v == "meta")
+		else if (v === "meta")
 			return "meta";
 		else if (this.isContentScriptName(v))
 			return "cs";
-		else if (v == "Default" || v == "Main")
+		else if (v === "Default" || v === "Main")
 			return "dss";
 		else if (this.isSiteScriptName(v))
 			return "ss";
@@ -287,11 +383,11 @@
 	LocalStorage.fn.getScriptNameByKey = function(v) {
 		if (v.startsWith("$setting."))
 			return v.replace("$setting.", "");
-		else if (v == "meta")
+		else if (v === "meta")
 			return "meta";
 		else if (this.isContentScriptName(v))
 			return v.replace("$cs-", "");
-		else if (v == "Default" || v == "Main")
+		else if (v === "Default" || v === "Main")
 			return v;
 		else if (this.isSiteScriptName(v))
 			return v;
@@ -300,14 +396,14 @@
 	}
 	
 	LocalStorage.fn.isScriptName = function(v) {
-		if (v == "Default" || v == "Main" || this.isSiteScriptName(v) || this.isContentScriptName(v))
+		if (v === "Default" || v === "Main" || this.isSiteScriptName(v) || this.isContentScriptName(v))
 			return true;
 		else
 			return false;
 	}
 	
 	LocalStorage.fn.isSiteScriptName = function(v) {
-		if(v!='Default' && v!='Main' && v!='cacheCss' && v!='cacheScript' && v!='info' && v!='meta' && v!='$setting' 
+		if(v!='Default' && v!=='Main' && v!=='cacheCss' && v!=='cacheScript' && v!=='info' && v!=='meta' && v!=='$setting' 
 				&& !(/^\$setting\./.test(v))   && !(/^\$cs-/.test(v))  ) /**/ {
 			
 			return true;
@@ -319,5 +415,320 @@
 	LocalStorage.fn.isContentScriptName = function(v) {
 		return v.startsWith("$cs-");
 	}
+	
+	LocalStorage.fn.getScriptKey= function(id, type) {
+	  if (type === "cs")
+	    return "$cs-" + id;
+	  else
+	    return type;
+	}
+	
+	
+	 
+	 
+	/*********************************************
+	 *        Internal Implementations           *
+	 *                                           *
+	 *           with IndexedDB API              *
+	 *********************************************/
+  
+  function DBStorage() {
+    this.global = global;
+    this.dbname = "JavascripTricks";
+    this.dbver = 2;    
+    this.db = null;
+    
+    this.scriptStoreName = "Scripts";
+    this.scriptStore = null;
+    
+    this.onDbOpened = [];
 
-}) (this);
+    
+    initIndexedDB.call(this);
+  }
+  DBStorage.fn = DBStorage.prototype;
+  
+  function initIndexedDB() {
+    console.log("initing DBStorage");
+    this.createDB();
+  }
+  
+  DBStorage.fn.createDB = function() {
+    console.log("Opening database");
+    var self = this;
+    var dbreq = indexedDB.open(this.dbname, this.dbver);
+    dbreq.onerr = function(e) {
+      console.error("Database error:", e.target.errorCode, e);
+      // 12 is VER_ERR: desired version is lower than the found one
+      if (e.target.errorCode === 12) {
+        //
+      }
+    };
+    dbreq.onsuccess = function(evt) {
+      self.db = evt.target.result;
+      
+      for (var i = 0; i < self.onDbOpened.length; ++ i) {
+        var listener = self.onDbOpened[i];
+        listener.call(self);
+      }
+    };
+    dbreq.onupgradeneeded = function(evt) {
+      self.upgradeObjectStore.call(self, evt);
+    };
+  }
+  
+  DBStorage.fn.upgradeObjectStore = function(evt) {
+    console.log("Creating object store", evt);
+    var db = self.db = evt.target.result;
+    
+    if (db.objectStoreNames.contains(this.scriptStoreName)) {  
+        db.deleteObjectStore(this.scriptStoreName)  
+    }
+    
+    var scriptStore = this.scriptStore = db.createObjectStore(this.scriptStoreName,
+       {keyPath:"id", autoIncrement: true});    
+    
+    // create indexes
+    this.scriptStore.createIndex("name", "name", { unique: false });
+    this.scriptStore.createIndex("type", "type", { unique: false });
+    this.scriptStore.createIndex("type,name", ["type", "name"], { unique: true });
+    this.scriptStore.createIndex("type,group", ["type", "group"], { unique: false });
+  }
+  
+	/**
+	 * Iterate all scripts with given type from storage with a iteration callback, 
+	 * and optionally an on error callback.
+	 * type: type of scripts, which can be "cs", "ss", "dss", …. It can be a string or an array of string.
+	 * callback: a function get invoked after all scripts are fetched. function ( array of scripts ) {…}
+	 * filter (optional): a filter callback determines if the script being iterated should be in the result set. It should be like:
+	 *   filter(id, type, obj) {... return true/false.} 
+	 * in which
+	 *   id: domain of site-script, name of content-script
+	 *   type: 'ss' for site-script, 'cs' for content-script, 'meta' for mata data
+	 *   return value: determines if the obj should be in the result set.
+	 * The optional onerr callback should be like: onerr(err) {...}
+	 */
+	DBStorage.fn.getAllScripts = function (type, callback, filter, onerr) {
+	  var types = null, result = [];
+	  if (isArray(type))
+	    types = type;
+	  else
+	    types = [ type ];
+	    
+	  function oncomplete() {
+	    if (callback) 
+	      callback(result);
+	  }
+	    
+		this.transaction(false, function(objStore) {
+		  var index = objStore.index("type");
+      // open a cursor and iterate over all records with it
+      index.openCursor().onsuccess = function(event) {
+        var cursor = event.target.result;  
+              
+        if (cursor) {
+            var key = cursor.key; 
+            var obj = cursor.value;
+            
+            var typeMatches = types.contains(key);
+            var filterMatches = !filter || filter(obj.name, obj.type, obj) ;
+            //console.log("Iterating obj:", obj.name, obj, typeMatches, filterMatches);  
+            
+            if (typeMatches && filterMatches ) {
+              result.push(obj);
+            }
+            
+            cursor.continue();  
+        }  
+      };
+      
+    }, onerr, oncomplete);
+	}
+	
+	/**
+	 * Find a script with a given id and a given type.
+	 * type: type of scripts, which can be "cs", "ss", "dss", …
+	 * The onok callback should be like:
+	 *   onok(obj, id, type) {...} 
+	 * in which
+	 *   id: domain of site-script, name of content-script
+	 *   type: 'ss' for site-script, 'cs' for content-script, 'meta' for mata data
+	 * The optional onerr callback should be like: onerr(err) {...}
+	 */
+	DBStorage.fn.getScript = function (id, type, onok, onerr) {
+	  var types = type;
+	  if (!isArray(type)) {
+	    types = [type];
+	  }
+	  
+		this.transaction(false, function(objStore) {
+		  var indexGet;
+      for (var i = 0; i < types.length; ++ i) {
+        indexGet = objStore.index("type,name").get([types[i], id]);
+        indexGet.onsuccess = function(e) {
+          var obj = e.target.result;
+        
+          if (onok) {
+            onok(obj, id, types[i]);
+          }
+        };
+      }
+		}, onerr);
+	}
+
+	/**
+	 * Save a script into storage:
+	 * script: a script object or an array of script objets. The script object should have 
+	 *   name and type properties.
+	 * The onsaved callback should be like:
+	 *   onsaved(err) {...} 
+	 * in which
+	 *   err: undefined if succeed and the Error object if error occurs.
+	 * The optional onerr callback should be like: onerr(err) {...}
+	 */
+	DBStorage.fn.saveScript = function (script, onsaved) {
+	  var scripts;
+	  if (!isArray(script)) {
+	    scripts = [script];
+	  } else {
+	    scripts = script;
+	  }
+	  
+		this.transaction(true, function(objStore) {
+		  for (var i = 0; i < scripts.length; ++ i) {
+		    var script = scripts[i];
+		    script.id = generateID(script.type, script.name);
+		    //console.log("Saving script", script.id, script.name, script.type);
+		    objStore.put(script);
+		  }
+		  
+		  if (onsaved)
+		    onsaved();
+		});
+	}
+	
+	/**
+	 * Delete a script or several scripts.
+	 * deleteScript(id, type, onok)
+	 * deleteScript(filterFunc, onok), in which filterFunc(id, type, obj)
+	 */
+	DBStorage.fn.deleteScript = function (id, type, onok, onerr) {
+	  var filter = null, genID = generateID(type, id);
+	  if (isFunction(id)) {
+	    filter = id;
+	    onok = type;
+	  }
+	  
+		this.transaction(true, function(objStore) {
+		  var index = objStore.index("type");
+		  var cursorReq;
+		  // open a cursor
+		  if (filter) {
+		    cursorReq = objStore.index("type").openCursor();
+		  } else {
+		    console.log(objStore);
+		    cursorReq = objStore.openCursor(IDBKeyRange.only(genID));
+		  }
+      // iterate over all records with the cursor
+      cursorReq.onsuccess = function(event) {
+        var cursor = event.target.result;  
+              
+        if (cursor) {
+          if (filter) {
+            var key = cursor.key; 
+            var obj = cursor.value;
+            
+            if (filter(obj.name, obj.type, obj)) {
+              objStore.delete(obj.id);
+            } 
+          } 
+          
+          else {
+            objStore.delete(cursor.primaryKey);
+          }
+            
+          cursor.continue();
+        }  
+      };
+		}, onerr, onok);
+	}
+	
+	function defaultScriptFilter(id, type) {
+	  return function(id_, type_, obj_) {
+	    return id_ === id && type_ === type;
+	  };
+	}
+	
+	/**
+	 * Delete a script.
+	 */
+	DBStorage.fn.clearScripts = function (onok) {	  
+		this.transaction(true, function(objStore) {
+		  var req = objStore.clear();
+		  if (onok) {
+		    req.onsuccess = function(event) {
+		      onok();
+		    }
+		  }
+		});
+	}
+	
+	/**
+	 * Open a transaction and so some work in the ontransaction callback.
+	 * type: transaction type, which is one of "readonly", "readwrite", "verionchange"
+	 * function ontransaction(objStore) {...}
+	 */
+  DBStorage.fn.transaction = function (writeAccess, ontransaction, onerr, oncomplete) {
+    var self = this;
+    function openTransaction() {
+      var transaction = self.db.transaction([ self.scriptStoreName ], 
+        writeAccess ? "readwrite" : "readonly");
+      if (onerr) {
+        transaction.onerror = function(event) {
+          // Database error
+          onerr(event.target.errorCode);
+        };
+      }
+      if (oncomplete) {
+        transaction.oncomplete = function(event) {
+          oncomplete();
+        }
+      }
+      var objStore = transaction.objectStore(self.scriptStoreName);
+      
+      ontransaction(objStore);
+    }
+    
+    if (this.db) {
+      openTransaction();
+    } else {
+      this.onDbOpened.push(openTransaction);
+    }
+  }
+  
+  function generateID(type, name) {
+    return "$" + type + "-" + name;
+  }
+	
+	DBStorage.fn.test = function (storename, obj, onsaved) {
+		console.log('test indexedDB');
+    
+    this.saveScript([
+      {name:"Default", type:"dss", autostart:false, script:"default code", css:"", sfile:""},
+      {name:"baike.baidu.com", type:"ss", autostart:true, script:"js", css:"css", sfile:""},
+      {name:"LibBase", type:"cs", autostart:false, group:"", script:"js", sfile:""},
+      {name:"Common", type:"cs", autostart:false, group:"lib", script:"js", sfile:""}
+    ]);
+		
+		this.getScript("LibBase", "cs", obj=>console.log("Found record in DB", obj));
+		
+		this.getAllScripts(["cs", "ss", "dss"], scripts => console.log("All record in DB:", scripts), 
+		  (id, type, script) => true );
+    
+    //this.deleteScript( (id,type,obj)=>type==="cs", ()=>console.log("Removed a record"));
+    //this.clearScript(()=>console.log("All records are removed."));
+	}
+	
+  return Storage;
+}) (this)
+);

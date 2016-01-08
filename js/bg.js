@@ -450,7 +450,7 @@ function updateSettings(extraAttribute) {
 			// Inject content scripts in include section of meta data.
 			var autoloadFiles = {}; var fileCount = 0;
 			try {
-				var metadata = JSON.parse(localStorage["meta"]);
+				var metadata = JSON.parse(storage.getMetadata());
 				var include = metadata["include"];
 				// autoloadFiles["length"] = include.length;
 				for ( var i = 0; i < include.length; ++i) {
@@ -466,7 +466,8 @@ function updateSettings(extraAttribute) {
 				
 				// debug_log("autoloadFiles:");
 				// debug_log(autoloadFileList);
-			} catch(exception) {
+			} catch(ex) {
+			  console.error(ex);
 			}
 		}
 		
@@ -853,6 +854,12 @@ function updateSettings(extraAttribute) {
 			if (!confirm("New version installed! Do you want to override current configuration with the one in the new version?"))
 				return;
 				
+			if (compareVersion(localStorage["info"], "2.0.0") < 0) {			  
+        storage.transferScripts(storage.lsst, storage.dbst, function() {
+          console.info("Transfer scripts in LocalStorage to IndexedDB");
+        });
+			}
+			
 			loadDefaultSettings();
 		}
 		

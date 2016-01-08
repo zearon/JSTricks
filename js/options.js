@@ -111,6 +111,7 @@
       var autos = $("#jscb")[0].checked;
 			var hid = $("#jshid").attr('checked');
 			var sf = $("#jsincludefile").val();
+			var type = (key === "Default" || key === "Main") ? "dss" : "ss";
 			
 			var menuitem = $(`#menu .jstbox[data-site='${key}']`);
 			if (autos)
@@ -119,8 +120,8 @@
 				menuitem.removeClass("autostart");
 			
 			
-      var tmp =  {"script": val, "autostart": autos, "hidden": hid , "sfile": sf, "css": cssval};
-			localStorage[key] = JSON.stringify(tmp);
+      var tmp =  {"name":key, "type":type, "script": val, "autostart": autos, "hidden": hid , "sfile": sf, "css": cssval};
+			storage.saveScript(tmp);
 			currentSavedState = editorJs.getValue();
 			currentSavedStateCss = editorCss.getValue();
 			
@@ -186,7 +187,7 @@
 				var meta = editorMeta.getValue();
 				JSON.parse(meta);
 				var metadata = jsonlint.parse(meta);
-				localStorage["meta"] = meta;
+				storage.setMetadata(meta);
 				currentSavedStateMeta = editorMeta.getValue();
 				
 				updateMetaData(meta);
@@ -295,9 +296,9 @@
 				//console.log(keys);
 					
 				
-				for(var k in keys) {	
+				for(var i = 0; i < keys.length; ++ i) {	
 					try {
-						v = keys[k]; 			
+						v = keys[i]; 			
 						if (nameFilter) {
 							if (!nameFilter(v))
 								continue;
@@ -413,7 +414,28 @@
 				$("#editorJs").hide().css({"visibility":""}).fadeIn();
 			
 			var v = $(obj).text();
-			var lsd = JSON.parse(localStorage[v]);
+			//var lsd = JSON.parse(localStorage[v]);
+			
+			var flag = {index:1, len:2, found:false}
+			
+			storage.getScript(v, ["dss", "ss"], function(script, name, type) {
+			  // On loaded
+			  if (!script) {
+			    if (!flag.found && flag.index++ == flag.len) {
+            console.log("Cannot find site script", v);
+          }
+          return;
+        }
+			  flag.found = true;
+			  
+			  selectSiteOnScriptLoaded(obj, script);
+			}, function(err) {
+			  // On err
+			  console.error("Cannot load script due to", err);
+			  showMessage("Cannot load script due to " + err.message);
+			});
+		}
+		function selectSiteOnScriptLoaded(obj, lsd) {
 			var mapOptions = {command:"HightlightMatchedText", editor:editorJs, editor2:editorCss};
 			mapSiteScriptFunc(lsd, mapOptions);
 			
@@ -439,7 +461,8 @@
 			}
 				
 				
-			selectedTitle = v;
+			selectedTitle = lsd.name;
+			console.log("selectedTitle is", selectedTitle);
 			if(lsd.autostart)
 				$("#jscb")[0].checked = true;
 			else
@@ -474,7 +497,7 @@
 			editorJs.clearHistory();
 			editorCss.clearHistory();
 			
-			showMessage("Loaded '"+v+"' site's trick!");
+			showMessage("Loaded '"+lsd.name+"' site's trick!");
 		}
 		function editTitle($box)
 		{
@@ -583,6 +606,8 @@
 			$(".cloudsave-showkey").click(cloudStorageShowKey);
 			$("#cloudsave-genkey").click(cloudStorageGenKey);
 			$("#show-cloudsave-src").click(showCloudStorageSrc);
+			$("#loadScriptsLStoDBBtn").click(upgradeDataStorage);
+			$("#loadScriptsDBtoLSBtn").click(downgradeDataStorage);
 			
 			$("#removeTempSettingsBtn").click(removeTempSettings);
 			
@@ -821,7 +846,7 @@
 		}
 		
 		function loadMetaData() {
-			var metadata = localStorage["meta"];			
+			var metadata = storage.getMetadata();
 			if (metadata) {
 				editorMeta.setValue(metadata);
 				updateMetaData(metadata);
@@ -1260,6 +1285,18 @@
 		
 		function updateSettings() {
 			chrome.runtime.sendMessage({method:"UpdateSettings"});
+		}
+		
+		function upgradeDataStorage() {
+		  storage.transferScripts(storage.lsst, storage.dbst, function() {
+		    showMessage("Loading completes");
+		  });
+		}
+		
+		function downgradeDataStorage() {
+		  storage.transferScripts(storage.dbst, storage.lsst, function() {
+		    showMessage("Loading completes");
+		  });
 		}
 		
 		function removeTempSettings() {
@@ -2176,9 +2213,10 @@
 			var sfile = $("#dcsinclude").val();
 			var index = $("#dcsindex").val();
 			
-            var tmp =  {"index":index, "group":group, "title":title, "sfile":sfile, "script": dcstitle};
+			var tmp =  {"name":selectedContentScript, "type":"cs", "index":index, 
+			  "group":group, "title":title, "sfile":sfile, "script": dcstitle};
 
-			localStorage[key] = JSON.stringify(tmp);
+			storage.saveScript(tmp);
 			$(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`).attr("index", index)
 				.find(".index").text(index);
 				
@@ -2416,35 +2454,52 @@
 			$(this).addClass("selected");
 			
 			selectedContentScript = name;
-			var data, value = localStorage["$cs-"+name];
+			/*var data, value = localStorage["$cs-"+name];
 			try {
 				data = JSON.parse(value);
 			} catch (exception) {
 				console.error(value);
 				return;
-			}
+			}*/
 			
+			storage.getScript(name, "cs", function(script, name, type) {
+			  // On loaded
+			  if (!script) {
+			    console.error("Cannot find content script with name", name);
+			    showMessage("Cannot find content script with name " + name);
+			    return;
+			  }
+			
+			  loadContentScript_OnScriptLoaded(script);
+			}, function(err) {
+			  // On error
+			  console.error("Cannot load content script", name, "due to", err);
+			  showMessage("Cannot load content script " + name + " due to " + err);
+			});
+		}
+		
+		function loadContentScript_OnScriptLoaded(script) {			
 			var mapOptions = {command:"HightlightMatchedText", editor:editorDynScript};
-			data = mapContentScriptFunc(data, mapOptions);
+			script = mapContentScriptFunc(script, mapOptions);
 			
-			$("#dcsgroup").val(data.group);
-			$("#dcstitle").val(data.title);
-			$("#dcsinclude").val(data.sfile);	
-			$("#dcsindex").val(data.index);
+			$("#dcsgroup").val(script.group);
+			$("#dcstitle").val(script.title);
+			$("#dcsinclude").val(script.sfile);	
+			$("#dcsindex").val(script.index);
 			$("#dcsgencodebytemplate")[0].selectedIndex = 0;	
-			editorDynScript.setValue(data.script);
+			editorDynScript.setValue(script.script);
 			
-			currentSavedStateDCS = data.script;
+			currentSavedStateDCS = script.script;
 			editorDynScript.clearHistory();
 			
 			if (mapOptions.indexes) {
 				highlightMatchesInEditor(mapOptions.editor, mapOptions.indexes);
 			}
 			
-			// Switch from Meat data editor to script editor.
+			// Switch from Meta data editor to script editor.
 			$("#tabs-dcs .tabs > ul li:eq(0)").click();
 			
-			showMessage("Loaded content script: '" + name + "'!");
+			showMessage("Loaded content script: '" + script.name + "'!");
 		}
 		
 		function loadAllContentScripts(filter, options) {
