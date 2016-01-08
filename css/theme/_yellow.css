@@ -1,0 +1,197 @@
+/* Global Styles */
+html body.theme-_yellow { background:#fefebb; color:black; }
+
+
+/* Styles for options page */
+.theme-_yellow .ui-state-active > .ui-icon-close { background-position: -64px -144px; /* position of ui-icon-check*/}
+.theme-_yellow h1 { color:#444; }
+.theme-_yellow table#main {
+	border-collapse:collapse;
+	vertical-align:top;
+	box-shadow: rgba(0,0,0,0.1) 0 -10px 20px;
+	border-bottom:silver 1px solid;
+}
+.theme-_yellow .editorPanel { background:#efefba; }
+.theme-_yellow .jstbox {
+	border-bottom:1px solid rgba(0,0,0,0.2);
+	border-top:1px solid white;
+	background:#efefba;
+	text-shadow:white 0 1px;			
+	-webkit-transition: background-color 0.2s linear, margin 0.2s linear;
+}
+.theme-_yellow .jstbox:hover { background:  rgba(247,223,29,0.5); }
+.theme-_yellow .jstbox.selected { background: rgba(247,223,29,1); }
+.theme-_yellow .jstbox.autostart { background-image: url(img/autostart.png); background-repeat: no-repeat; }
+.theme-_yellow #jstmessage {
+	background:rgba(247,223,29,1);
+	box-shadow:rgba(0,0,0,0.4) 0 3px 10px;
+	border:1px solid rgba(147,123,19,1);
+}
+.theme-_yellow #contentscript-menu .jstbox.contentScriptKey .group { color: #aaaaaa; }
+.theme-_yellow .jstmessage.ok { color:white; background:green;	}
+.theme-_yellow .jstmessage.error { color:white; background:red; }
+.theme-_yellow .hiddenFlag { color:#999; }
+.theme-_yellow #dcsindexup { 
+	/* -webkit-filter:invert(1); */
+	background: url('img/arrow_up.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+.theme-_yellow #dcsindexdown { 
+	/* -webkit-filter:invert(1); */
+	background: url('img/arrow_down.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+
+
+/* Common styles for both options window and popup window */
+.theme-_yellow input[type=button] {
+	border:1px solid rgba(124,122,12,1);
+	color: black;
+	background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b));
+	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
+	text-shadow:rgba(255,255,255,0.6) 0 1px;
+}
+.theme-_yellow input[type=button]:hover,
+.theme-_yellow input[type=button]:focus {
+	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset,rgba(247,223,29,1) 0 0px 15px;
+	/*background-color*/
+}
+.theme-_yellow input[type=button]:active {
+	box-shadow: rgba(0,0,0,0.2) 0 1px 2px inset,rgba(255,255,255,1) 0 -1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
+}
+.theme-_yellow div.tabs > ul li,
+.theme-_yellow #tabs > ul li,
+.theme-_yellow li.tab-title {
+	border:1px solid rgba(124,122,12,1);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
+	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
+	text-shadow:rgba(255,255,255,0.6) 0 1px;	
+	border-top-left-radius: 6px;
+	border-top-right-radius: 6px
+}
+.theme-_yellow div.tabs > ul li.selected,
+.theme-_yellow #tabs > ul li.selected,
+.theme-_yellow li.tab-title.selected {
+	/*border:1px solid #ffaf0f; */
+	background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b));
+	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
+}
+
+
+/* Styles for popup window */
+.theme-_yellow #saveOptBtn {
+	background: url('img/icons_01.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+.theme-_yellow #laodCacheBtn {
+	background:   url('img/icons_02.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+.theme-_yellow #editInOptionPageBtn {
+	background:   url('img/icons_07.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+.theme-_yellow #runBtn {
+	background:   url('img/icons_03.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+.theme-_yellow #runSelectedBtn {
+	background:   url('img/icons_04.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+.theme-_yellow #deleteBtn {
+	background:   url('img/icons_05.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+.theme-_yellow #showInDialogBtn {
+	background:   url('img/icons_06.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+.theme-_yellow #enableDisableBtn.enable {
+	background:   url('img/enable.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+.theme-_yellow #enableDisableBtn.disable {
+	background:   url('img/disable.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+.theme-_yellow #optionsBtn {
+	background:   url('img/setting.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+.theme-_yellow input[type=button].init-script-btn {
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#D6FCB4), color-stop(50%,#D0FC48), color-stop(51%,#B8F400), color-stop(100%,#DFFB8B));
+}
+.theme-_yellow input[type=button].run-script-btn {
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#D6FCB4), color-stop(50%,#D0FC48), color-stop(51%,#B8F400), color-stop(100%,#DFFB8B));
+}
+
+.theme-_yellow #title {
+	background-color: yellow;
+}
+.theme-_yellow #js-editor-hint {
+	background-color:white;
+	opacity: 0.8;
+}
+
+
+/* Styles for CodeMirror */
+.theme-_yellow .CodeMirror-completions {
+  border:1px solid rgba(124,122,12,1);
+  box-shadow: 2px 3px 5px rgba(0,0,0,.4);
+}
+.theme-_yellow .CodeMirror-completions select {
+  background: #fff;
+}
+
+.theme-_yellow .CodeMirror-gutters {
+    background-color: #EFEFBA;
+    border-right: 1px solid #eee;
+    box-shadow: rgba(0,0,0,0.4) 2px 0 20px;
+}
+
+/* Styles for the selected text */
+.theme-_yellow .highlighted-background { background-color: rgba(255,255,119, 1); }
+.theme-_yellow .highlighted-scrollbar { 
+  background: gold;
+  border-top: 1px solid orange;
+  border-bottom: 1px solid orange;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  opacity: .5;
+}
+
+/* styles from lib/codemirror/theme/default.css */
+.cm-s-_yellow .cm-header {color: blue;}
+.cm-s-_yellow .cm-quote {color: #090;}
+.cm-negative {color: #d44;}
+.cm-positive {color: #292;}
+.cm-header, .cm-strong {font-weight: bold;}
+.cm-em {font-style: italic;}
+.cm-link {text-decoration: underline;}
+.cm-strikethrough {text-decoration: line-through;}
+
+.cm-s-_yellow .cm-keyword {color: #708;}
+.cm-s-_yellow .cm-atom {color: #219;}
+.cm-s-_yellow .cm-number {color: #164;}
+.cm-s-_yellow .cm-def {color: #00f;}
+.cm-s-_yellow .cm-variable,
+.cm-s-_yellow .cm-punctuation,
+.cm-s-_yellow .cm-property,
+.cm-s-_yellow .cm-operator {}
+.cm-s-_yellow .cm-variable-2 {color: #05a;}
+.cm-s-_yellow .cm-variable-3 {color: #085;}
+.cm-s-_yellow .cm-comment {color: #a50;}
+.cm-s-_yellow .cm-string {color: #a11;}
+.cm-s-_yellow .cm-string-2 {color: #f50;}
+.cm-s-_yellow .cm-meta {color: #555;}
+.cm-s-_yellow .cm-qualifier {color: #555;}
+.cm-s-_yellow .cm-builtin {color: #30a;}
+.cm-s-_yellow .cm-bracket {color: #997;}
+.cm-s-_yellow .cm-tag {color: #170;}
+.cm-s-_yellow .cm-attribute {color: #00c;}
+.cm-s-_yellow .cm-hr {color: #999;}
+.cm-s-_yellow .cm-link {color: #00c;}
+
+.cm-s-_yellow .cm-error {color: #f00;}
+.cm-invalidchar {color: #f00;}
+
+.CodeMirror-composing { border-bottom: 2px solid; }
+
+span.cm-header, span.cm-strong {font-weight: bold;}
+span.cm-em {font-style: italic;}
+span.cm-emstrong {font-style: italic; font-weight: bold;}
+span.cm-link {text-decoration: underline;}
+
+div.CodeMirror span.CodeMirror-matchingbracket {color: #0f0;}
+div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
+

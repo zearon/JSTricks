@@ -1,0 +1,233 @@
+html{
+	overflow:hidden;
+}
+body{
+	margin:0;
+	padding:0; 
+	overflow:hidden;
+	width: 600px;
+	height: 600px;
+}
+ul {
+		display: block;
+	list-style-type: disc;
+	-webkit-margin-before: 0em;
+	-webkit-margin-after: 0em;
+	-webkit-margin-start: 0px;
+	-webkit-margin-end: 0px;
+	-webkit-padding-start: 0px;
+}
+#title {
+	color: black;
+	background-color: yellow;
+	position: absolute;
+	width: 150px;
+	right: 367px;
+	top: 0px;
+}
+#title.indialog {
+	right: 276px;
+}
+.CodeMirror
+{			
+	max-width:99%;
+	min-width:99%;
+	border:1px solid black;
+	clear:both;			
+}
+h4{margin:0px;}
+input[type=button]
+{
+	display:block;
+	float:right;
+	border:1px solid rgba(124,122,12,1);
+	cursor:pointer;
+	background-color:rgba(247,223,29,1); 
+	background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b));
+	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
+	/*padding:3px 10px;*/
+	text-shadow:rgba(255,255,255,0.6) 0 1px;
+}
+input[type=button]:hover,input[type=button]:focus
+{
+	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset,rgba(247,223,29,1) 0 0px 15px;
+}
+input[type=button]:active
+{
+	box-shadow: rgba(0,0,0,0.2) 0 1px 2px inset,rgba(255,255,255,1) 0 -1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
+	background-color:rgba(227,203,09,1);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
+}
+input.select-domnode-btn {
+	position: relative;
+	top: 4px; /* 2px on mac os x*/
+	margin-left: 0px;
+	height: 21px;
+}
+.osx input.select-domnode-btn { top: 2px; }
+#tabs{
+	position:relative;
+	overflow:hidden;
+	width:100%;
+	height:100%;
+}
+#tabs >div
+{
+	position:absolute;
+	top:32px;
+	left:0px;
+	width:100%;
+}		
+#editor-script-gen-ui {
+	overflow-x:auto;
+	overflow-y:scroll;
+}
+#tabs > ul{
+	padding:0px;
+	margin:1px 0px 0 0;
+	line-height:30px;
+	
+}
+#tabs > ul li
+{
+	display:inline-block;
+	border:1px solid rgba(124,122,12,1);
+	cursor:pointer;			
+	background-color:rgba(227,203,09,1);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
+	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
+	padding:0px 10px;
+	text-shadow:rgba(255,255,255,0.6) 0 1px;
+	font-size:1.4em;
+}
+#tabs > ul li:active
+{
+	box-shadow: rgba(0,0,0,0.2) 0 1px 2px inset,rgba(255,255,255,1) 0 -1px 2px inset,rgba(247,223,29,1) 0 0px 15px;	
+	
+}
+#tabs > ul li.selected
+{
+	background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b));
+	background-color:rgba(247,223,29,1);
+	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
+	
+}
+#saveOptBtn{
+	width:30px;
+	background: url('img/icons_01.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+#laodCacheBtn{
+	width:30px;
+	background:   url('img/icons_02.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+#editInOptionPageBtn{
+	width:30px;
+	background:   url('img/icons_07.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+#runBtn{
+	width:30px;
+	background:   url('img/icons_03.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+#runSelectedBtn{
+	width:30px;
+	background:   url('img/icons_04.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+#deleteBtn {
+	width:30px;
+	background:   url('img/icons_05.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+#showInDialogBtn {
+	width:30px;
+	background:   url('img/icons_06.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+#enableDisableBtn {
+	width:30px;
+	z-index: 999999;
+}
+#optionsBtn {
+	width:30px;
+	z-index: 999999;
+	background:   url('img/setting.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+}
+input[type=button].add-script-btn {
+	height: 22px;
+	float: none;
+	display: inline;
+}
+input[type=button].init-script-btn {
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#D6FCB4), color-stop(50%,#D0FC48), color-stop(51%,#B8F400), color-stop(100%,#DFFB8B));
+}
+input[type=button].run-script-btn {
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#D6FCB4), color-stop(50%,#D0FC48), color-stop(51%,#B8F400), color-stop(100%,#DFFB8B));
+}
+
+#editor-script-gen-ui-title {
+	margin: 3px 0 2px;
+}
+
+#js-editor-hint {
+	display: none;
+	position: absolute;
+	right: 0;
+	width: 300px;
+	height: 40px;
+	background-color:white;
+	z-index: 200;
+	opacity: 0.8;
+}
+
+li.tab-title
+{
+	display:inline-block;
+	border:1px solid rgba(124,122,12,1);
+	cursor:pointer;			
+	background-color:rgba(227,203,09,1);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
+	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
+	padding:0px 10px;
+	margin-right: 2px;
+	text-shadow:rgba(255,255,255,0.6) 0 1px;
+	font-size:1.4em;
+	font-variant:small-caps;
+}
+li.tab-title:active
+{
+	box-shadow: rgba(0,0,0,0.2) 0 1px 2px inset,rgba(255,255,255,1) 0 -1px 2px inset,rgba(247,223,29,1) 0 0px 15px;	
+}
+li.tab-title.selected
+{
+	background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b));
+	background-color:rgba(247,223,29,1);
+	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
+}
+input[type=button].add-script-btn {
+	margin-right:1px;
+}
+#editor-script-gen-ui .select-domnode-btn { 
+	background-image: url("theme/img/target.jpg");
+	background-size:contain;
+	width:20px;
+}
+#cover-center {
+	top: 28px;
+	height: calc(100% - 28px);
+}
+#cover-top {
+	width: calc(100% - 60px);
+	height: 28px;
+}
+.for-disabled {
+	z-index: 5000;
+	position:absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(255,255,255,0.8);
+}
+.for-disabled h1 {
+	color: black;
+	text-align: center;
+	padding: 250px 0;
+	cursor: default;
+}
