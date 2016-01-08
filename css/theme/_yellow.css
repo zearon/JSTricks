@@ -22,6 +22,7 @@ html body.theme-_yellow { background:#fefebb; color:black; }
 .theme-_yellow .jstbox:hover { background:  rgba(247,223,29,0.5); }
 .theme-_yellow .jstbox.selected { background: rgba(247,223,29,1); }
 .theme-_yellow .jstbox.autostart { background-image: url(img/autostart.png); background-repeat: no-repeat; }
+.theme-_yellow .jstbox.plugin .jsttitle { background-image: url(img/plugin.png); }
 .theme-_yellow #jstmessage {
 	background:rgba(247,223,29,1);
 	box-shadow:rgba(0,0,0,0.4) 0 3px 10px;
