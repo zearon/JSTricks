@@ -1,15 +1,15 @@
 function getStaticTheme(theme) {
 	if (theme === undefined)
-		theme = getSetting("theme");
+		theme = storage.getSetting("theme");
 		
 	if (theme != "automatic") {
 		return theme;
 	} else {
 		var now = (new Date()).Format("hh:mm");
-		var nightStartTime = getSetting("theme_nightStartTime");
-		var nightEndTime = getSetting("theme_nightEndTime");
-		var dayTheme = getSetting("theme_day");
-		var nightTheme = getSetting("theme_night");
+		var nightStartTime = storage.getSetting("theme_nightStartTime");
+		var nightEndTime = storage.getSetting("theme_nightEndTime");
+		var dayTheme = storage.getSetting("theme_day");
+		var nightTheme = storage.getSetting("theme_night");
 		
 		return (now >= nightStartTime || now <= nightEndTime) ? nightTheme : dayTheme;
 	}
