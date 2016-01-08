@@ -26,7 +26,7 @@ function updateSettings(extraAttribute) {
 		setting[name] = val;
 	}, function() {
 		// on complete
-		var INFO = { enabled:enabled, settings: setting, debug: DEBUG, meta_data: storage.getMetadata() };
+		var INFO = { enabled:enabled, settings: setting, debug: DEBUG, meta_data: storage.getMetadata(true) };
 	
 		infoStr = encodeURIComponent(JSON.stringify(INFO));
 		storage.setSetting("temp-infostr", infoStr);
@@ -609,11 +609,11 @@ function updateSettings(extraAttribute) {
 						  defaultActive.value = true;
 						}
 					} else if (type == "ss") {
-						allSites.push(obj.id);
+						allSites.push(obj.name);
 					  if (obj.autostart) {
-						  activeSites.push(obj.id);
+						  activeSites.push(obj.name);
 						} else {
-						  inactiveSites.push(obj.id);
+						  inactiveSites.push(obj.name);
 						}
 					}
 				});
@@ -623,7 +623,7 @@ function updateSettings(extraAttribute) {
 			
 			// update status on single script change.
 			settingChanged = false;
-			allSites = storage.getSetting("temp-rules-allsites", true);
+			allSites = storage.getSetting("temp-index-allsites", true);
 			
 			console.log("mode", mode, "site", site, "autostart", autostart);
 						
@@ -646,9 +646,9 @@ function updateSettings(extraAttribute) {
 			if (mode.indexOf("active") >= 0) {
 				debug_log("Update the active sites list. Arguments given: site=", site, "autostart=", autostart);
 				
-				activeSites = storage.getSetting("temp-rules-activesites", true);
-				inactiveSites = storage.getSetting("temp-rules-inactivesites", true);
-				defaultActive.value = storage.getSetting("temp-rules-defaultenabled", true);
+				activeSites = storage.getSetting("temp-index-activesites", true);
+				inactiveSites = storage.getSetting("temp-index-inactivesites", true);
+				defaultActive.value = storage.getSetting("temp-index-defaultenabled", true);
 				
 				debug_log("Update the active sites list. Use value: site=", site, "autostart=", defaultActive.value);
 				
@@ -675,8 +675,8 @@ function updateSettings(extraAttribute) {
 			function updateAllSitesPattern(allSites) {
 //         var allSitesPattern = getPositivePattern(allSites);
         allSitesPattern = getNegativePattern(allSites);
-        storage.setSetting("temp-rules-allsites", allSites, true);
-        storage.setSetting("temp-rules-allsites-pattern", allSitesPattern);
+        storage.setSetting("temp-index-allsites", allSites, true);
+        //storage.setSetting("temp-index-allsites-pattern", allSitesPattern);
         
         // Save to chrome.storage.local for content scripts access
         chrome.storage.local.set({"allSites": allSites});
@@ -704,11 +704,11 @@ function updateSettings(extraAttribute) {
 				}
 			
 				// Save status
-				storage.setSetting("temp-rules-defaultenabled", defaultActive, true);
-				storage.setSetting("temp-rules-activesites", activeSites, true);				
-				storage.setSetting("temp-rules-inactivesites", inactiveSites, true);
-				storage.setSetting("temp-rules-activesites-pattern", activeSitesPattern);
-				storage.setSetting("temp-rules-inactivesites-pattern", inactiveSitesPattern);
+				storage.setSetting("temp-index-defaultenabled", defaultActive, true);
+				storage.setSetting("temp-index-activesites", activeSites, true);				
+				storage.setSetting("temp-index-inactivesites", inactiveSites, true);
+				//storage.setSetting("temp-index-activesites-pattern", activeSitesPattern);
+				//storage.setSetting("temp-index-inactivesites-pattern", inactiveSitesPattern);
         
         // Save to chrome.storage.local for content scripts access
         var iconStatus = {"defaultEnabled":defaultActive, "activeSites": activeSites, "inactiveSites": inactiveSites}
@@ -732,9 +732,9 @@ function updateSettings(extraAttribute) {
 		}		
   
     function getSiteStatus(domain) {
-      var defaultEnabled = storage.getSetting("temp-rules-defaultenabled", true);
-      var activeSites = storage.getSetting("temp-rules-activesites", true);				
-      var inactiveSites = storage.getSetting("temp-rules-inactivesites", true);
+      var defaultEnabled = storage.getSetting("temp-index-defaultenabled", true);
+      var activeSites = storage.getSetting("temp-index-activesites", true);				
+      var inactiveSites = storage.getSetting("temp-index-inactivesites", true);
       var siteStatus, active = activeSites.contains(domain), inactive = inactiveSites.contains(domain);
     
       if (defaultEnabled) {
@@ -865,7 +865,7 @@ function updateSettings(extraAttribute) {
 		
 		localStorage["info"] = chrome.manifest.version;
 		
-		updateActiveSites();
+		storage.rebuildScriptIndexes();
 		updateSettings();	
 	}
 
