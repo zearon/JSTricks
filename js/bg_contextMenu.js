@@ -2,6 +2,12 @@
 //	Object.prototype.clear = function() { for (var key in this) { delete this[key]; } };
 
 (function() {
+	/* Persistent states */
+	var scriptMenuDict = storage.getSetting("temp-contextMenu-scriptMenuDict", true);	
+	var optionMenuDict = storage.getSetting("temp-contextMenu-optionMenuDict", true);	
+	var optionMenuDictReverse = storage.getSetting("temp-contextMenu-optionMenuDictReverse", true);
+	
+	var scriptMenuIndex = storage.getSetting("contextMenu-index", true);
 	
 	/* Register events */
 	chrome.runtime.onInstalled.addListener(onExtensionInstalled);
@@ -17,10 +23,11 @@
 		if (request.method == "UpdateSettings") {
 			onOptionValueChanged();
 		} else if (request.method == "UpdateContextMenu") {
-			var scriptGroups = request.data;
+			/*var scriptGroups = request.data;
 			console.log("Update Context Menu");
 			console.log(scriptGroups);
-			updateConextMenu(scriptGroups);
+			updateConextMenu(scriptGroups);*/
+			initContextMenu();
 		} 
 	}
 	
@@ -39,51 +46,53 @@
 	/* End of event listeners */
 	
 	
-	/* Persistent states */
-	var scriptMenuDict = storage.getSetting("temp-contextMenu-scriptMenuDict", true);	
-	var optionMenuDict = storage.getSetting("temp-contextMenu-optionMenuDict", true);	
-	var optionMenuDictReverse = storage.getSetting("temp-contextMenu-optionMenuDictReverse", true);
-	
-// 	if (!scriptMenuDict) { scriptMenuDict = {}; storage.setSetting("temp-contextMenu-scriptMenuDict", {}, true); }
-// 	if (!optionMenuDict) { optionMenuDict = {}; storage.setSetting("temp-contextMenu-optionMenuDict", {}, true); }
-// 	if (!optionMenuDictReverse) { scriptMenuDict = {}; storage.setSetting("temp-contextMenu-optionMenuDictReverse", {}, true); }
-	
 
 	/* Event listener for onInstalled */
-	function initConextMenu() {
-		function sortContentScriptByDefault(a, b) {
-			return a.group.localeCompare(b.group) * 100 + Math.sign(a.index - b.index);
-		};
+	function initConextMenu() {		
+	  var index = 0, noScriptIndex = scriptMenuIndex === undefined;
+		if (noScriptIndex) {
+		  scriptMenuIndex = {};
+		  console.info("No context menu index. Initialize it with the default sequence.");
+		}
 
 		var groups = {};
-		var keys = new Array();
-		for ( key in localStorage ) {
-			if (/^\$cs-/.test(key)) {
-				var name = key.replace(/^\$cs-/, "");				
-				var value = localStorage["$cs-"+name];
-				var data = JSON.parse(value);					
-				data['name'] = name;
-			
-				keys.push(data);					
-			}
-		}
-	
-		keys.sort(sortContentScriptByDefault);
-		for ( var i = 0; i < keys.length; ++ i ) {
-			var item = keys[i];
-			var name = item['name'];
-			var key = "$cs-" + name;
+		var keys = [];
 		
-			var group = item["group"];
-			if (!groups[group]) {
-				groups[group] = [];
-			}
-			groups[group].push({"title":item.title, "file":key});
-		}
-		delete keys;
-	
-		updateConextMenu(groups);
+		storage.getAllScripts("cs", function(scripts) {
+		  // On loaded
+		  // sort the scripts by group and name
+		  scripts.sort(sortContentScriptByGroup);
+		  
+      for ( var i = 0; i < scripts.length; ++ i ) {
+        var script = scripts[i];
+        scriptMenuIndex[script.name] = ++index;
+        //console.log(index, script.group + "/" + script.name);
+    
+        var group = script.group;
+        if (!groups[group]) {
+          groups[group] = [];
+        }
+        groups[group].push(script);
+      }
+  
+      updateConextMenu(groups);
+      
+		  //console.log(scriptMenuIndex);
+      storage.setSetting("contextMenu-index", scriptMenuIndex, true);
+		});
 	}
+	
+  function sortContentScriptByGroup(a, b) {
+    a.index = scriptMenuIndex[a.name]; b.index = scriptMenuIndex[b.name];
+    var groupDiff = a.group.localeCompare(b.group);
+    var indexDiff = (a.index === undefined && b.index === undefined) ? 0 : 
+      (a.index === undefined ? 1 : 
+      (b.index === undefined ? -1 : a.index - b.index ));
+    var nameDiff  = a.name.localeCompare(b.name);
+    return groupDiff !== 0 ? groupDiff :
+            (indexDiff !== 0 ? indexDiff :
+            nameDiff);
+  }
 	
 
 	function updateConextMenu(scriptGroups) {
@@ -104,11 +113,11 @@
 			}
 		
 			for ( var index = 0; index < group.length; ++ index ) {
-				var menu = group[index];
-				menuID = chrome.contextMenus.create({"id":"" + menuID, "title": `${menu.title}`, "contexts":["all"],
+				var script = group[index];
+				menuID = chrome.contextMenus.create({"id":"" + menuID, "title": `${script.title}`, "contexts":["all"],
 									 "parentId": groupMenuID});
 			
-				scriptMenuDict[menuID++] = menu.file;
+				scriptMenuDict[menuID++] = script.name;
 			}
 		}
 	

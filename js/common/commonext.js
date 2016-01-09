@@ -62,14 +62,22 @@
 	  }
 	}
 	
-	// useKeyAsItem: true / false
+	// useKeyAsItem: true / false / "pair"
 	// filter(key, value) => true/false
 	function objectToArray(obj, useKeyAsItem, filter) {
 	  var result = [];
 	  for (var key in obj) {
-	    var val = obj[key];
+	    var item, val = obj[key];
 	    if (!filter || filter(key, val) ) {
-	      var item = useKeyAsItem ? key : val;
+	      if (useKeyAsItem === true)
+	        item = key;
+	      else if (useKeyAsItem === false)
+	        item = val;
+	      else if (useKeyAsItem === "pair")
+	        item = {key:key, value:val};
+	      else
+	        item = key;
+	      
 	      result.push(item);
 	    }
 	  }

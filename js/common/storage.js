@@ -257,9 +257,12 @@
 	    dest.saveScript(scripts, oncomplete);
 	  }, function(name, type, script) {
 	    // For UPGRADE
-	    if (type == "cs" && script.importOnce === undefined)
-	      script.importOnce = false;
-	    
+	    if (type == "cs") {
+	      if (script.index !== undefined)
+	        delete script["index"];
+	      if (script.importOnce === undefined)
+	        script.importOnce = false;
+	    }
 	    return true;
 	  });
 	}
@@ -397,7 +400,7 @@
 	
 	function getScriptOptForIndex(script) {
 	  if (script.type === "cs")
-	    return {"import":script.sfile};
+	    return {"import":script.sfile, "group":script.group};
 	  else
 	    return {"active":script.autostart, "import":script.sfile};
 	}

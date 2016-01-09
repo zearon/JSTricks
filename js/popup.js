@@ -76,9 +76,23 @@ chrome.runtime.onMessage.addListener(function(msg) {
 // function callback(tab) {...}
 function API_GetSelectedTab(callback) {
 	if (inExtensionPage) {
-		chrome.tabs.query({active:true, windowId:chrome.windows.WINDOW_ID_CURRENT}, function(tabs) {
-			callback(tabs[0]);
-		});
+// 		chrome.tabs.query({active:true, windowId:chrome.windows.WINDOW_ID_CURRENT}, function(tabs) {
+// 			callback(tabs[0]);
+// 		});
+		
+		chrome.windows.getCurrent(undefined, function(win) {
+      var winid = win.id;
+      chrome.tabs.query({active:true, windowId:winid}, function(tabs) {
+      if (chrome.runtime.lastError) {
+        // tab is not fetched successfully
+        console.error("Cannot get selected tab.");
+      } else {
+        callback(tabs[0]);
+      }
+      });      
+    });
+		
+		
 	} else {
 		API_SendRequest("GetSelectedTab", null, callback);
 	}
@@ -258,7 +272,7 @@ function log() {
 			  
 			  if (!script) {
 			    // No site script is found, so load the default code template
-				  ta.value = compile_template(template_site_script, {domain});
+				  ta.value = compile_template(template_site_script, {url:domain});
 			  } else {
 			    // Update the View 
           ta.value = script.script;
