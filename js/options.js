@@ -122,6 +122,8 @@
 			
       var tmp =  {"name":key, "type":type, "script": val, "autostart": autos, "hidden": hid , "sfile": sf, "css": cssval};
 			storage.saveScript(tmp);
+			chrome.runtime.sendMessage({method:"UpdateIconForDomain", data: key });
+			
 			currentSavedState = editorJs.getValue();
 			currentSavedStateCss = editorCss.getValue();
 			
@@ -209,9 +211,9 @@
 		{
 			if(selectedTitle === "")
 				return;
-			if(selectedTitle === "Default")
+			if(selectedTitle === "Default" || selectedTitle === "Main")
 			{
-				showMessage("You can't delete 'Default' trick, sorry...");
+				showMessage("You can't delete '" + selectedTitle + "' trick, sorry...");
 				return;
 			}
 			var key = selectedTitle;			
@@ -220,6 +222,9 @@
 			if(confirm("Do you realy want to delete that trick?"))
 			{
 				delete localStorage[key];
+				storage.deleteScript(key, "ss");
+			  chrome.runtime.sendMessage({method:"UpdateIconForDomain", data: key });
+			  
 				showMessage("'"+key+"' site's trick deleted!");
 				$('.jstbox:contains('+key+')').slideUp(1000);
 				editorJs.setValue("");				
@@ -228,7 +233,6 @@
 				currentSavedStateCss = "";
 				selectedTitle ="";
 				
-			  chrome.runtime.sendMessage({method:"UpdateActiveSites", data: {mode:"delete", site:key} });
 			}
 		}
 		var messageTimer=null;
@@ -818,6 +822,7 @@
 				content: function() {
 					return $(this).attr('title');
 				}
+// 				,show: { delay: 1000 }
 			});
 		});//;
 		/*
@@ -2442,6 +2447,9 @@
 			console.log('reindexContentScript');
 			$("#contentscript-menu > .jstbox").remove();
 			var index = 0;
+			//val scriptIndex = 
+			
+			
 			loadAllContentScripts_internal(true, function(key, name, item) {
 				//console.log(name + " @ " + index + " = " + JSON.stringify(item));
 				item.index = index + "";
@@ -2455,18 +2463,7 @@
 		function updateContentScriptForContextMenu() {
 			console.log('updateContentScriptForContextMenu');
 			
-			var groups = {};
-			loadAllContentScripts_internal(false, function(key, name, item) {
-				var group = item["group"];
-				if (!groups[group]) {
-					groups[group] = [];
-				}
-				groups[group].push({"title":item.title, "file":key});
-			});
-			
-			//console.log(groups);
-			
-			chrome.runtime.sendMessage({method: "UpdateContextMenu", data:groups});
+			chrome.runtime.sendMessage({method: "UpdateContextMenu"});
 		}
 		
 		function addContentScriptMenu(name, index, group) {
@@ -2572,49 +2569,74 @@
 				// If searched text is /msg/g then /([\s\S]*?)msg/g should be used for searching
 				var match = s.script.match(contentFilter);
 				return match !== null;
-			});
+			}, filter !== undefined);
 		}
 		
-		function loadAllContentScripts_internal(addMenu, procItem) {
-			var keys = [], key, name, value;
-			for (key in localStorage ) {
-				if (/^\$cs-/.test(key)) {
-					name = key.replace(/^\$cs-/, "");				
-					value = localStorage["$cs-"+name];
-					var data = JSON.parse(value);					
-					data['name'] = name;
-					
-					__index_cs = (__index_cs >= data['index']) ? __index_cs : parseInt(data['index']);
-					
-					keys.push(data);					
-				}
-			}
-			keys.sort(sortContentScriptByDefault);
-			for ( var i = 0; i < keys.length; ++ i ) {
-				var item = keys[i];
-				name = item['name'];
-				key = "$cs-" + name;
-				if (addMenu) {
-					var flag = addMenu;
-					if (isFunction(addMenu))
-						flag = addMenu(item);
+		// addMenuFilter: a true/false value or a function accepting a script object and
+		// returns true/false value. 
+		// loadScriptContent: true/false value indicate if it is required to load the
+		// whole script content from storage. If it is set to false, then the value for 
+		// the addMenuFilter parameter is only like {name, group}, but no detail content.
+		function loadAllContentScripts_internal(addMenuFilter, loadScriptContent) {
+		  if (!loadScriptContent) {
+		    // load script list from index stored in cache
+		    var scriptsIndex = storage.loadIndexObj().contentScripts;
+		    var scripts = objectToArray(scriptsIndex, "pair").map(function(ele) {
+		      ele.value.name = ele.key;
+		      return ele.value;
+		    })
+		    
+		    loadAllContentScripts_onScriptLoaded(scripts, addMenuFilter);
+		  } else {
+		    // load script list with detailed script content from data storage.
+		    storage.getAllScripts("cs", function(scripts) {
+		      loadAllContentScripts_onScriptLoaded(scripts, addMenuFilter);
+		    });
+		  }
+		}
+		
+		function loadAllContentScripts_onScriptLoaded(scripts, addMenuFilter) {
+		  var scriptMenuIndex = loadCsScriptMenuIndex();
+		  console.log(scripts);
+			scripts.sort(sortContentScriptByDefault);
+			
+			for ( var i = 0; i < scripts.length; ++ i ) {
+				var script = scripts[i];
+				var index = scriptMenuIndex[script.name];
+				if (addMenuFilter) {
+					var flag = addMenuFilter;
+					if (isFunction(addMenuFilter))
+						flag = addMenuFilter(script);
 						
 					if (flag)
-						addContentScriptMenu(item.name, item["index"], item['group']);
+						addContentScriptMenu(script.name, index, script.group);
 				}
-				
-				delete item['name'];
-				if (procItem)
-					procItem(key, name, item);
 			}
 			
 			$("#contentscript-menu").find("> .jstbox").removeClass("selected");
 			if (selectedContentScript)
 				$(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`).addClass("selected");
+		
+		  // inline script comparison function for sorting
+      function sortContentScriptByDefault(a, b) {
+        a.index = scriptMenuIndex[a.name]; b.index = scriptMenuIndex[b.name];
+        var groupDiff = a.group.localeCompare(b.group);
+        var indexDiff = (a.index === undefined && b.index === undefined) ? 0 : 
+          (a.index === undefined ? 1 : 
+          (b.index === undefined ? -1 : a.index - b.index ));
+        var nameDiff  = a.name.localeCompare(b.name);
+        return groupDiff !== 0 ? groupDiff :
+                (indexDiff !== 0 ? indexDiff :
+                nameDiff);
+      }
 		}
 		
-		function sortContentScriptByDefault(a, b) {
-			return a.group.localeCompare(b.group) * 100 + Math.sign(a.index - b.index);
+		function loadCsScriptMenuIndex() {
+		  return storage.getSetting("contextMenu-index", true);
+		}
+		
+		function saveCsScriptMenuIndex(scriptMenuIndex) {		  
+		  storage.setSetting("contextMenu-index", scriptMenuIndex, true);
 		}
 		
 		function getNextContentScriptIndex() {
