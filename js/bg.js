@@ -79,7 +79,7 @@ function updateSettings(extraAttribute) {
 		chrome.runtime.onMessage.addListener(function(request, sender) {
 			if (request.tabid) {
 				processTab(request.tabid, request.method, request.data);
-			} else {
+			} else if (request.windowid) {
 				//chrome.tabs.query({active:true, windowId:chrome.windows.WINDOW_ID_CURRENT}, function(tabs) {
 				//	if (chrome.runtime.lastError) {
 				//		// tab is not fetched successfully
@@ -91,6 +91,9 @@ function updateSettings(extraAttribute) {
 						processTab(tabid, request.method, request.data);
 				//	}
 				//});
+			} else {
+        var tabid = (sender && sender.tab) ? sender.tab.id : undefined;
+        processTab(tabid, request.method, request.data);
 			}
 		});
 		
@@ -581,17 +584,29 @@ function updateSettings(extraAttribute) {
 			
 			// update status on single script change.
 			settingChanged = false;
-			allSites = storage.getSetting("temp-index-allsites", true);
+			allSites = storage.getSetting("temp-index-allsites", true);				
+      activeSites = storage.getSetting("temp-index-activesites", true);
+      inactiveSites = storage.getSetting("temp-index-inactivesites", true);
+      defaultActive.value = storage.getSetting("temp-index-defaultenabled", true);
+				
+			debug_log("Update the active sites list. Use value: mode=", mode, "site=", site, "autostart=", defaultActive.value);
 			
-			console.log("mode", mode, "site", site, "autostart", autostart);
-						
+			// popup page sends add+active, delete modes
+			// options page sends active, delete modes
+			
 			if (mode.indexOf("add") >= 0 && !allSites.contains(site)) {
 			  allSites.push(site);
+				// process add to active or inactive site index in mode active below.
+				// because "add" always comes with an "active"
+				mode = "active";
 				settingChanged = true;
 			}
 			
 			if (mode.indexOf("delete") >= 0) {
+				// remove from active, inactive and all site indexes
 			  allSites = allSites.filter(function(ele) { return ele != site; } );
+			  activeSites = activeSites.filter(function(ele) { return ele != site; } );
+			  inactiveSites = inactiveSites.filter(function(ele) { return ele != site; } );
 				settingChanged = true;
 			}
 			
@@ -601,15 +616,7 @@ function updateSettings(extraAttribute) {
 			}
 			
 			// Update the active sites according to site status given by the arguments
-			if (mode.indexOf("active") >= 0) {
-				debug_log("Update the active sites list. Arguments given: site=", site, "autostart=", autostart);
-				
-				activeSites = storage.getSetting("temp-index-activesites", true);
-				inactiveSites = storage.getSetting("temp-index-inactivesites", true);
-				defaultActive.value = storage.getSetting("temp-index-defaultenabled", true);
-				
-				debug_log("Update the active sites list. Use value: site=", site, "autostart=", defaultActive.value);
-				
+			if (mode.indexOf("active") >= 0) {				
 				if (site == "Default") {
 					defaultActive.value = autostart;
 				} else {
@@ -623,72 +630,87 @@ function updateSettings(extraAttribute) {
 						  inactiveSites.push(site);
 					}
 				}
-				
-				updateStatus(activeSites, inactiveSites, defaultActive.value);
-				settingChanged = true;
 			}
+			
+			updateStatus(activeSites, inactiveSites, defaultActive.value);
 			// end of function execution flow
 			
 			// Inline function definition
-			function updateAllSitesPattern(allSites) {
-//         var allSitesPattern = getPositivePattern(allSites);
-        allSitesPattern = getNegativePattern(allSites);
-        storage.setSetting("temp-index-allsites", allSites, true);
-        //storage.setSetting("temp-index-allsites-pattern", allSitesPattern);
-        
-        // Save to chrome.storage.local for content scripts access
-        chrome.storage.local.set({"allSites": allSites});
-        
-				debug_log("allSitesPattern=", allSitesPattern);
+			function addToActiveSites(site) {
+        inactiveSites = inactiveSites.filter(function(ele) { return ele != site; } );
+        if (!activeSites.contains(site))
+          activeSites.push(site);
 			}
 			
 			// Inline function definition
-			function updateStatus(activeSites, inactiveSites, defaultActive) {
-				debug_log("All active sites:", activeSites, "inactive sites:", inactiveSites, "default is", defaultActive ? "active" : "inactive");
-				
-				var activeSitesPattern, inactiveSitesPattern, allSitesPattern;
-				
-				if ( !(storage.getSetting("enabled") !== 'false') ) {
-				  // extension is disabled
-				  activeSitesPattern = "^dummy$";
-				  inactiveSitesPattern = "^dummy$";
-				} else if (defaultActive) {
-				  // Default script is autostarted, so the pattern should match any site url.
-					activeSitesPattern = ".*";
-				  inactiveSitesPattern = "^dummy$";
-				} else {
-          activeSitesPattern = getPositivePattern(activeSites);
-          inactiveSitesPattern = getPositivePattern(inactiveSites);
-				}
-			
-				// Save status
-				storage.setSetting("temp-index-defaultenabled", defaultActive, true);
-				storage.setSetting("temp-index-activesites", activeSites, true);				
-				storage.setSetting("temp-index-inactivesites", inactiveSites, true);
-				//storage.setSetting("temp-index-activesites-pattern", activeSitesPattern);
-				//storage.setSetting("temp-index-inactivesites-pattern", inactiveSitesPattern);
-        
-        // Save to chrome.storage.local for content scripts access
-        var siteIndex = {"defaultEnabled":defaultActive, "activeSites": activeSites, "inactiveSites": inactiveSites}
-        chrome.storage.local.set({"siteIndex": siteIndex});
-				
-				debug_log("activeSitesPattern=", activeSitesPattern);
-				debug_log("inactiveSitesPattern=", inactiveSitesPattern);
+			function removeFromActiveSites(site) {
+        activeSites = activeSites.filter(function(ele) { return ele != site; } );
+        if (!inactiveSites.contains(site))
+          inactiveSites.push(site);
 			}
 			
-			// Inline function definition			
-			function getPositivePattern(sites) {
-			  return "(" + sites.map(function(site) {
-			    return "(" + ('://' + site + "/").getTextRegexpPattern() + ".*" + ")";
-			  }).join("|") + ")";
-			}
-			
-			function getNegativePattern(sites) {
-			  var negative = sites.map(function(str) { return "(" + str.getTextRegexpPattern() + ")"; }).join("|");
-			  return ":\\/\\/" + "((?!" + negative + ").)+";
-			}
-		}		
-  
+	
+		}
+		
+    // Inline function definition
+    function updateAllSitesPattern(allSites) {
+//         var allSitesPattern = getPositivePattern(allSites);
+      allSitesPattern = getNegativePattern(allSites);
+      storage.setSetting("temp-index-allsites", allSites, true);
+      //storage.setSetting("temp-index-allsites-pattern", allSitesPattern);
+      
+      // Save to chrome.storage.local for content scripts access
+      chrome.storage.local.set({"allSites": allSites});
+      
+      debug_log("allSitesPattern=", allSitesPattern);
+    }		
+
+    // Inline function definition
+    function updateStatus(activeSites, inactiveSites, defaultActive) {
+      debug_log("All active sites:", activeSites, "inactive sites:", inactiveSites, "default is", defaultActive ? "active" : "inactive");
+      
+      var activeSitesPattern, inactiveSitesPattern, allSitesPattern;
+      
+      if ( !(storage.getSetting("enabled") !== 'false') ) {
+        // extension is disabled
+        activeSitesPattern = "^dummy$";
+        inactiveSitesPattern = "^dummy$";
+      } else if (defaultActive) {
+        // Default script is autostarted, so the pattern should match any site url.
+        activeSitesPattern = ".*";
+        inactiveSitesPattern = "^dummy$";
+      } else {
+        activeSitesPattern = getPositivePattern(activeSites);
+        inactiveSitesPattern = getPositivePattern(inactiveSites);
+      }
+    
+      // Save status
+      storage.setSetting("temp-index-defaultenabled", defaultActive, true);
+      storage.setSetting("temp-index-activesites", activeSites, true);				
+      storage.setSetting("temp-index-inactivesites", inactiveSites, true);
+      //storage.setSetting("temp-index-activesites-pattern", activeSitesPattern);
+      //storage.setSetting("temp-index-inactivesites-pattern", inactiveSitesPattern);
+      
+      // Save to chrome.storage.local for content scripts access
+      var siteIndex = {"defaultEnabled":defaultActive, "activeSites": activeSites, "inactiveSites": inactiveSites}
+      chrome.storage.local.set({"siteIndex": siteIndex});
+      
+      debug_log("activeSitesPattern=", activeSitesPattern);
+      debug_log("inactiveSitesPattern=", inactiveSitesPattern);
+    }
+						
+    // Inline function definition			
+    function getPositivePattern(sites) {
+      return "(" + sites.map(function(site) {
+        return "(" + ('://' + site + "/").getTextRegexpPattern() + ".*" + ")";
+      }).join("|") + ")";
+    }
+    
+    function getNegativePattern(sites) {
+      var negative = sites.map(function(str) { return "(" + str.getTextRegexpPattern() + ")"; }).join("|");
+      return ":\\/\\/" + "((?!" + negative + ").)+";
+    }
+			  
     function getSiteStatus(domain) {
       var defaultEnabled = storage.getSetting("temp-index-defaultenabled", true);
       var activeSites = storage.getSetting("temp-index-activesites", true);				
@@ -760,14 +782,18 @@ function updateSettings(extraAttribute) {
 
 
   function getCurrentTab(callback) {
-    chrome.tabs.query({active:true, windowId:chrome.windows.WINDOW_ID_CURRENT}, function(tabs) {
-    if (chrome.runtime.lastError) {
-      // tab is not fetched successfully
-      console.error("Cannot get selected tab.");
-    } else {
-      var tab = tabs[0];
-      callback(tab.id, tab.url, tab);
-    }
+    chrome.windows.getCurrent(undefined, function(win) {
+      var winid = win.id;
+      chrome.tabs.query({active:true, windowId:winid}, function(tabs) {
+      if (chrome.runtime.lastError) {
+        // tab is not fetched successfully
+        console.error("Cannot get selected tab.");
+      } else {
+        //console.log("Current active tab id is:", tabs);
+        var tab = tabs[0];
+        callback(tab.id, tab.url, tab);
+      }
+      });      
     });
   }
   

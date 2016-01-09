@@ -8,10 +8,10 @@ var tabSite = "";
 var API_CALLBACKS = {};
 
 var DEBUG = false;
-if (inExtensionPage && localStorage["$setting.DEBUG"] == "true")
+if (inExtensionPage && storage.getSetting("DEBUG") === "true")
 	DEBUG = true;
-var RUN_BUTTON_CODE = localStorage["$setting.DEBUG_runbuttoncode"] == "true";
-var DISABLE_RUN_BUTTON_CODE = localStorage["$setting.popupwindow_disableRunCodeButton"] != "false";
+var RUN_BUTTON_CODE = storage.getSetting("DEBUG_runbuttoncode") === "true";
+var DISABLE_RUN_BUTTON_CODE = storage.getSetting("popupwindow_disableRunCodeButton") !== "false";
 var ENABLED = storage.getSetting("enabled") !== 'false';
 	
 
@@ -173,7 +173,7 @@ function log() {
 		}
 		
 		function setEnableDisableBtnImage() {
-			if (localStorage["$setting.enabled"] == "true") {
+			if (storage.getSetting("enabled") === "true") {
 				$("#enableDisableBtn").attr("class", "disable");
 			} else {
 				$("#enableDisableBtn").attr("class", "enable");
@@ -187,9 +187,12 @@ function log() {
 				
 			API_GetTabURL(function(url) {
 				var domain = url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
-				delete localStorage[domain];
+				storage.deleteScript(domain, "ss");
 				
 			  chrome.runtime.sendMessage({method:"UpdateActiveSites", data: {mode:"delete", site:domain} });
+			  
+			  $("#jstcb").removeAttr("checked");
+			  $("#jstcb").button("refresh");
 			
 				// Update status to let user know options were saved.
 				var status = document.getElementById("title");
@@ -203,21 +206,22 @@ function log() {
 		function save_options_() {
 		  save_options();
 		}
-	  // Saves options to localStorage.
+	  // Saves options to script storage area.
 		function save_options(options) {
 			API_GetTabURL(function(url) {
 				var domain = url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
 				saveBody(domain, options);
 			});
 		}
-		function saveBody(url, options)
+		function saveBody(url/*, options*/)
 		{
 			var tmpp = {script:"",autostart:false};
-			if(localStorage[url])
-			{
-				 tmpp = JSON.parse(localStorage[url]);
-			}	
-			
+// 			if(localStorage[url])
+// 			{
+// 				 tmpp = JSON.parse(localStorage[url]);
+// 			}				
+			tmpp.type = "ss";
+			tmpp.name = url;
 			tmpp.script = editor.getValue();
 			tmpp.css = editorCss.getValue();
 			tmpp.autostart = document.getElementById("jstcb").checked;
@@ -228,13 +232,13 @@ function log() {
 // 			else
 // 				API_SetIcon({path:"icon/icon24.png"});
 			
-			localStorage[url] = JSON.stringify(tmpp);
+			storage.saveScript(tmpp);
 			
 			//
-			var updateActiveSitesMsg =  {mode:"add", site:url, autostart:tmpp.autostart};
+			var updateActiveSitesMsg =  {mode:"add+active", site:url, autostart:tmpp.autostart};
 		  //options may be set in changeAutostart with value {"updateActiveSites": {mode:"add+active", site:tabSite, autostart:autostart}
-			if (options && options.updateActiveSites) {
-			  updateActiveSitesMsg.mode += "+" + options.updateActiveSites.mode; }
+// 			if (options && options.updateActiveSites) {
+// 			  updateActiveSitesMsg.mode += "+" + options.updateActiveSites.mode; }
       chrome.runtime.sendMessage({method:"UpdateActiveSites", data: updateActiveSitesMsg });
 			
 			// Update status to let user know options were saved.
@@ -250,31 +254,35 @@ function log() {
 			//Inject CSS immediately
 			API_InsertCssInTab(tmpp.css);
 		}
-		// Restores select box state to saved value from localStorage.
+		// Restores select box state to saved value from script storage area.
 		function restore_options(callback) {
 			API_GetTabURL(function(url) {
 				var domain = url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
-				restoreBody(domain);
-				if(callback)
-					callback();
+				restoreBody(domain, callback);
 			});			
 		}
-		function restoreBody(url) {
-			var ta = document.getElementById("scriptText");
-			if(!localStorage[url])
-			{
-				ta.value = compile_template(template_site_script, {url});
-				return "";
-			}
-			var lsd = JSON.parse(localStorage[url]);
-			var taCss = document.getElementById("scriptTextCss");
-			var cb = document.getElementById("jstcb");
-			ta.value = lsd.script;
-			taCss.value = lsd.css;
-			if(lsd.autostart)
-				cb.checked = true;
-			$("#jsincludefile").val(lsd.sfile);
-			$("#jstcb").button("refresh");
+		function restoreBody(domain, callback) {
+			storage.getScript(domain, "ss", function(script) {
+			  var ta = document.getElementById("scriptText");
+        var taCss = document.getElementById("scriptTextCss");
+        var cb = document.getElementById("jstcb");
+			  
+			  if (!script) {
+			    // No site script is found, so load the default code template
+				  ta.value = compile_template(template_site_script, {domain});
+			  } else {
+			    // Update the View 
+          ta.value = script.script;
+          taCss.value = script.css;
+          if(script.autostart)
+            cb.checked = true;
+          $("#jsincludefile").val(script.sfile);
+          $("#jstcb").button("refresh");
+			  }
+			  
+				if(callback)
+					callback();
+			});
 		}
 		function execute(name, script, css) {
 			if(css != "") {
@@ -465,7 +473,7 @@ function log() {
 				}
 				setSelectionInEditor(editor, true);
 				
-				if (localStorage["$setting.popupwindow_displayRequiresField"] != "false") {
+				if (storage.getSetting("popupwindow_displayRequiresField") !== "false") {
 					$("#jsincludefile-wrapper").show();
 				}
 			
@@ -610,8 +618,7 @@ function log() {
 			
 			var lineCount = editor.lineCount();
 			
-			//in save options chrome.runtime.sendMessage({method:"UpdateActiveSites", data: {mode:"add+active", site:tabSite, autostart:autostart} });
-			save_options({"updateActiveSites": {mode:"active", site:tabSite, autostart:autostart}});
+			save_options();
 			
 			
 			//console.log("linecount=" + lineCount);
@@ -784,7 +791,7 @@ function log() {
 			}
 			$("#editor-script-gen-ui-title ul").append('<li class="tab-title" target="genUITab-____Clear______">Clear</li>');
 			$("#editor-script-gen-ui")
-				.css("max-height", ""+localStorage["$setting.popupwindow_genUIPanelMaxHeight"]+"px")
+				.css("max-height", ""+storage.getSetting("popupwindow_genUIPanelMaxHeight")+"px")
 				.append('<div id="genUITab-____Clear______" class="tab-pane"></div>');
 			
 			$(".add-script-btn").click(addScript);
@@ -897,12 +904,12 @@ function log() {
 			var context = getEditDialogContext();
 			context.controls = {};
 			var contextStr = JSON.stringify(context);
-			localStorage["$setting.temp-popupWindowContext"] = contextStr;
+			storage.setSetting("temp-popupWindowContext", contextStr);
 			log("Remember popup window context", contextStr/*, "at", new Error().stack*/);
 		}
 		
 		function loadRememberedStatus() {
-			var context = localStorage["$setting.temp-popupWindowContext"];
+			var context = storage.getSetting("temp-popupWindowContext");
 			var contextLoaded = false;
 			try {
 				restoreEditDialogContext(JSON.parse(context));
