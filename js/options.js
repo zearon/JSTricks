@@ -656,7 +656,8 @@
 			$("#dcssort").click(sortContentScript);
 			$("#dcsindexup").click(moveUpContentScript);
 			$("#dcsindexdown").click(moveDownContentScript);
-			$("#dcsreindex").click(reindexContentScript);
+			$("#dcsreindex").click(reindexContentScript);			
+			$("#importOnce").change(saveContentScript);
 			$("#dcsupdatemenu").click(updateContentScriptForContextMenu);
 			
 			//$(".colorpicker").colorpicker();
@@ -773,7 +774,7 @@
 			//dialog
 			dialog = $("#floatingWindow").dialog({"autoOpen":false, height:500,"width":600});
 			//buttons
-			$("#jscb, #jshid").button({icons: {
+			$("#jscb, #jshid, #importOnce").button({icons: {
 						primary: "ui-icon-close"
 					}
 				});
@@ -2200,6 +2201,8 @@
 			$("#dcsindex").val(index);
 			$("#dcstitle").val(name);
 			$("#dcsinclude").val("");
+      document.getElementById("importOnce").checked = false;
+      $("#importOnce").button("refresh");
 			
 			addContentScriptMenu(name, index, "");
 			
@@ -2257,9 +2260,10 @@
 			var title = $("#dcstitle").val();
 			var sfile = $("#dcsinclude").val();
 			var index = $("#dcsindex").val();
+			var importOnce = document.getElementById("importOnce").checked;
 			
 			var tmp =  {"name":selectedContentScript, "type":"cs", "index":index, 
-			  "group":group, "title":title, "sfile":sfile, "script": dcstitle};
+			  "group":group, "title":title, "sfile":sfile, "script": dcstitle, "importonce":importOnce};
 
 			storage.saveScript(tmp);
 			$(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`).attr("index", index)
@@ -2346,6 +2350,8 @@
 				$("#dcsinclude").val("");						
 				$("#dcsindex").val("");
 				editorDynScript.setValue("");
+				document.getElementById("importOnce").checked = false;
+				$("#importOnce").button("refresh");
 				currentSavedStateDCS = editorDynScript.getValue();
 			}
 			
@@ -2531,8 +2537,10 @@
 			$("#dcstitle").val(script.title);
 			$("#dcsinclude").val(script.sfile);	
 			$("#dcsindex").val(script.index);
-			$("#dcsgencodebytemplate")[0].selectedIndex = 0;	
+			$("#dcsgencodebytemplate")[0].selectedIndex = 0;
 			editorDynScript.setValue(script.script);
+			document.getElementById("importOnce").checked = script.importonce;
+			$("#importOnce").button("refresh");
 			
 			currentSavedStateDCS = script.script;
 			editorDynScript.clearHistory();

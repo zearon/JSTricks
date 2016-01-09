@@ -49,6 +49,19 @@
 	  return this.filter(function(ele) { return ele !== element; });
 	}
 	
+	Array.prototype.addIfNotIn = function (element) {
+	  if (this.contains(element))
+	    return;
+	    
+	  this.push(element);
+	}
+	
+	Array.prototype.addAllIfNotIn = function (array) {
+	  for (var i = 0; i < array.length; ++ i) {
+	    this.addIfNotIn(array[i]);
+	  }
+	}
+	
 	function compareVersion(v1, v2) {
 	  var parts1 = v1.split("."), parts2 = v2.split(".");
 	  var len1 = parts1.length, len2 = parts2.length;

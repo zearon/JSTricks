@@ -51,7 +51,7 @@
 
 	/* Event listener for onInstalled */
 	function initConextMenu() {
-		sortContentScriptByDefault = function(a, b) {
+		function sortContentScriptByDefault(a, b) {
 			return a.group.localeCompare(b.group) * 100 + Math.sign(a.index - b.index);
 		};
 

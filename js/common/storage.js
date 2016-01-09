@@ -36,7 +36,36 @@
 	/*********************************************
 	 *             Public Interfaces             *
 	 *********************************************/
-	 
+  Storage.genScriptID = function(type, name) {
+    return "$" + type + "-" + name;
+  }
+	
+	/**
+	 * Get a regular expression string to test whether should load script for a url
+	 */
+	Storage.fn.getActiveSitePattern = function () {
+	}
+	
+	Storage.fn.getExtEnabledPattern = function() {
+		var enabled = this.getSetting("enabled", true);
+		if (enabled)
+			// every URL matches this pattern
+			return ".*";
+		else
+			// none URL matches this pattern
+			return "^zzz:\/\/$";
+	}
+	
+	Storage.fn.getExtDisabledPattern = function() {
+		var enabled = this.getSetting("enabled", true);
+		if (enabled)
+			// none URL matches this pattern
+			return "^zzz:\/\/$";
+		else
+			// every URL matches this pattern
+			return ".*";
+	}
+  	 
 	/**
 	 * Get a setting value
 	 *   key: setting name
@@ -73,7 +102,7 @@
         return JSON.parse(val);
       } catch (ex) {
         console.error("Cannot parse metadata string as an object.");
-        throw ex;
+        //throw ex;
       }
 	  } else {
 	    return val;
@@ -130,6 +159,21 @@
 	 * The optional onerr callback should be like: onerr(err) {...}
 	 */
 	Storage.fn.saveScript = function (script, onsaved) {
+	  var scripts;
+	  if (!isArray(script)) {
+	    scripts = [script];
+	  } else {
+	    scripts = script;
+	  }
+
+    // Update script indexes in cache
+    for (var i = 0; i < scripts.length; ++ i) {
+      var script = scripts[i];
+      script.id = Storage.genScriptID(script.type, script.name);
+      //console.log("Saving script", script.id, script.name, script.type);
+      objStore.put(script);
+    }
+
 		return this.sst.saveScript.apply(this.sst, arguments);
 	}
 	
@@ -149,7 +193,7 @@
 	 */
 	Storage.fn.clearScripts = function (onok) {
 		return this.sst.clearScript.apply(this.sst, arguments);
-	}	
+	}
 	
 	/**
 	 * Transfer all scripts from a storage area to another.
@@ -161,6 +205,12 @@
 	    console.log("Transfer", scripts.length, "scripts from", src, "to", dest);
 	    
 	    dest.saveScript(scripts, oncomplete);
+	  }, function(name, type, script) {
+	    // For UPGRADE
+	    if (type == "cs" && script.importOnce === undefined)
+	      script.importOnce = false;
+	    
+	    return true;
 	  });
 	}
 	
@@ -168,29 +218,33 @@
 	 * Transfer all scripts from a storage area to another.
 	 */
 	Storage.fn.rebuildScriptIndexes = function(onok, onerr) {
-	  var self = this, index,
-	    allSites = [], activeSites = [], inactiveSites = [], 
-	    contentScripts = [], defaultActive = {value:false}, maxIndex = {value:0};
+	  var self = this, index, cachedDeps = {},
+	    allSites = [], activeSites = [], inactiveSites = [], contentScripts = [], 
+	    dssActive = {"Main":false, "Default":false}, maxIndex = {value:0};
 	  
 	  this.getAllScripts(["dss", "ss", "cs"], function() {
 	    // on complete
-      self.setSetting("temp-index-defaultenabled", defaultActive.value, true);
+      self.setSetting("temp-index-mainenabled", dssActive["Main"], true);
+      self.setSetting("temp-index-defaultenabled", dssActive["Default"], true);
       self.setSetting("temp-index-allsites", allSites, true);
       self.setSetting("temp-index-activesites", activeSites, true);				
       self.setSetting("temp-index-inactivesites", inactiveSites, true);		
       self.setSetting("temp-index-contentscripts", contentScripts, true);
+      self.setSetting("temp-index-script-deps", cachedDeps, true);
       
-      var siteIndex = {"defaultEnabled":defaultActive.value, "activeSites": activeSites, "inactiveSites": inactiveSites}
+      // Main does not decide whether a script gets loaded in a website, so do not put it into
+      // chrome.storage.local
+      var siteIndex = {"defaultEnabled":dssActive["Default"], "activeSites": activeSites, "inactiveSites": inactiveSites}
       chrome.storage.local.set({"allSites": allSites});
       chrome.storage.local.set({"siteIndex": siteIndex});
 	  
       if (onok)
         onok();	    
 	  }, function(name, type, obj) {
-	    // in filter 
+	    // in filter
 	    switch(type) {
 	    case "dss":
-	      defaultActive.value = obj.autostart;
+	      dssActive[name] = obj.autostart;
 	      break;
 	    case "ss":
 	      obj.autostart ? activeSites.push(name) : inactiveSites.push(name);
@@ -203,8 +257,148 @@
 	      break;
 	    }
 	    
+	    if (obj.sfile) {
+	      var deps = obj.sfile.split(/\s*,\s*/).filter(function(str) { return str.trim() !== "";} );
+	      cachedDeps[Storage.genScriptID(type, name)] = deps;
+	    }
 	    
 	  }, onerr);
+	}
+	
+	/**
+	 * Update index of scripts in cache
+	 */
+	Storage.fn.updateContentScriptIndex = function (action, name, type, active) {
+	  if (type == "cs")
+	    this.updateContentScriptIndex(action, name);
+	  else
+	    this.updateSiteScriptIndex(action, name, type, active);
+	}
+	
+	/**
+	 * Update index of content script in cache
+	 */
+	Storage.fn.updateContentScriptIndex = function (action, name) {
+	  var contentScripts, activeSites, inactiveSites, allSites, settingChanged, dssActive = {}; 
+    contentScripts = this.getSetting("temp-index-contentscripts", true);
+    
+    switch (action) {
+    case "add":
+      contentScripts.addIfNotIn(name);
+      break;
+    case "delete":
+      contentScripts = contentScripts.removeElement(name);
+      break;
+    }
+    
+    self.setSetting("temp-index-contentscripts", contentScripts, true);
+  }
+	
+	/**
+	 * Update index of site script in cache
+	 */
+	Storage.fn.updateSiteScriptIndex = function (action, name, type, active) {
+	  var activeSites, inactiveSites, allSites, settingChanged, dssActive = {}; 
+    allSites = this.getSetting("temp-index-allsites", true);				
+    activeSites = stothisrage.getSetting("temp-index-activesites", true);
+    inactiveSites = this.getSetting("temp-index-inactivesites", true);
+    dssActive["Main"] = this.getSetting("temp-index-mainenabled", true);
+    dssActive["Default"] = this.getSetting("temp-index-defaultenabled", true);
+    
+    switch (action) {
+    case "add":
+      allSites.addIfNotIn(name);
+      active ? activeSites.addIfNotIn(name) : inactiveSites.addIfNotIn(name);
+      break;
+    case "delete":
+      allSites = allSites.removeElement(name);
+      activeSites = activeSites.removeElement(name);
+      inactiveSites = inactiveSites.removeElement(name);
+      break;
+    case "setactive":
+      break;
+    }
+    
+    // on complete
+    self.setSetting("temp-index-mainenabled", dssActive["Main"], true);
+    self.setSetting("temp-index-defaultenabled", dssActive["Default"], true);
+    self.setSetting("temp-index-allsites", allSites, true);
+    self.setSetting("temp-index-activesites", activeSites, true);				
+    self.setSetting("temp-index-inactivesites", inactiveSites, true);		
+    self.setSetting("temp-index-script-deps", cachedDeps, true);
+    
+    // Main does not decide whether a script gets loaded in a website, so do not put it into
+    // chrome.storage.local
+    var siteIndex = {"defaultEnabled":dssActive["Default"], "activeSites": activeSites, "inactiveSites": inactiveSites}
+    chrome.storage.local.set({"allSites": allSites});
+    chrome.storage.local.set({"siteIndex": siteIndex});
+  }
+	
+	/**
+	 * Get the script dependencies in the cached index.
+	 */
+	Storage.fn.cachedScriptDeps = function() {
+	  return this.getSetting("temp-index-script-deps", true);
+	}
+	
+	/**
+	 * Get an name list of scripts on which given script is dependent.
+	 * This value is fetched from cached index stored in localStorage, and 
+	 * thus is synchronous.
+	 * The third parameter is optional. If omitted, the value is loaded from the cache.
+	 */
+	Storage.fn.getScriptDependencies = function(scriptName, type, cachedDeps) {
+	  var nameArr, result = [];
+	  if (isArray(scriptName)) {
+	    nameArr = scriptName;
+	  } else {
+	    nameArr = [ scriptName ];
+	  }	
+	  
+	  if (!cachedDeps) cachedDeps = this.getSetting("temp-index-script-deps", true);
+	  getDepInternal(nameArr, type, cachedDeps, result);
+	  
+	  return result;
+	}
+	
+	function getDepInternal(names, type, cachedDeps, result) {
+	  var i, id, deps;
+	  if (!names)
+	    return;
+	  
+	  for (i = 0; i < names.length; ++ i) {
+	    var name = names[i];
+	    // name is an external URL
+	    if (/^[\w-]+:\/\//.test(name))
+	      continue;
+	      
+	    id = Storage.genScriptID(type, names[i]);
+	    deps = cachedDeps[id];
+	    
+	    if (!deps)
+	      continue;
+	    
+	    // Only content scripts can be dependencies
+	    getDepInternal(deps, "cs", cachedDeps, result);
+	    
+	    result.addAllIfNotIn(deps);
+	  }
+	}
+	
+	/**
+	 * Update the dependencies of a script in the cached index.
+	 */
+	Storage.fn.updateScriptDependencies = function(scriptName, type, deps) {
+	  var cachedDeps = this.getSetting("temp-index-script-deps", true);
+	  var depsArr;
+	  if (isArray(deps)) {
+	    depsArr = deps;
+	  } else {
+	    depsArr = deps.split(/\s*,\s*/).filter(function(str) { return str.trim() !== "";} );;
+	  }
+	  var id = Storage.genScriptID(type, scriptName);
+	  cachedDeps[id] = depsArr;
+	  this.setSetting("temp-index-script-deps", cachedDeps, true);
 	}
 	
 	/**
@@ -213,32 +407,6 @@
 // 	Storage.fn.updateSiteScriptAutostart = function (id, options) {
 // 		//if (options.autostart)
 // 	}
-	
-	/**
-	 * Get a regular expression string to test whether should load script for a url
-	 */
-	Storage.fn.getActiveSitePattern = function () {
-	}
-	
-	Storage.fn.getExtEnabledPattern = function() {
-		var enabled = this.getSetting("enabled", true);
-		if (enabled)
-			// every URL matches this pattern
-			return ".*";
-		else
-			// none URL matches this pattern
-			return "^zzz:\/\/$";
-	}
-	
-	Storage.fn.getExtDisabledPattern = function() {
-		var enabled = this.getSetting("enabled", true);
-		if (enabled)
-			// none URL matches this pattern
-			return "^zzz:\/\/$";
-		else
-			// every URL matches this pattern
-			return ".*";
-	}
 
 	/*********************************************
 	 *        Event Registration                 *
@@ -640,7 +808,7 @@
 		this.transaction(true, function(objStore) {
 		  for (var i = 0; i < scripts.length; ++ i) {
 		    var script = scripts[i];
-		    script.id = generateID(script.type, script.name);
+		    script.id = Storage.genScriptID(script.type, script.name);
 		    //console.log("Saving script", script.id, script.name, script.type);
 		    objStore.put(script);
 		  }
@@ -656,7 +824,7 @@
 	 * deleteScript(filterFunc, onok), in which filterFunc(id, type, obj)
 	 */
 	DBStorage.fn.deleteScript = function (id, type, onok, onerr) {
-	  var filter = null, genID = generateID(type, id);
+	  var filter = null, genID = Storage.genScriptID(type, id);
 	  if (isFunction(id)) {
 	    filter = id;
 	    onok = type;
@@ -747,10 +915,6 @@
     } else {
       this.onDbOpened.push(openTransaction);
     }
-  }
-  
-  function generateID(type, name) {
-    return "$" + type + "-" + name;
   }
 	
 	DBStorage.fn.test = function (storename, obj, onsaved) {
