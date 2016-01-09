@@ -62,6 +62,20 @@
 	  }
 	}
 	
+	// useKeyAsItem: true / false
+	// filter(key, value) => true/false
+	function objectToArray(obj, useKeyAsItem, filter) {
+	  var result = [];
+	  for (var key in obj) {
+	    var val = obj[key];
+	    if (!filter || filter(key, val) ) {
+	      var item = useKeyAsItem ? key : val;
+	      result.push(item);
+	    }
+	  }
+	  return result;
+	}
+	
 	function compareVersion(v1, v2) {
 	  var parts1 = v1.split("."), parts2 = v2.split(".");
 	  var len1 = parts1.length, len2 = parts2.length;
