@@ -300,6 +300,12 @@
 									<select id="dcsgencodebytemplate" title="Choose a template to generate code. <br/>Code comment can be set omitted or not by changing 'Output Comments in Templates' switch in Options tab.">
 										<option value="">Code Template</option>
 									</select>
+									<input tabindex="1" type='checkbox' id='importOnce'  />
+									<label for="importOnce" id="forImportOnce" style="height:21px;" 
+										title="Automatically check if this script is already loaded and load this script only once. If there are problems, try to turn on DEBUG mode or uncheck this option.<br/>
+										Note: This DOES NOT work for scripts injected as script node into DOM tree via such as #Message.injectContentScript method.">
+									Import Once</label>
+									
 									<input class="findReplaceDialogBtn" type="button" value="Find and Replace" target="Content Scripts" />
 									<input type="button" value="+" class="textSizeUpBtn" >
 									<span class='textsizeval'>11px</span>

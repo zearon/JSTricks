@@ -43,3 +43,44 @@ function codesnippet_getOnBootCode(tabid, url, infoStr) {
 	var context = {tabid:tabid, url:url, infoStr:infoStr};    
   return compile_template(codesnippet_onBootCode, context);
 }
+
+var codesnippet_csWrapper_noDuplicate = 
+`// Avoid multiple times of loading
+if (!INFO.loaded["{{csName}}"]) {
+  if (INFO.debug) {
+    console.info("Loading Content script {{csName}}...");
+  }
+
+// START OF CONTENT SCRIPT
+
+{{csCode}}
+
+// END OF CONTENT SCRIPT
+}
+
+// Helper object INFO.loaded is set in autoload.js, and injected by bg.js in updateSettings function
+INFO.loaded["{{csName}}"] = true;
+`;
+
+var codesnippet_csWrapper=
+`if (INFO.debug) {
+  console.info("Loading Content script {{csName}}...");
+}
+  
+{{csCode}}
+
+// Helper object INFO.loaded is set in autoload.js, and injected by bg.js in updateSettings function
+INFO.loaded["{{csName}}"] = true;
+if (INFO.debug) {
+  console.info("Content script {{csName}} is loaded");
+}
+`;
+
+function codesnippet_getContentScriptWrapper(csCode, importOnce, args) {
+  args.csCode = csCode;
+  if (importOnce === true) {
+    return compile_template(codesnippet_csWrapper_noDuplicate, args);
+  } else {
+    return compile_template(codesnippet_csWrapper, args);
+  }
+}

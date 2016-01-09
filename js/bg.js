@@ -26,7 +26,7 @@ function updateSettings(extraAttribute) {
 		setting[name] = val;
 	}, function() {
 		// on complete
-		var INFO = { enabled:enabled, settings: setting, debug: DEBUG, meta_data: storage.getMetadata(true) };
+		var INFO = { enabled:enabled, loaded:{}, settings: setting, debug: DEBUG, meta_data: storage.getMetadata(true) };
 	
 		infoStr = encodeURIComponent(JSON.stringify(INFO));
 		storage.setSetting("temp-infostr", infoStr);
@@ -140,7 +140,8 @@ function updateSettings(extraAttribute) {
 			// Inject site-specific scripts on website loaded.
 			else if (requestMethod == "JSTinjectScript") {				
 				var autoloadFileList = [];
-				var loadProperty = {necessaryAdded: false, autostartLibAdded: false, defaultAdded: false, siteAdded: false};
+				var loadProperty = {necessaryAdded: false, autostartLibAdded: false, 
+				  defaultAdded: false, siteAdded: false, cachedDeps: storage.cachedScriptDeps()};
 				
 				addNecessaryScriptsForAllSiteToHead(tabid, url, autoloadFileList, loadProperty);
 				
@@ -161,7 +162,7 @@ function updateSettings(extraAttribute) {
 				var initCode = requestData.initCode;
 				var extraCode = requestData.extraCode;
 				var autoloadFileList = [];
-				var loadProperty = {necessaryAdded: false, testURL: true, domain:domain};
+				var loadProperty = {necessaryAdded: false, testURL: true, domain:domain, cachedDeps: storage.cachedScriptDeps()};
 				
 				addNecessaryScriptsForAllSiteToHead(tabid, url, autoloadFileList, loadProperty);
 				addScriptsForAutostartSite(tabid, url, autoloadFileList, loadProperty);
@@ -189,7 +190,7 @@ function updateSettings(extraAttribute) {
 				var script = data.script;
 				
 				var autoloadFileList = [];
-				var loadProperty = {necessaryAdded: false, testURL: true, domain:domain};
+				var loadProperty = {necessaryAdded: false, testURL: true, domain:domain, cachedDeps: storage.cachedScriptDeps()};
 				addNecessaryScriptsForAllSiteToHead(tabid, url, autoloadFileList, loadProperty);
 				addScriptsForAutostartSite(tabid, url, autoloadFileList, loadProperty);
 				addContentScriptsToLoadList(autoloadFileList, includes);
@@ -242,23 +243,14 @@ function updateSettings(extraAttribute) {
 				var code = args.code;
 				var callbackID = args.callback ? args.callback : "";
 				
-				var script = null, text = localStorage["$cs-" + csName];
 				if (code) {
-					script = code;
+          injectScriptNode(tabid, csName, callbackID, code);
 				} else {
-					try {
-						script = JSON.parse(text).script;
-					} catch (ex) { return; }
+					storage.getScript(csName, "cs", function(scriptObj) {
+            injectScriptNode(tabid, csName, callbackID, scriptObj.script);					  
+					});
 				}
 				
-				var dataUri = "data:text/javascript;charset=UTF-8," + encodeURIComponent(script);
-				chrome.tabs.executeScript(tabid, { code:`
-					InjectCodeToOriginalSpace("${dataUri}", function() {
-						//console.log("Script ${csName} loaded.");
-						//console.log("__JSTricks_Messenger_OnScriptLoaded is", window["__JSTricks_Messenger_OnScriptLoaded"]);
-						window["__JSTricks_Messenger"].onScriptLoaded("${callbackID}");
-					});
-				`} );
 			}
 			
 			// When settings are changed in options page (options.js), this message is sent to inform background page.
@@ -304,6 +296,18 @@ function updateSettings(extraAttribute) {
 			else if (requestMethod == "ReloadBackroundPage") {
 				location.reload();
 			}
+		}
+		
+		function injectScriptNode(tabid, csName, callbackID, script) {
+      var dataUri = "data:text/javascript;charset=UTF-8," + encodeURIComponent(script);
+      chrome.tabs.executeScript(tabid, { code:`
+        InjectCodeToOriginalSpace("${dataUri}", function() {
+          // On script node loaded:
+          //console.log("Script ${csName} loaded.");
+          //console.log("__JSTricks_Messenger_OnScriptLoaded is", window["__JSTricks_Messenger_OnScriptLoaded"]);
+          window["__JSTricks_Messenger"].onScriptLoaded("${callbackID}");
+        });
+      `} );
 		}
 		
 		function setIconSet(tabid, domain, status) {
@@ -353,8 +357,8 @@ function updateSettings(extraAttribute) {
 			// Only "ExecuteContentScript" and "ExecuteSiteScript" message will set this flag
 			// The "JSTinjectScript" message sent by autoload.js does not set this flag.
 			if (loadProperty.testURL) {
-			  var activeSitesPattern = storage.getSetting("temp-activesites-pattern");
-			  var isSiteActive = loadProperty.domain.match(activeSitesPattern);
+			  var activeSites = storage.getSetting("temp-index-activesites", true);
+			  var isSiteActive = activeSites.contains(loadProperty.domain);
 			  if (isSiteActive)
 			    return;
 			}
@@ -372,7 +376,8 @@ function updateSettings(extraAttribute) {
 				 // confiture seajs_boot.js injection manifest.json
 				{name:"boot/seajs_boot", file:"injected/seajs_boot.js", type:"js"}, 
 				{name:"boot/nodeSelector", file:"injected/nodeSelector.js", type:"js"}*/
-			);
+			);			
+			
 			if (localStorage["Main"]) {
 				try {
 					var mlsd = JSON.parse(localStorage["Main"]);
@@ -447,21 +452,20 @@ function updateSettings(extraAttribute) {
 				
 			// Inject injected/injected.js file by inserting a <script> tag in document.
 			chrome.tabs.executeScript(tabid, {"code": `
-				InjectCodeToOriginalSpace("chrome-extension://" + chrome.runtime.id + "/injected/injected.js");
+			  if (!INFO.loaded["$sys/injected/injected.js"]) {
+				  INFO.loaded["$sys/injected/injected.js"] = true;
+				  InjectCodeToOriginalSpace("chrome-extension://" + chrome.runtime.id + "/injected/injected.js");
+				}
 			`});
 			
 			// Inject content scripts in include section of meta data.
 			var autoloadFiles = {}; var fileCount = 0;
-			try {
-				var metadata = JSON.parse(storage.getMetadata());
-				var include = metadata["include"];
-				// autoloadFiles["length"] = include.length;
-				for ( var i = 0; i < include.length; ++i) {
-				  addAContentScriptToLoadList(autoloadFileList, include[i]);
-				}
-			} catch(ex) {
-			  console.error(ex);
-			}
+      var metadata = storage.getMetadata(true);
+      var include = metadata.include;
+      // autoloadFiles["length"] = include.length;
+      for ( var i = 0; i < include.length; ++i) {
+        addAContentScriptToLoadList(autoloadFileList, include[i]);
+      }
 		}
 		
 		function emptyFunc() {};
@@ -538,7 +542,9 @@ function updateSettings(extraAttribute) {
 				    var fileName = "$cs-" + csName.replace(/^#/, "");
             var text = localStorage[fileName];
             var data = JSON.parse(text);
-            execDetail.code = data["script"];
+            
+	          var args = {csName:csName};
+            execDetail.code = codesnippet_getContentScriptWrapper(data["script"], data.importOnce, args);
           
             // If the content script itself has dependencies, add them to the load list.
             if (data["sfile"]) {
@@ -580,16 +586,17 @@ function updateSettings(extraAttribute) {
 		
 		function updateActiveSites(mode, site, autostart) {
 			var activeSites, inactiveSites, allSites, settingChanged; 
-			var defaultActive = {};
+			var dssActive = {};
 			
 			// update status on single script change.
 			settingChanged = false;
 			allSites = storage.getSetting("temp-index-allsites", true);				
       activeSites = storage.getSetting("temp-index-activesites", true);
       inactiveSites = storage.getSetting("temp-index-inactivesites", true);
-      defaultActive.value = storage.getSetting("temp-index-defaultenabled", true);
+      dssActive["Main"] = storage.getSetting("temp-index-mainenabled", true);
+      dssActive["Default"] = storage.getSetting("temp-index-defaultenabled", true);
 				
-			debug_log("Update the active sites list. Use value: mode=", mode, "site=", site, "autostart=", defaultActive.value);
+			debug_log("Update the active sites list. Use value: mode=", mode, "site=", site, "autostart=", autostart);
 			
 			// popup page sends add+active, delete modes
 			// options page sends active, delete modes
@@ -617,8 +624,8 @@ function updateSettings(extraAttribute) {
 			
 			// Update the active sites according to site status given by the arguments
 			if (mode.indexOf("active") >= 0) {				
-				if (site == "Default") {
-					defaultActive.value = autostart;
+				if (site == "Default" || site == "Main") {
+					dssActive[site] = autostart;
 				} else {
 					if (autostart) {
 						inactiveSites = inactiveSites.filter(function(ele) { return ele != site; } );
@@ -632,7 +639,7 @@ function updateSettings(extraAttribute) {
 				}
 			}
 			
-			updateStatus(activeSites, inactiveSites, defaultActive.value);
+			updateStatus(activeSites, inactiveSites, dssActive);
 			// end of function execution flow
 			
 			// Inline function definition
@@ -666,8 +673,8 @@ function updateSettings(extraAttribute) {
     }		
 
     // Inline function definition
-    function updateStatus(activeSites, inactiveSites, defaultActive) {
-      debug_log("All active sites:", activeSites, "inactive sites:", inactiveSites, "default is", defaultActive ? "active" : "inactive");
+    function updateStatus(activeSites, inactiveSites, dssActive) {
+      debug_log("All active sites:", activeSites, "inactive sites:", inactiveSites, "dssActive is", dssActive);
       
       var activeSitesPattern, inactiveSitesPattern, allSitesPattern;
       
@@ -675,7 +682,7 @@ function updateSettings(extraAttribute) {
         // extension is disabled
         activeSitesPattern = "^dummy$";
         inactiveSitesPattern = "^dummy$";
-      } else if (defaultActive) {
+      } else if (dssActive["Default"]) {
         // Default script is autostarted, so the pattern should match any site url.
         activeSitesPattern = ".*";
         inactiveSitesPattern = "^dummy$";
@@ -685,14 +692,15 @@ function updateSettings(extraAttribute) {
       }
     
       // Save status
-      storage.setSetting("temp-index-defaultenabled", defaultActive, true);
+      storage.setSetting("temp-index-mainenabled", dssActive["Main"], true);
+      storage.setSetting("temp-index-defaultenabled", dssActive["Default"], true);
       storage.setSetting("temp-index-activesites", activeSites, true);				
       storage.setSetting("temp-index-inactivesites", inactiveSites, true);
       //storage.setSetting("temp-index-activesites-pattern", activeSitesPattern);
       //storage.setSetting("temp-index-inactivesites-pattern", inactiveSitesPattern);
       
       // Save to chrome.storage.local for content scripts access
-      var siteIndex = {"defaultEnabled":defaultActive, "activeSites": activeSites, "inactiveSites": inactiveSites}
+      var siteIndex = {"defaultEnabled":dssActive["Default"], "activeSites": activeSites, "inactiveSites": inactiveSites}
       chrome.storage.local.set({"siteIndex": siteIndex});
       
       debug_log("activeSitesPattern=", activeSitesPattern);
@@ -732,54 +740,6 @@ function updateSettings(extraAttribute) {
       
       return siteStatus;
     }
-		
-		/*
-		chrome.tabs.onActiveChanged.addListener(function(tabId) {
-			chrome.tabs.get(tabId, function(tab){				
-				changeIcon(tab)
-			})
-
-		});*/
-		
-		//chrome.tabs.onCreated.addListener(setTabID);
-		//chrome.tabs.onUpdated.addListener(setTabID);
-// 				function setTabID(arg) {
-// 					if (chrome.runtime.lastError) {
-// 						// tabid is not fetched successfully
-// 						console.error("Cannot get tabid on the created/updated tab.");
-// 					} else {
-// 						// in onCreated arg is Tab object, and in onUpdated arg is tabid
-// 						var tabid = arg.id ? arg.id : arg;
-// 						chrome.tabs.executeScript(tabid, {"code":`
-// 							window.tabid = ${tabid};
-// 							if (${DEBUG}) {
-// 								console.info("Chome Tab ID is: "+"${tabid}");
-// 							}
-// 						`}, function() {
-// 							if (chrome.runtime.lastError) {
-// 								console.error("Failed to inject INFO obj to tab due to", chrome.runtime.lastError.message);
-// 							}
-// 						} );
-// 					}
-// 				}
-// 
-//         function  changeIcon(tab) {
-// 					if (localStorage["$setting.enabled"] == "true") {
-// 						var matches= tab.url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/);
-// 
-// 						if( matches[1] && localStorage[matches[1]] ) {
-// 							var lsd = JSON.parse(localStorage[matches[1]]);
-// 							if(lsd.autostart) {
-// 								chrome.browserAction.setIcon({path:"icon/icon24_auto.png"});    
-// 								return;
-// 							}
-// 						}
-// 						chrome.browserAction.setIcon({path:"icon/icon24.png"});    
-// 					} else {
-// 						chrome.browserAction.setIcon({path:"icon/icon24_disabled.png"});    
-// 					}
-//         }
-
 
   function getCurrentTab(callback) {
     chrome.windows.getCurrent(undefined, function(win) {
