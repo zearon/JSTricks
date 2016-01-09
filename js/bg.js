@@ -137,6 +137,12 @@ function updateSettings(extraAttribute) {
 				debug_log("Set icon status to " + iconStatus);
 			}
 			
+			// Set icon. Message sent from popup and option page
+			if (requestMethod == "UpdateIconForDomain") {
+				var domain = requestData;
+        updateIconForDomain(domain);
+			}
+			
 			// Inject site-specific scripts on website loaded.
 			else if (requestMethod == "JSTinjectScript") {				
 				var autoloadFileList = [];
@@ -263,15 +269,6 @@ function updateSettings(extraAttribute) {
 				loadDefaultSettings(true);
 			}
 			
-			// Invoked by options page and popup page when site scripts are saved.
-			else if (requestMethod == "UpdateActiveSites") {
-				var mode = requestData.mode;
-				var site = requestData.site;
-				var autostart = requestData.autostart
-				updateActiveSites(mode, site, autostart);
-				updateIconSetInCurrentTab();
-			}
-			
 			// Invoked by DEBUG content script. Other script can send this message as well. For example:
 			// chrome.runtime.sendMessage( {tabid: INFO.tabid, method:"ExecuteJsCodeOrFile", data:[
 			//   { code: ` InjectCodeToOriginalSpace("${src}");`} ]
@@ -343,9 +340,16 @@ function updateSettings(extraAttribute) {
 		  chrome.pageAction.setIcon( {tabId: tabid, path: iconPath} );
 		}
 		
-		function updateIconSetInCurrentTab() {
-		  getCurrentTab(function(id, url, tab) {
-		    setIconSet(id, getDomainFromUrl(url));
+		function updateIconForDomain(domain) {
+		  var siteStatus = getSiteStatus(domain);
+		  
+		  chrome.tabs.query({url:"*://"+domain+"/*"}, function(tabs) {
+		    if(!tabs)
+		      return;
+		    
+		    for ( var i = 0; i < tabs.length; ++ i) {
+		      setIconSet(tabs[i].id, domain, siteStatus);
+		    }
 		  });
 		}
 		
@@ -357,8 +361,9 @@ function updateSettings(extraAttribute) {
 			// Only "ExecuteContentScript" and "ExecuteSiteScript" message will set this flag
 			// The "JSTinjectScript" message sent by autoload.js does not set this flag.
 			if (loadProperty.testURL) {
-			  var activeSites = storage.getSetting("temp-index-activesites", true);
-			  var isSiteActive = activeSites.contains(loadProperty.domain);
+			  var siteScripts = storage.getSetting("temp-index-script-site", true);
+			  var siteOptions = siteScripts[loadProperty.domain];
+			  var isSiteActive = siteOptions && siteOptions.active;
 			  if (isSiteActive)
 			    return;
 			}
@@ -459,10 +464,9 @@ function updateSettings(extraAttribute) {
 			`});
 			
 			// Inject content scripts in include section of meta data.
-			var autoloadFiles = {}; var fileCount = 0;
+			var fileCount = 0;
       var metadata = storage.getMetadata(true);
       var include = metadata.include;
-      // autoloadFiles["length"] = include.length;
       for ( var i = 0; i < include.length; ++i) {
         addAContentScriptToLoadList(autoloadFileList, include[i]);
       }
@@ -583,159 +587,26 @@ function updateSettings(extraAttribute) {
 			
 			return false;
 		}
-		
-		function updateActiveSites(mode, site, autostart) {
-			var activeSites, inactiveSites, allSites, settingChanged; 
-			var dssActive = {};
-			
-			// update status on single script change.
-			settingChanged = false;
-			allSites = storage.getSetting("temp-index-allsites", true);				
-      activeSites = storage.getSetting("temp-index-activesites", true);
-      inactiveSites = storage.getSetting("temp-index-inactivesites", true);
-      dssActive["Main"] = storage.getSetting("temp-index-mainenabled", true);
-      dssActive["Default"] = storage.getSetting("temp-index-defaultenabled", true);
-				
-			debug_log("Update the active sites list. Use value: mode=", mode, "site=", site, "autostart=", autostart);
-			
-			// popup page sends add+active, delete modes
-			// options page sends active, delete modes
-			
-			if (mode.indexOf("add") >= 0 && !allSites.contains(site)) {
-			  allSites.push(site);
-				// process add to active or inactive site index in mode active below.
-				// because "add" always comes with an "active"
-				mode = "active";
-				settingChanged = true;
-			}
-			
-			if (mode.indexOf("delete") >= 0) {
-				// remove from active, inactive and all site indexes
-			  allSites = allSites.filter(function(ele) { return ele != site; } );
-			  activeSites = activeSites.filter(function(ele) { return ele != site; } );
-			  inactiveSites = inactiveSites.filter(function(ele) { return ele != site; } );
-				settingChanged = true;
-			}
-			
-			if (settingChanged) {
-			  // allSite is changed
-        updateAllSitesPattern(allSites)
-			}
-			
-			// Update the active sites according to site status given by the arguments
-			if (mode.indexOf("active") >= 0) {				
-				if (site == "Default" || site == "Main") {
-					dssActive[site] = autostart;
-				} else {
-					if (autostart) {
-						inactiveSites = inactiveSites.filter(function(ele) { return ele != site; } );
-						if (!activeSites.contains(site))
-						  activeSites.push(site);
-					} else {
-						activeSites = activeSites.filter(function(ele) { return ele != site; } );
-						if (!inactiveSites.contains(site))
-						  inactiveSites.push(site);
-					}
-				}
-			}
-			
-			updateStatus(activeSites, inactiveSites, dssActive);
-			// end of function execution flow
-			
-			// Inline function definition
-			function addToActiveSites(site) {
-        inactiveSites = inactiveSites.filter(function(ele) { return ele != site; } );
-        if (!activeSites.contains(site))
-          activeSites.push(site);
-			}
-			
-			// Inline function definition
-			function removeFromActiveSites(site) {
-        activeSites = activeSites.filter(function(ele) { return ele != site; } );
-        if (!inactiveSites.contains(site))
-          inactiveSites.push(site);
-			}
-			
-	
-		}
-		
-    // Inline function definition
-    function updateAllSitesPattern(allSites) {
-//         var allSitesPattern = getPositivePattern(allSites);
-      allSitesPattern = getNegativePattern(allSites);
-      storage.setSetting("temp-index-allsites", allSites, true);
-      //storage.setSetting("temp-index-allsites-pattern", allSitesPattern);
-      
-      // Save to chrome.storage.local for content scripts access
-      chrome.storage.local.set({"allSites": allSites});
-      
-      debug_log("allSitesPattern=", allSitesPattern);
-    }		
-
-    // Inline function definition
-    function updateStatus(activeSites, inactiveSites, dssActive) {
-      debug_log("All active sites:", activeSites, "inactive sites:", inactiveSites, "dssActive is", dssActive);
-      
-      var activeSitesPattern, inactiveSitesPattern, allSitesPattern;
-      
-      if ( !(storage.getSetting("enabled") !== 'false') ) {
-        // extension is disabled
-        activeSitesPattern = "^dummy$";
-        inactiveSitesPattern = "^dummy$";
-      } else if (dssActive["Default"]) {
-        // Default script is autostarted, so the pattern should match any site url.
-        activeSitesPattern = ".*";
-        inactiveSitesPattern = "^dummy$";
-      } else {
-        activeSitesPattern = getPositivePattern(activeSites);
-        inactiveSitesPattern = getPositivePattern(inactiveSites);
-      }
-    
-      // Save status
-      storage.setSetting("temp-index-mainenabled", dssActive["Main"], true);
-      storage.setSetting("temp-index-defaultenabled", dssActive["Default"], true);
-      storage.setSetting("temp-index-activesites", activeSites, true);				
-      storage.setSetting("temp-index-inactivesites", inactiveSites, true);
-      //storage.setSetting("temp-index-activesites-pattern", activeSitesPattern);
-      //storage.setSetting("temp-index-inactivesites-pattern", inactiveSitesPattern);
-      
-      // Save to chrome.storage.local for content scripts access
-      var siteIndex = {"defaultEnabled":dssActive["Default"], "activeSites": activeSites, "inactiveSites": inactiveSites}
-      chrome.storage.local.set({"siteIndex": siteIndex});
-      
-      debug_log("activeSitesPattern=", activeSitesPattern);
-      debug_log("inactiveSitesPattern=", inactiveSitesPattern);
-    }
-						
-    // Inline function definition			
-    function getPositivePattern(sites) {
-      return "(" + sites.map(function(site) {
-        return "(" + ('://' + site + "/").getTextRegexpPattern() + ".*" + ")";
-      }).join("|") + ")";
-    }
-    
-    function getNegativePattern(sites) {
-      var negative = sites.map(function(str) { return "(" + str.getTextRegexpPattern() + ")"; }).join("|");
-      return ":\\/\\/" + "((?!" + negative + ").)+";
-    }
 			  
     function getSiteStatus(domain) {
-      var defaultEnabled = storage.getSetting("temp-index-defaultenabled", true);
-      var activeSites = storage.getSetting("temp-index-activesites", true);				
-      var inactiveSites = storage.getSetting("temp-index-inactivesites", true);
-      var siteStatus, active = activeSites.contains(domain), inactive = inactiveSites.contains(domain);
-    
-      if (defaultEnabled) {
-        if (active)
-          siteStatus = "default+active";
-        else 
-          siteStatus = "default";
-      } else if (active) {
-        siteStatus = "active";
-      } else if (inactive) {
-        siteStatus = "inactive";
-      } else {
+      var allScripts = storage.loadIndexObj().siteScripts;
+      var siteOption = allScripts[domain];
+      var defaultEnabled = allScripts["Default"].active;
+  
+      if (!siteOption) {
         siteStatus = "none";
+      } else if (defaultEnabled) {
+        if (siteOption.active) {
+          siteStatus = "default+active";
+        } else {
+          siteStatus = "default";
+        }
+      } else {
+        if (siteOption.active) {
+          siteStatus = "active";
+        } else {
+          siteStatus = "inactive";
+        }
       }
       
       return siteStatus;

@@ -189,7 +189,7 @@ function log() {
 				var domain = url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
 				storage.deleteScript(domain, "ss");
 				
-			  chrome.runtime.sendMessage({method:"UpdateActiveSites", data: {mode:"delete", site:domain} });
+        chrome.runtime.sendMessage({method:"UpdateIconForDomain", data: domain });
 			  
 			  $("#jstcb").removeAttr("checked");
 			  $("#jstcb").button("refresh");
@@ -227,19 +227,8 @@ function log() {
 			tmpp.autostart = document.getElementById("jstcb").checked;
 			tmpp.sfile  = $("#jsincludefile").val();
 			
-// 			if (tmpp.autostart)
-// 				API_SetIcon({path:"icon/icon24_auto.png"});
-// 			else
-// 				API_SetIcon({path:"icon/icon24.png"});
-			
 			storage.saveScript(tmpp);
-			
-			//
-			var updateActiveSitesMsg =  {mode:"add+active", site:url, autostart:tmpp.autostart};
-		  //options may be set in changeAutostart with value {"updateActiveSites": {mode:"add+active", site:tabSite, autostart:autostart}
-// 			if (options && options.updateActiveSites) {
-// 			  updateActiveSitesMsg.mode += "+" + options.updateActiveSites.mode; }
-      chrome.runtime.sendMessage({method:"UpdateActiveSites", data: updateActiveSitesMsg });
+      chrome.runtime.sendMessage({method:"UpdateIconForDomain", data: url });
 			
 			// Update status to let user know options were saved.
 			var status = document.getElementById("title");

@@ -143,34 +143,34 @@ function createAutoload() {
   function getSiteStatus(self) {
     if (self.siteStatus)
       return self.siteStatus;
-      
-    var siteIndex = self.storage.siteIndex;
-    var defaultEnabled = siteIndex.defaultEnabled;
-    var activeSites = siteIndex.activeSites;			
-    var inactiveSites = siteIndex.inactiveSites;
-    var siteStatus, active = arrayContains(activeSites, self.domain), 
-        inactive = arrayContains(inactiveSites, self.domain);
+    
+    var allScripts = self.storage.siteIndex;
+    var siteOption = allScripts[self.domain];
+    var defaultEnabled = allScripts["Default"].active;
+    console.log(allScripts, siteOption, defaultEnabled);
   
     if (!self.storage.enabled) {
       self.siteStatus = "disabled";
       self.siteStatusCode = 0;
-    } else if (defaultEnabled) {
-      if (active) {
-        self.siteStatus = "default+active";
-      self.siteStatusCode = 5;
-      } else {
-        self.siteStatus = "default";
-      self.siteStatusCode = 3;
-      }
-    } else if (active) {
-      self.siteStatus = "active";
-      self.siteStatusCode = 4;
-    } else if (inactive) {
-      self.siteStatus = "inactive";
-      self.siteStatusCode = 2;
-    } else {
+    } else if (!siteOption) {
       self.siteStatus = "none";
       self.siteStatusCode = 1;
+    } else if (defaultEnabled) {
+      if (siteOption.active) {
+        self.siteStatus = "default+active";
+        self.siteStatusCode = 5;
+      } else {
+        self.siteStatus = "default";
+        self.siteStatusCode = 3;
+      }
+    } else {
+      if (siteOption.active) {
+        self.siteStatus = "active";
+        self.siteStatusCode = 4;
+      } else {
+        self.siteStatus = "inactive";
+        self.siteStatusCode = 2;
+      }
     }
       
     return self.siteStatus;

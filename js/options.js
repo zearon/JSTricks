@@ -126,7 +126,7 @@
 			currentSavedStateCss = editorCss.getValue();
 			
 			var noErrorFound = checkScriptSyntax(val);
-			console.log(JSHINT.data());		
+			console.log("Syntax check report:", JSHINT.data());		
 			if (!noErrorFound) {
 				showMessage("Error found in current site script!");
 			} else {
@@ -280,8 +280,8 @@
 		function loadSiteScripts(filterOptions, contentType, nameFilter) {			
 			$("#menu").empty();
 
-      var keys = storage.getSetting("temp-index-allsites" ,true), values = null;
-      var activeSites = storage.getSetting("temp-index-activesites" ,true);
+      var values = null, siteScripts = storage.loadIndexObj("ss").siteScripts;
+      var keys = objectToArray(siteScripts, true).filter(function(site) { return site !== "Main" && site !== "Default"; });
       keys.sort();
       keys.unshift("Main", "Default");
       //console.log(keys);
@@ -292,11 +292,11 @@
         // to load all scripts. Just creating a list of object that has the autostart property
         // is OK.
         values = keys.map(function(site) {
-          return {site:site, autostart:activeSites.contains(site)}; 
-        }).reduce(function(prevVal, ele, inx, arr) {
-          //console.log(prevVal, ele, inx);
-          prevVal[ele.site] = ele;
-          return prevVal;
+          return {site:site, autostart:siteScripts[site].active}; 
+        }).reduce(function(result, ele, inx, arr) {
+          //console.log(result, ele, inx);
+          result[ele.site] = ele;
+          return result;
         }, {});
         //console.log(values);
         

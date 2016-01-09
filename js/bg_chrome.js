@@ -81,4 +81,14 @@ handlers.ConsoleLog = function (tabid, method, id, arg) {
 	delete argArray;
 };
 
+
+
+
+
+
+// invoked by storage.js in content page
+handlers.SaveToStrage = function (tabid, method, id, arg) {
+  chrome.storage.local.set(arg);
+}
+
 })();
