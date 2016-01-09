@@ -16,7 +16,7 @@
 
 	/* Event listeners */
 	function onExtensionInstalled(details) {
-		initConextMenu();
+		initContextMenu();
 	}
 	
 	function onMessageReceived(request, sender) {
@@ -27,6 +27,8 @@
 			console.log("Update Context Menu");
 			console.log(scriptGroups);
 			updateConextMenu(scriptGroups);*/
+			
+			scriptMenuIndex = storage.getSetting("contextMenu-index", true);
 			initContextMenu();
 		} 
 	}
@@ -48,7 +50,7 @@
 	
 
 	/* Event listener for onInstalled */
-	function initConextMenu() {		
+	function initContextMenu() {		
 	  var index = 0, noScriptIndex = scriptMenuIndex === undefined;
 		if (noScriptIndex) {
 		  scriptMenuIndex = {};
