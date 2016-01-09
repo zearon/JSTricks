@@ -261,11 +261,14 @@
 			<div id="tabs-dcs" class="tab">
 				<div class="editwrap" >
 					<div id="script-list" class="navbar" style="overflow:hidden">
-						<div class="" style="height:28px; border:white solid; border-width:1px 1px 0 0; padding-top:4px; padding-left: 0px;">
+						<div class="actions" style="height:28px; border:white solid; border-width:1px 1px 0 0; padding-top:4px; padding-left: 0px;">
 							<input id="dcsadd" type='button' value="Add" />
-							<input id="dcssort" type='button' value="Sort" />
 							<input id="dcsreindex" type='button' value="Reindex" />
-							<input id="dcsupdatemenu" type='button' value="Re-Menu" title="Refresh context menu"/>
+							<input id="dcsrename" type='button' value="Rename" />	
+							<input id="dcsindexup" type="button" title="Move Up" style="width:26px;" />
+							<input id="dcsindexdown" type="button" title="Move Down" style="width:26px;" />
+							<input id="dcssort" type='button' value="Sort" style="display:none" />
+							<input id="dcsupdatemenu" type='button' value="Re-Menu" style="display:none" title="Refresh context menu" />
 						</div>
 						<div id='contentscript-menu' style='overflow:auto;min-width:200px; position:absolute; bottom:0; left:0; right:0; top: 30px;'>
 						</div>
@@ -287,9 +290,12 @@
 									<td style="width:380px; text-align:right;">
 										Index: 
 										<input id="dcsindex" type="text" size="3" style="width:24px;" title="A number representing the display order in context menu" />
-										<input id="dcsindexup" type="button" title="Move Up" style="width:26px;" />
-										<input id="dcsindexdown" type="button" title="Move Down" style="width:26px;" />
-										<input id="dcsrename" type='button' value="Rename" />		
+										<input tabindex="1" type='checkbox' id='importOnce'  />
+										<label for="importOnce" id="forImportOnce" style="height:21px;" 
+											title="Automatically check if this script is already loaded and load this script only once. If there are problems, try to turn on DEBUG mode or uncheck this option.<br/>
+											Note: This DOES NOT work for scripts injected as script node into DOM tree via such as #Message.injectContentScript method.">
+										Import Once</label>
+	
 										<input id="dcssave" type='button' value="Save [Ctrl+S]" />
 										<input id="dcsdelete" type='button' value="Delete" />
 									</td>
@@ -300,11 +306,6 @@
 									<select id="dcsgencodebytemplate" title="Choose a template to generate code. <br/>Code comment can be set omitted or not by changing 'Output Comments in Templates' switch in Options tab.">
 										<option value="">Code Template</option>
 									</select>
-									<input tabindex="1" type='checkbox' id='importOnce'  />
-									<label for="importOnce" id="forImportOnce" style="height:21px;" 
-										title="Automatically check if this script is already loaded and load this script only once. If there are problems, try to turn on DEBUG mode or uncheck this option.<br/>
-										Note: This DOES NOT work for scripts injected as script node into DOM tree via such as #Message.injectContentScript method.">
-									Import Once</label>
 									
 									<input class="findReplaceDialogBtn" type="button" value="Find and Replace" target="Content Scripts" />
 									<input type="button" value="+" class="textSizeUpBtn" >

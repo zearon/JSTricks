@@ -9,6 +9,8 @@
 		
 		var mapSiteScriptFunc = dummyMapFunc;
 		var mapContentScriptFunc = dummyMapFunc;
+		
+		var metadata;
 
 		var editorJs = null;
 		var editorCss = null;
@@ -31,7 +33,6 @@
 		var dialog;
 		
 		var jsonFileAnchor = 0;
-		var __index_cs = 1;
 		var selectedContentScript = "";
 		var currentSavedStateDCS = "";
 
@@ -221,7 +222,6 @@
 			
 			if(confirm("Do you realy want to delete that trick?"))
 			{
-				delete localStorage[key];
 				storage.deleteScript(key, "ss");
 			  chrome.runtime.sendMessage({method:"UpdateIconForDomain", data: key });
 			  
@@ -899,47 +899,53 @@
 			editorMeta.clearHistory();
 		}
 		
-		function updateMetaData(metadata) {				
+		function updateMetaData(metadatastr) {			
 			try {
-			  var meta = JSON.parse(metadata);
-				var includes = meta.include;
-				var plugins = meta.plugins;
-				
-				var menuItem = $('.contentScriptKey.jstbox');
-				menuItem.removeClass("autostart").removeClass("plugin");
-				var i, title = menuItem.attr("name");
-				
-				if (includes)
-					for (i = 0; i < includes.length; ++i) {
-						var include = includes[i];
-						menuItem = $(`.contentScriptKey.jstbox[name='${include}']`);
-						menuItem.addClass("autostart").attr("title", title + " will be automatically loaded");
-					}
-					
-				if (plugins)
-					for (i = 0; i < plugins.length; ++i) {
-						var plugin = plugins[i];
-						var action = plugin.action;
-						var pluginScript = action.script;
-						
-						if (pluginScript) {
-              menuItem = $(`.contentScriptKey.jstbox[name='${pluginScript}']`);
-              menuItem.addClass("plugin");
-              title = menuItem.attr("title");
-              if (menuItem.hasClass("autostart"))
-                title += " and also loaded as a plugin";
-              else
-                title += " will be loaded as a plugin";
-						  menuItem.attr("title", title);
-            }
-					}
+			  metadata = JSON.parse(metadatastr);
+			  updateUIbyMetaData(metadata);
 			} catch (ex) { console.error(ex);}
+		}
+		
+		function updateUIbyMetaData(meta) {
+      var includes = meta.include;
+      var plugins = meta.plugins;
+      
+      var menuItem = $('.contentScriptKey.jstbox');
+      menuItem.removeClass("autostart").removeClass("plugin");
+      var i, title = menuItem.attr("name");
+      
+      if (includes)
+        for (i = 0; i < includes.length; ++i) {
+          var include = includes[i];
+          menuItem = $(`.contentScriptKey.jstbox[name='${include}']`);
+          menuItem.addClass("autostart").attr("title", title + " will be automatically loaded");
+        }
+        
+      if (plugins)
+        for (i = 0; i < plugins.length; ++i) {
+          var plugin = plugins[i];
+          var action = plugin.action;
+          var pluginScript = action.script;
+          
+          if (pluginScript) {
+            menuItem = $(`.contentScriptKey.jstbox[name='${pluginScript}']`);
+            menuItem.addClass("plugin");
+            title = menuItem.attr("title");
+            if (menuItem.hasClass("autostart"))
+              title += " and also loaded as a plugin";
+            else
+              title += " will be loaded as a plugin";
+            menuItem.attr("title", title);
+          }
+        }
 		}
 		
 		function setupKeyEventHandler() {
 			var mac_os = navigator.userAgent.indexOf("Mac OS") > -1;
-			if (mac_os)
+			if (mac_os) {
+				$('body').addClass("osx");
 				$(":button[value='Save [Ctrl+S]']").val("Save [⌘S]");
+			}
 
 			$("*").focus(function(event) {
 				focusNotOnMenuList = true;
@@ -2209,12 +2215,17 @@
       document.getElementById("importOnce").checked = false;
       $("#importOnce").button("refresh");
 			
-			addContentScriptMenu(name, index, "");
+			//addContentScriptMenu(name, index, "");
 			
 			currentSavedStateDCS = "";
 			editorDynScript.setValue("");
 			
 			saveContentScript();
+			
+			loadAllContentScripts();
+			// Select the script selected before. If none is selected, select the first script.
+			var selectedSiteMenu = $(`#contentscript-menu .jstbox[name='${name}']`).click();
+			
 			
 			updateContentScriptForContextMenu();
 			
@@ -2259,8 +2270,7 @@
 				return;
 			}
 			
-			var key = "$cs-" + selectedContentScript;
-			var dcstitle = editorDynScript.getValue() ;
+			var script = editorDynScript.getValue() ;
 			var group = $("#dcsgroup").val();
 			var title = $("#dcstitle").val();
 			var sfile = $("#dcsinclude").val();
@@ -2268,9 +2278,11 @@
 			var importOnce = document.getElementById("importOnce").checked;
 			
 			var tmp =  {"name":selectedContentScript, "type":"cs", "index":index, 
-			  "group":group, "title":title, "sfile":sfile, "script": dcstitle, "importonce":importOnce};
+			  "group":group, "title":title, "sfile":sfile, "script": script, "importonce":importOnce};
 
 			storage.saveScript(tmp);
+			setCsScriptIndexInMenu(selectedContentScript, index);
+			
 			$(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`).attr("index", index)
 				.find(".index").text(index);
 				
@@ -2280,7 +2292,7 @@
 			
 			updateContentScriptForContextMenu();
 			
-			var noErrorsFound = checkScriptSyntax(dcstitle);
+			var noErrorsFound = checkScriptSyntax(script);
 			showMessage("Error found in current content script!");
 			if (!noErrorsFound) {
 				console.log(JSHINT.data());
@@ -2316,21 +2328,17 @@
 				}
 			} while (true);
 				
-			var key = "$cs-" + selectedContentScript;
-			var data = localStorage[key];
-			var lsd = JSON.parse(data);
-			var script = lsd.script;
+			var script = editorDynScript.getValue();
 			var name = selectedContentScript;
+			storage.deleteScript(name, "cs");
+			deleteCsScriptIndexInMenu(name);
 			
 			//var commentRegExp = "(\\/\\*([\\s\\S]*?)\\*\\/|([^:]|^)\\/\\/(.*)$)";
 			script = script.replace(new RegExp("(define\\s*\\(\\s*['`\"]#)"+name+"(['`\"])"), '$1'+newName+'$2');
 			script = script.replace(new RegExp("((\\brun\\s*\\(\\s*\\[[^\\]]*)['`\"]#)"+name+"(['`\"][^\\]]*\\]\\s*,)", "g"), '$1'+newName+'$3');
 			
-			lsd.script = script;
 			editorDynScript.setValue(script);
 			
-			localStorage["$cs-"+newName] = JSON.stringify(lsd);
-			delete localStorage[key];
 			
 			$(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`).attr("name", newName)
 				.find(".jsttitle .name").text(newName);
@@ -2347,7 +2355,8 @@
 				return;
 			
 			if (confirm(`Do you realy want to delete content script ${selectedContentScript}?`)) {
-				delete localStorage["$cs-"+selectedContentScript];
+				storage.deleteScript(selectedContentScript, "cs");
+				deleteCsScriptIndexInMenu(selectedContentScript);
 				$(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`).remove();
 
 				$("#dcsgroup").val("");	
@@ -2384,26 +2393,23 @@
 				return;
 			}
 			
+			var scriptMenuIndex = loadCsScriptMenuIndex();
+			var nodeName = node.attr("name");
 			var targetName = $(target).attr("name");
-			var targetKey = "$cs-"+targetName;
-			var nodeKey = "$cs-"+selectedContentScript;
-			var targetData = JSON.parse(localStorage[targetKey]);
-			var targetIndex = targetData["index"];
-			var nodeData = JSON.parse(localStorage[nodeKey]);
-			var nodeIndex = nodeData["index"];
-			var temp = nodeIndex;
-			nodeData["index"] = targetIndex;
-			targetData["index"] = temp;
-			localStorage[targetKey] = JSON.stringify(targetData);
-			localStorage[nodeKey] = JSON.stringify(nodeData);
+			var nodeIndex = scriptMenuIndex[nodeName];
+			var targetIndex = scriptMenuIndex[targetName];
 			
 			$("#dcsindex").val(targetIndex);
-			targetNode.attr("index", targetData["index"])
-				.find(".index").text(targetData["index"]);
+			targetNode.attr("index",nodeIndex)
+				.find(".index").text(nodeIndex);
 			node.detach().insertBefore(`#contentscript-menu > .jstbox[name='${targetName}']`)
-				.click(loadContentScript).attr("index", nodeData["index"])
-				.find(".index").text(nodeData["index"]);
-						
+				.click(loadContentScript)
+				.attr("index", targetIndex)
+				.find(".index").text(targetIndex);
+				
+			scriptMenuIndex[nodeName] = targetIndex;
+			scriptMenuIndex[targetName] = nodeIndex;
+			saveCsScriptMenuIndex(scriptMenuIndex);						
 			updateContentScriptForContextMenu();
 		}
 		
@@ -2420,44 +2426,46 @@
 				return;
 			}			
 			
+			var scriptMenuIndex = loadCsScriptMenuIndex();
+			var nodeName = node.attr("name");
 			var targetName = $(target).attr("name");
-			var targetKey = "$cs-"+targetName;
-			var nodeKey = "$cs-"+selectedContentScript;
-			var targetData = JSON.parse(localStorage[targetKey]);
-			var targetIndex = targetData["index"];
-			var nodeData = JSON.parse(localStorage[nodeKey]);
-			var nodeIndex = nodeData["index"];
-			var temp = nodeIndex;
-			nodeData["index"] = targetIndex;
-			targetData["index"] = temp;
-			localStorage[targetKey] = JSON.stringify(targetData);
-			localStorage[nodeKey] = JSON.stringify(nodeData);
+			var nodeIndex = scriptMenuIndex[nodeName];
+			var targetIndex = scriptMenuIndex[targetName];
 			
 			$("#dcsindex").val(targetIndex);
-			targetNode.attr("index", targetData["index"])
-				.find(".index").text(targetData["index"]);
-			node.remove().insertAfter(`#contentscript-menu > .jstbox[name='${targetName}']`)
-				.click(loadContentScript).attr("index", nodeData["index"])
-				.find(".index").text(nodeData["index"]);
-			
+			targetNode.attr("index", nodeIndex)
+				.find(".index").text(nodeIndex);
+			node.detach().insertAfter(`#contentscript-menu > .jstbox[name='${targetName}']`)
+				.click(loadContentScript)
+				.attr("index", targetIndex)
+				.find(".index").text(targetIndex);
+				
+			scriptMenuIndex[nodeName] = targetIndex;
+			scriptMenuIndex[targetName] = nodeIndex;
+			saveCsScriptMenuIndex(scriptMenuIndex);						
 			updateContentScriptForContextMenu();
 		}
 		
 		function reindexContentScript() {
 			console.log('reindexContentScript');
 			$("#contentscript-menu > .jstbox").remove();
-			var index = 0;
-			//val scriptIndex = 
 			
+			var scriptMenuIndex = loadCsScriptMenuIndex();
+			var scriptIndex = storage.loadIndexObj().contentScripts;
+			var sorted = objectToArray(scriptMenuIndex, "pair")
+			    .map(function(pair) { return {name:pair.key, index:pair.value, group:scriptIndex[pair.key].group}; })
+			    .sort(getCSSorter(scriptMenuIndex));
+			for (var i = 0; i < sorted.length; ++ i) {
+			  var item = sorted[i];
+			  console.log(item);
+			  scriptMenuIndex[item.name] = i + 1;
+			}
+			console.log(scriptMenuIndex);
 			
-			loadAllContentScripts_internal(true, function(key, name, item) {
-				//console.log(name + " @ " + index + " = " + JSON.stringify(item));
-				item.index = index + "";
-				localStorage[key] = JSON.stringify(item);
-				$(`#contentscript-menu > .jstbox[name='${name}']`).attr("index", index)
-					.find(".index").text(index);
-				index++;
-			});
+			saveCsScriptMenuIndex(scriptMenuIndex);
+			loadAllContentScripts();
+			// Select the script selected before. If none is selected, select the first script.
+			var selectedSiteMenu = $(`#contentscript-menu .jstbox[name='${name}']`).click();
 		}
 		
 		function updateContentScriptForContextMenu() {
@@ -2470,10 +2478,29 @@
 			// console.log('addContentScriptMenu: ' + name);
 			if (!group)
 				group = "";
+				
+			var extraClass = [];
+			if (metadata) {
+			  if (isArray(metadata.include) && metadata.include.contains(name))
+			    extraClass.push("autostart");
+			    
+			  if (isArray(metadata.plugins)) {
+          for (i = 0; i < metadata.plugins.length; ++i) {
+            var plugin = metadata.plugins[i];
+            var action = plugin.action;
+            var pluginScript = action.script;
+        
+            if (pluginScript === name) {
+              extraClass.push("plugin");
+            }
+          }
+			  }
+			}
+			var extraClassStr = extraClass.join(" ");
 
 			var container = $("#contentscript-menu");
 			container.find("> .jstbox").removeClass("selected");
-			var node = $(`<div class="jstbox contentScriptKey selected" name="${name}" title="${name}" index="${index}">
+			var node = $(`<div class="jstbox contentScriptKey selected ${extraClassStr}" name="${name}" title="${name}" index="${index}">
 					<div class="jsttitle" style="display:inline;font-variant:normal;position:relative;">
 						<nobr>
 						<span class="index">${index}</span>
@@ -2488,7 +2515,7 @@
 		}
 		
 		function checkDuplicateContentScript(name) {
-			return localStorage["$cs-" + name];
+			return storage.loadIndexObj().contentScripts[name];
 		}
 		
 		function loadContentScript() {
@@ -2533,7 +2560,7 @@
 			$("#dcsgroup").val(script.group);
 			$("#dcstitle").val(script.title);
 			$("#dcsinclude").val(script.sfile);	
-			$("#dcsindex").val(script.index);
+			$("#dcsindex").val(getCsScriptIndexInMenu(script.name));
 			$("#dcsgencodebytemplate")[0].selectedIndex = 0;
 			editorDynScript.setValue(script.script);
 			document.getElementById("importOnce").checked = script.importonce;
@@ -2597,8 +2624,7 @@
 		
 		function loadAllContentScripts_onScriptLoaded(scripts, addMenuFilter) {
 		  var scriptMenuIndex = loadCsScriptMenuIndex();
-		  console.log(scripts);
-			scripts.sort(sortContentScriptByDefault);
+			scripts.sort(getCSSorter(scriptMenuIndex));
 			
 			for ( var i = 0; i < scripts.length; ++ i ) {
 				var script = scripts[i];
@@ -2618,7 +2644,12 @@
 				$(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`).addClass("selected");
 		
 		  // inline script comparison function for sorting
-      function sortContentScriptByDefault(a, b) {
+		}
+		
+		function getCSSorter(scriptMenuIndex) {
+		  if (!scriptMenuIndex) scriptMenuIndex = loadCsScriptMenuIndex();
+		  
+      return function(a, b) {
         a.index = scriptMenuIndex[a.name]; b.index = scriptMenuIndex[b.name];
         var groupDiff = a.group.localeCompare(b.group);
         var indexDiff = (a.index === undefined && b.index === undefined) ? 0 : 
@@ -2632,16 +2663,43 @@
 		}
 		
 		function loadCsScriptMenuIndex() {
-		  return storage.getSetting("contextMenu-index", true);
+		  if (!window._CSMenuIndex) {
+		    window._CSMenuIndex = storage.getSetting("contextMenu-index", true);
+		  }
+		  return window._CSMenuIndex;
 		}
 		
 		function saveCsScriptMenuIndex(scriptMenuIndex) {		  
 		  storage.setSetting("contextMenu-index", scriptMenuIndex, true);
+		  window._CSMenuIndex = scriptMenuIndex;
+		}
+		
+		function getCsScriptIndexInMenu(csName) {
+		  var scriptMenuIndex = loadCsScriptMenuIndex();
+		  return scriptMenuIndex[csName];
+		}
+		
+		function setCsScriptIndexInMenu(csName, index) {
+		  var scriptMenuIndex = loadCsScriptMenuIndex();
+		  scriptMenuIndex[csName] = index;
+		  saveCsScriptMenuIndex(scriptMenuIndex);
+		}
+		
+		function deleteCsScriptIndexInMenu(csName) {
+		  var scriptMenuIndex = loadCsScriptMenuIndex();
+		  //console.log("before delete:", csName, scriptMenuIndex);
+		  delete scriptMenuIndex[csName];
+		  //console.log("after delete:", csName, scriptMenuIndex);
+		  saveCsScriptMenuIndex(scriptMenuIndex);
 		}
 		
 		function getNextContentScriptIndex() {
-			console.log("getContentScriptCount: " + name);
-			return ++__index_cs;
+			var index = 1 + objectToArray(loadCsScriptMenuIndex(), false)
+			  .reduce(function(result, ele, idx, arr) {
+          return ele > result ? ele : result;
+        }, 0);
+      
+			return index;
 		}
 		
 		function contentScriptSaved(noConfirm) {
