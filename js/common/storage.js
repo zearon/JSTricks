@@ -39,6 +39,19 @@
   Storage.genScriptID = function(type, name) {
     return "$" + type + "-" + name;
   }
+  
+  Storage.reportUsageAndQuota = function() {
+    navigator.webkitTemporaryStorage.queryUsageAndQuota ( 
+      function(usedBytes, grantedBytes) {
+        usedBytes = ("" + usedBytes).addThousands();
+        grantedBytes = ("" + grantedBytes).addThousands();
+        var msg = 'We are using ' + usedBytes + ' of ' + grantedBytes + ' bytes';
+        console.log(msg); alert(msg);
+          console.log('we are using ', usedBytes, ' of ', grantedBytes, 'bytes');
+      }, 
+      function(e) { console.log('Error', e); alert(error + e.toString()); }
+    );
+  }
 	
 	/**
 	 * Get a regular expression string to test whether should load script for a url
@@ -182,7 +195,7 @@
     
     console.log("Indexes after saving script:", indexObj);
 
-		return result;
+		return indexObj;
 	}
 	
 	/**
@@ -237,7 +250,7 @@
 	 * type: 'ss' for site-script, 'cs' for content-script
 	 */
 	Storage.fn.clearScripts = function (onok) {
-	  var rsult = this.sst.clearScript.apply(this.sst, arguments);
+	  var result = this.sst.clearScripts.apply(this.sst, arguments);
 	  
 	  var indexObj = this.loadIndexObj("empty");
 	  this.saveIndexObj(indexObj);
@@ -249,12 +262,13 @@
 	 * Transfer all scripts from a storage area to another.
 	 */
 	Storage.fn.transferScripts = function(src, dest, oncomplete) {
-	  
+	  var self = this;
 	  src.getAllScripts(["dss", "ss", "cs"], function(scripts) {
 	    // On complete
 	    console.log("Transfer", scripts.length, "scripts from", src, "to", dest);
 	    
-	    dest.saveScript(scripts, oncomplete);
+	    dest.saveScript(scripts);
+	    self.rebuildScriptIndexes(oncomplete);
 	  }, function(name, type, script) {
 	    // For UPGRADE
 	    if (type == "cs") {
@@ -400,7 +414,7 @@
 	
 	function getScriptOptForIndex(script) {
 	  if (script.type === "cs")
-	    return {"import":script.sfile, "group":script.group};
+	    return {"import":script.sfile, "group":script.group, "title":script.title};
 	  else
 	    return {"active":script.autostart, "import":script.sfile};
 	}
@@ -725,7 +739,7 @@
   
   function DBStorage() {
     this.global = global;
-    this.dbname = "JavascripTricks";
+    this.dbname = "JavascriptTricks";
     this.dbver = 2;    
     this.db = null;
     
@@ -951,17 +965,23 @@
 	}
 	
 	/**
-	 * Delete a script.
+	 * Clear all scripts.
 	 */
 	DBStorage.fn.clearScripts = function (onok) {	  
-		this.transaction(true, function(objStore) {
+		/*this.transaction(true, function(objStore) {
 		  var req = objStore.clear();
 		  if (onok) {
 		    req.onsuccess = function(event) {
 		      onok();
 		    }
 		  }
-		});
+		});*/
+		var req = indexedDB.deleteDatabase(this.dbname);
+		req.onerror = function(event) { console.error("Error occurs when deleting the database", event); };		
+		if (onok)
+		  req.onsuccess = onok;
+		
+		this.db = null;
 	}
 	
 	/**

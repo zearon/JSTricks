@@ -20,16 +20,26 @@
 			if(new RegExp("("+ k +")").test(fmt)) 
 	  		fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length))); 
 	  return fmt; 
-	}
+	};
 	
 	String.prototype.replaceAll = function(AFindText, ARepText) {
 		var raRegExp = new RegExp(this.getTextRegexpPattern(AFindText), "ig");
 		return this.replace(raRegExp, ARepText);
-	}
+	};
 	
 	String.prototype.getTextRegexpPattern = function() {
 		return this.replace(/([\(\)\[\]\{\}\^\$\+\-\*\?\.\"\'\|\/\\])/g, "\\$1");
-	}
+	};
+	
+	String.prototype.addThousands = function (selector) {
+    var pattern = /(\d+)(\d{3})(\D|$)/g;
+    function replacement(str, sub1, sub2, sub3, n) {
+      pattern = /(\d+)(\d{3})(\D|$)/g;
+      return sub1.replace(pattern, replacement) + ',' + sub2 + sub3;
+    }
+    
+    return this.replace(pattern, replacement);
+  };
 	
 	function isArray(it) { return Object.prototype.toString.call(it) === '[object Array]'; }
 	function isFunction(it) { return Object.prototype.toString.call(it) === '[object Function]'; }
@@ -43,24 +53,24 @@
 	
 	Array.prototype.contains = function (element) {
 		return this.some(function(ele) { return ele === element; });
-	}
+	};
 	
 	Array.prototype.removeElement = function (element) {
 	  return this.filter(function(ele) { return ele !== element; });
-	}
+	};
 	
 	Array.prototype.addIfNotIn = function (element) {
 	  if (this.contains(element))
 	    return;
 	    
 	  this.push(element);
-	}
+	};
 	
 	Array.prototype.addAllIfNotIn = function (array) {
 	  for (var i = 0; i < array.length; ++ i) {
 	    this.addIfNotIn(array[i]);
 	  }
-	}
+	};
 	
 	// useKeyAsItem: true / false / "pair"
 	// filter(key, value) => true/false
@@ -69,14 +79,21 @@
 	  for (var key in obj) {
 	    var item, val = obj[key];
 	    if (!filter || filter(key, val) ) {
-	      if (useKeyAsItem === true)
+	      if (useKeyAsItem === true) {
 	        item = key;
-	      else if (useKeyAsItem === false)
+	      } else if (useKeyAsItem === false) {
 	        item = val;
-	      else if (useKeyAsItem === "pair")
+	      } else if (useKeyAsItem === "pair") {
 	        item = {key:key, value:val};
-	      else
+	      } else if (typeof useKeyAsItem === "string" && useKeyAsItem.startsWith("keyinvalue")) {
+	        var keyName = useKeyAsItem.match(/^keyinvalue(:(.*))?/);
+	        keyName = keyName ? keyName[2] : "key";
+	        if (!keyName) keyName = "key";
+	        
+	        item = (val[keyName] = key, val);
+	      } else {
 	        item = key;
+	      }
 	      
 	      result.push(item);
 	    }

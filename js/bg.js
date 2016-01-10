@@ -680,8 +680,11 @@ function updateSettings(extraAttribute) {
 		localStorage["info"] = chrome.manifest.version;
 		storage.setSetting("enabled", "true");
 		
-		storage.rebuildScriptIndexes();
-		updateSettings();	
+		storage.rebuildScriptIndexes(function() {
+      // defined in bg_contextMenu.js
+      initContextMenuOnInstalled();
+      updateSettings();	
+		});
 	}
 
 	function loadDefaultSettings(alertAfterComplete) {
