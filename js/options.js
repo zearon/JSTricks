@@ -285,10 +285,16 @@
 			$("#menu").empty();
 
       var values = null, siteScripts = storage.loadIndexObj("ss").siteScripts;
-      var keys = objectToArray(siteScripts, true).filter(function(site) { return site !== "Main" && site !== "Default"; });
+      var keys = objectToArray(siteScripts, true);
+      var inited = keys.length > 0;
+      keys = keys.filter(function(site) { return site !== "Main" && site !== "Default"; });
       keys.sort();
       keys.unshift("Main", "Default");
       //console.log(keys);
+      
+      if (!inited) {
+        siteScripts = createDefaultAndMainSiteScript();
+      }
       
       // Do not need to filter scripts by its content
       if (!filterOptions) {
@@ -330,9 +336,13 @@
           console.log("Cannot load site scripts due to", err);
           showMessage("Cannot load site scripts due to " + err);
         });
-      }
-
-      
+      }      
+		}
+		
+		function createDefaultAndMainSiteScript() {
+      var mainScript =  {"name":"Main", "type":"dss", "script": "", "autostart": false, "sfile": "", "css": ""};
+      var defaultScript =  {"name":"Default", "type":"dss", "script": "", "autostart": false, "sfile": "", "css": ""};
+			return storage.saveScript([mainScript, defaultScript]).siteScripts;
 		}
 		
 		function filterSiteScript(keys, values, filterOptions, contentType, nameFilter) {
@@ -647,8 +657,11 @@
 			$(".cloudsave-showkey").click(cloudStorageShowKey);
 			$("#cloudsave-genkey").click(cloudStorageGenKey);
 			$("#show-cloudsave-src").click(showCloudStorageSrc);
+			$("#rebuildScriptIndexesBtn").click(rebuildScriptIndexes);
 			$("#loadScriptsLStoDBBtn").click(upgradeDataStorage);
 			$("#loadScriptsDBtoLSBtn").click(downgradeDataStorage);
+			$("#reportStorageUsageDbBtn").click(reportStorageUsage);
+			$("#clearDbBtn").click(clearDatabase);			
 			
 			$("#removeTempSettingsBtn").click(removeTempSettings);
 			
@@ -852,11 +865,16 @@
 				styleSelectedText: true,
 				theme: getCodeMirrorTheme(), //_yellow, abcdef, default
 				foldGutter: true,
-				lint: {"esversion":6, "expr":true, "indent":2, "globals":
+				lint: {
+				  async: true,
+				  /* This option need hack on /lib/codemirror/addon/lint/lint.js */
+				  lineCountDelay: [{lines:5000, delay:1000}, {lines:10000, delay:2000}],
+				  options: {"esversion":6, "expr":true, "indent":2, "globals":
 						{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, "ready":false, 
 						"INFO":false, "window":false, "navigator":false, "document":false, "alert":false, "confirm":false, 
 						"prompt":false, "setTimeout":false, "setInterval":false, "location":false,
-						"localStorage":false, "FileReader":false} },
+						"localStorage":false, "FileReader":false} }
+						},
 				gutters: ["CodeMirror-lint-markers", "CodeMirror-linenumbers", "CodeMirror-foldgutter"],
 				extraKeys: {						
 					"Esc": function() {
@@ -1258,6 +1276,7 @@
 			var data = JSON.stringify(localStorage);
 			data = formatter.formatJson(data);
 			var link = $('#__UI_dialog__link');
+			link.attr('download', "backup-"+(new Date()).Format("yyMMdd-hms")+".json" );
 			link.attr('href', "data:text/plain;charset=UTF-8,"+encodeURIComponent(data));
 			link.attr('data-downloadurl', "text/plain:backup.json:"+"http://html5-demos.appspot.com/static/a.download.html");
 			link.innerHtml = "Download";
@@ -1344,15 +1363,51 @@
 		
 		function upgradeDataStorage() {
 		  storage.transferScripts(storage.lsst, storage.dbst, function() {
+		    updateContentScriptForContextMenu();
+		    
 		    showMessage("Loading completes");
+		    location.reload();
 		  });
 		}
 		
 		function downgradeDataStorage() {
 		  storage.transferScripts(storage.dbst, storage.lsst, function() {
 		    showMessage("Loading completes");
+		    location.reload();
 		  });
 		}
+			
+    function rebuildScriptIndexes() {
+      storage.rebuildScriptIndexes(function() {
+        // on completed
+		    updateContentScriptForContextMenu();
+        location.reload();
+      });
+    }
+    
+    function reportStorageUsage() {
+      Storage.reportUsageAndQuota();
+    }
+    
+    function clearDatabase() {
+      if (!confirm("WARNING!!! Do you really want to clear the database to erase all scripts?")) 
+        return; 
+      storage.clearScripts();
+      setTimeout(refresh, 1000);
+      
+      function refresh() {
+        console.log("database removed. Recreate the database now.");
+        storage.dbst.createDB();
+        
+        chrome.runtime.getBackgroundPage(function(win) {          
+          win.location.reload();
+          storage.rebuildScriptIndexes(function() {          
+            win.initContextMenu();
+            location.reload();
+          });
+        });      
+      }
+    }
 		
 		function removeTempSettings() {
 			for (var key in localStorage) {
@@ -2279,7 +2334,15 @@
 			
 			var tmp =  {"name":selectedContentScript, "type":"cs", "index":index, 
 			  "group":group, "title":title, "sfile":sfile, "script": script, "importonce":importOnce};
-
+			  
+			var noErrorsFound = checkScriptSyntax(script);
+			showMessage("Error found in current content script!");
+			if (!noErrorsFound) {
+				console.log(JSHINT.data());
+				if (!confirm("There are possible error in this file. Do you really want to save?"))
+				  return;
+			}
+			
 			storage.saveScript(tmp);
 			setCsScriptIndexInMenu(selectedContentScript, index);
 			
@@ -2289,16 +2352,9 @@
 			$(`#contentscript-menu > .jstbox[name='${selectedContentScript}'] .group`).text(group + "/");
 			
 			currentSavedStateDCS = editorDynScript.getValue();
+			showMessage("Content script saved!");
 			
 			updateContentScriptForContextMenu();
-			
-			var noErrorsFound = checkScriptSyntax(script);
-			showMessage("Error found in current content script!");
-			if (!noErrorsFound) {
-				console.log(JSHINT.data());
-			} else {			
-				showMessage("Content script saved!");
-			}
 		}
 		
 		function renameContentScript() {
@@ -2452,6 +2508,7 @@
 			
 			var scriptMenuIndex = loadCsScriptMenuIndex();
 			var scriptIndex = storage.loadIndexObj().contentScripts;
+			console.log("script menu index:", scriptMenuIndex, "script index:", scriptIndex);
 			var sorted = objectToArray(scriptMenuIndex, "pair")
 			    .map(function(pair) { return {name:pair.key, index:pair.value, group:scriptIndex[pair.key].group}; })
 			    .sort(getCSSorter(scriptMenuIndex));

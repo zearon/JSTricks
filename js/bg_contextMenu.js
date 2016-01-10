@@ -2,6 +2,7 @@
 //	Object.prototype.clear = function() { for (var key in this) { delete this[key]; } };
 
 (function() {
+  
 	/* Persistent states */
 	var scriptMenuDict = storage.getSetting("temp-contextMenu-scriptMenuDict", true);	
 	var optionMenuDict = storage.getSetting("temp-contextMenu-optionMenuDict", true);	
@@ -10,14 +11,17 @@
 	var scriptMenuIndex = storage.getSetting("contextMenu-index", true);
 	
 	/* Register events */
-	chrome.runtime.onInstalled.addListener(onExtensionInstalled);
+	// initContextMenu invoked in bj.js initExtension which is also registed with chrome.runtime.onInstalled
+	//chrome.runtime.onInstalled.addListener(initContextMenuOnInstalled); 
 	chrome.runtime.onMessage.addListener(onMessageReceived);
 	chrome.contextMenus.onClicked.addListener(onContextMenuItemClicked);
 
 	/* Event listeners */
-	function onExtensionInstalled(details) {
+	function initContextMenuOnInstalled() {
+	  scriptMenuIndex = storage.getSetting("contextMenu-index", true);
 		initContextMenu();
 	}
+	 window.initContextMenuOnInstalled = initContextMenuOnInstalled;
 	
 	function onMessageReceived(request, sender) {
 		if (request.method == "UpdateSettings") {
@@ -57,32 +61,44 @@
 		  console.info("No context menu index. Initialize it with the default sequence.");
 		}
 
-		var groups = {};
-		var keys = [];
-		
-		storage.getAllScripts("cs", function(scripts) {
-		  // On loaded
-		  // sort the scripts by group and name
-		  scripts.sort(sortContentScriptByGroup);
+		var i, groups = {}, keys = [], key;
+		var contentScripts = storage.loadIndexObj().contentScripts;
+		var scriptList = objectToArray(contentScripts, "keyinvalue:name")
+		    .filter(function(s) {
+		      var index = scriptMenuIndex[s.name];
+		      if (index !== undefined) s.index = index;
+		      return s;
+		    }).sort(sortContentScriptByGroup);
 		  
-      for ( var i = 0; i < scripts.length; ++ i ) {
-        var script = scripts[i];
-        scriptMenuIndex[script.name] = ++index;
-        //console.log(index, script.group + "/" + script.name);
-    
-        var group = script.group;
-        if (!groups[group]) {
-          groups[group] = [];
-        }
-        groups[group].push(script);
-      }
+    for ( var i = 0; i < scriptList.length; ++ i ) {
+      var script = scriptList[i];
+      // Reset index with continuous numbers from 1
+      scriptMenuIndex[script.name] = ++index;
+      //console.log(index, script.group + "/" + script.name);
   
-      updateConextMenu(groups);
-      
-		  //console.log(scriptMenuIndex);
-      storage.setSetting("contextMenu-index", scriptMenuIndex, true);
-		});
+      var group = script.group;
+      if (!groups[group]) {
+        groups[group] = [];
+      }
+      groups[group].push(script);
+    }
+
+    updateConextMenu(groups);
+    
+    // Remove indexes for redundant scripts (perhaps deleted by data store operations)
+    for (var key in scriptMenuIndex) {
+      if (!contentScripts[key])
+        delete scriptMenuIndex[key];
+    }
+    
+    //console.log(scriptMenuIndex);
+    storage.setSetting("contextMenu-index", scriptMenuIndex, true);
 	}
+	
+  window.initContextMenu = function() {
+    scriptMenuIndex = storage.getSetting("contextMenu-index", true);
+    initContextMenu();
+  };
 	
   function sortContentScriptByGroup(a, b) {
     a.index = scriptMenuIndex[a.name]; b.index = scriptMenuIndex[b.name];
@@ -211,7 +227,7 @@
 		chrome.contextMenus.update(menuID, {checked:!optionValue});
 	
 		// call update settings defined in bg.js
-		updateSettings();
+		window.updateSettings();
 	}
 
 // 	function reloadBackroundPage(info, tab) {

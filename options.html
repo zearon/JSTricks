@@ -37,7 +37,8 @@
 	<script src="lib/3rdparty-lint/jsonlint_zaach.js"></script>
 	<script src="lib/3rdparty-lint/csslint.js"></script>
 	<script src="lib/codemirror/addon/lint/lint.js"></script>
-	<script src="lib/codemirror/addon/lint/javascript-lint.js"></script>
+	<!--script src="lib/codemirror/addon/lint/javascript-lint.js"></script-->
+	<script src="lib/codemirror/addon/lint/javascript-lint-async.js"></script>
 	<script src="lib/codemirror/addon/lint/json-lint.js"></script>
 	<script src="lib/codemirror/addon/lint/css-lint.js"></script>	
 	
@@ -50,8 +51,6 @@
 	<script src="lib/jsformatter.js" ></script>
 	
 	<script src="lib/jscolor/jscolor.js"></script> 
-
-	<script src="usrlib/localStorageBackup.js"></script>
 	
 	<script src="js/common/commonext.js" ></script>	
 	<script src="js/common/templating.js" ></script>	
@@ -709,9 +708,11 @@
 							<br/>
 							<hr/>
 							
-							<h2>Migrate scripts in data stores between old version and new version</h2>
-							<input type="button" id="loadScriptsLStoDBBtn" value="Old -> New" style='height:25px' />
-							<input class="hide" type="button" id="loadScriptsDBtoLSBtn" value="New -> Old" style='height:25px' />
+							<h2>Data Store</h2>
+							<input type="button" id="loadScriptsLStoDBBtn" value="Migrate Old -> New" style='height:25px' />
+							<input class="hide" type="button" id="loadScriptsDBtoLSBtn" value="Migrate New -> Old" style='height:25px' />
+							<input type="button" id="reportStorageUsageDbBtn" value="Report Usage" style='height:25px' />
+							<input type="button" id="clearDbBtn" value="Clear Database" style='height:25px' />
 							<br/>
 							<hr/>
 							
@@ -761,7 +762,7 @@
 							to let me know.</p>
 							<p>
 							Several months ago, I searched the chrome web store and found <b>JScript Tricks</b> is very 
-							close to what I want, so I download it and start to use it. But later, I found that some necessary features are lacking , such as 
+							close to what I want, so I download it and start to use it. Later however, I found that some necessary features are lacking , such as 
 							configuration backup and restore, but Szamil does not update it any more. As a result, I start this project to 
 							extend the original JScript Tricks.
 							
