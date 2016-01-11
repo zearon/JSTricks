@@ -249,21 +249,7 @@
 					} )},1750);
 			
 		}
-		function run(invoker){
-			
-			if(! localStorage["Default"] )
-			{
-				selectedTitle="Default";
-				saveSiteScript();
-				selectedTitle="";
-			}
-			if(! localStorage["Main"] )
-			{
-				selectedTitle="Main";
-				saveSiteScript();
-				selectedTitle="";
-			}
-			
+		function run(invoker){			
 			if (invoker && invoker === "save") {}
 			else {
 				loadSiteScripts();
@@ -647,6 +633,8 @@
 			$('#rebuildScriptIndexesBtn').click(rebuildScriptIndexes);
 			$('#genInitSettingbtn').click(backupInitialSettings);
 			$("#cloudsave-savesettings").click(cloudStorageSaveSettings);
+			$("#cloudsave-backuptokens").click(cloudStorageBackupTokens);
+			$("#cloudsave-restoretokens").click(cloudStorageRestoreTokens);
 			$('input:button.cloudbackup').click(cloudBackup);
 			$('input:button.cloudrestore').click(cloudRestore);
 			$('#cloudlist').click(cloudStorageList);
@@ -714,7 +702,7 @@
 					$(`#manual-content h3:eq(${optionPageParams["item2"]})`).click();
 			});
 			
-			if (!localStorage["$setting.cloud-url"])
+			if (!storage.getSetting("cloud-url"))
 				$(".cloudsave-setting").show();
 			
 			//$("#settings-release-notes-btn.empty").click(function() {
@@ -824,7 +812,7 @@
 				
 				// Jump to last visited tab
 				try {
-					var startuptab = localStorage["$setting.startuptab"];
+					var startuptab = storage.getSetting("startuptab");
 					$(`.tabs:first li:eq(${startuptab})`).click();
 					//$('.settingNav .settingKey:eq(2)').click();
 				} catch (exception) {}
@@ -855,6 +843,17 @@
 		}*/
 		
 		function generateEditor(textareaID, mode, extraOptions) {
+		  var jsLintOption = {
+				  async: true,
+				  /* This option need hack on /lib/codemirror/addon/lint/lint.js */
+				  lineCountDelay: [{lines:5000, delay:1000}, {lines:10000, delay:2000}],
+				  options: {"esversion":6, "expr":true, "indent":2, "globals":
+						{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, "ready":false, 
+						"INFO":false, "window":false, "navigator":false, "document":false, "alert":false, "confirm":false, 
+						"prompt":false, "setTimeout":false, "setInterval":false, "location":false,
+						"localStorage":false, "FileReader":false} }
+				};
+		  var lintOption = mode.indexOf("javascript") > 0 ? jsLintOption : {};
 			var options = {
 				mode: mode,					
 				indentWithTabs: false,
@@ -865,16 +864,7 @@
 				styleSelectedText: true,
 				theme: getCodeMirrorTheme(), //_yellow, abcdef, default
 				foldGutter: true,
-				lint: {
-				  async: true,
-				  /* This option need hack on /lib/codemirror/addon/lint/lint.js */
-				  lineCountDelay: [{lines:5000, delay:1000}, {lines:10000, delay:2000}],
-				  options: {"esversion":6, "expr":true, "indent":2, "globals":
-						{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, "ready":false, 
-						"INFO":false, "window":false, "navigator":false, "document":false, "alert":false, "confirm":false, 
-						"prompt":false, "setTimeout":false, "setInterval":false, "location":false,
-						"localStorage":false, "FileReader":false} }
-						},
+				lint: lintOption,
 				gutters: ["CodeMirror-lint-markers", "CodeMirror-linenumbers", "CodeMirror-foldgutter"],
 				extraKeys: {						
 					"Esc": function() {
@@ -1068,7 +1058,7 @@
 			
 			$("#toptabs > ul li").each(function(ind, el) {
 				$(el).click(function() {
-					localStorage["$setting.startuptab"] = ind;
+					storage.setSetting("startuptab", ind, true);
 				});
 			});
 			
@@ -1273,18 +1263,23 @@
 		}
 		
 		function backup() {
-			var data = JSON.stringify(localStorage);
-			data = formatter.formatJson(data);
-			var link = $('#__UI_dialog__link');
-			link.attr('download', "backup-"+(new Date()).Format("yyMMdd-hms")+".json" );
-			link.attr('href', "data:text/plain;charset=UTF-8,"+encodeURIComponent(data));
-			link.attr('data-downloadurl', "text/plain:backup.json:"+"http://html5-demos.appspot.com/static/a.download.html");
-			link.innerHtml = "Download";
-			link.show();
-			link.click();
-			
-			//var bb = new Blob([data], {type: 'text/plain'});
-			//var href = URL.createObjectURL(bb);
+		  // Create a backup object
+		  storage.backup(function(backupObj) {
+		    // Stringify the backup object
+        var data = JSON.stringify(backupObj);
+        if (storage.getSetting("backup-readable", true, false))
+          data = formatter.formatJson(data);
+        var link = $('#__UI_dialog__link');
+        link.attr('download', "backup-"+(new Date()).Format("yyMMdd-hms")+".json" );
+        link.attr('href', "data:text/plain;charset=UTF-8,"+encodeURIComponent(data));
+        link.attr('data-downloadurl', "text/plain:backup.json:"+"http://html5-demos.appspot.com/static/a.download.html");
+        link.innerHtml = "Download";
+        link.show();
+      
+        //var bb = new Blob([data], {type: 'text/plain'});
+        //var href = URL.createObjectURL(bb);		    
+		  });
+
 		}
 		
 		function restore() {
@@ -1314,11 +1309,38 @@
 		}
 		
 		function backupInitialSettings() {
-			var settings = {};
-			settings["$setting.DEBUG"] = "false";
-			settings["$setting.enabled"] = "true";
-			settings["$setting.startuptab"] = "0";
-			$.extend(settings, defaultSettings);
+			var settings = {"$setting.DEBUG":"false", "$setting.enabled":"true", "$setting.startuptab":"0"};
+			UTIL.extendObj(settings, defaultSettings);
+			
+		  // Create a backup object that does not include any settings and only contains Main 
+		  // site script and content scripts whose name is in metadata.builtinLib array
+		  storage.backup(function(backupObj) {
+		    settings = UTIL.toArray(settings, "pair").filter(function(pair) { return pair.key.startsWith("$setting."); })
+		                   .reduce(function(result, ele, idx, arr) { 
+		                      result[ele.key.replace(/^\$setting\./, "")] = ele.value;
+		                      return result;
+		                   }, {});
+		    backupObj.props = settings;
+		    console.log("Init backup obj", backupObj);
+		    
+        var data = JSON.stringify(backupObj), oldData = data;
+        if (storage.getSetting("backup-readable", true, false))
+          data = formatter.formatJson(data);
+        var link = $('#__UI_dialog__link_init_setting');
+        link.attr('href', "data:text/plain;charset=UTF-8,"+encodeURIComponent(data));
+        link.attr('data-downloadurl', "text/plain:backup.json:"+"http://html5-demos.appspot.com/static/a.download.html");
+        link.show();
+      
+        //console.log(data);
+        link.off("click");
+        link.click(function() {
+          $("#settings-list .jstbox:eq(1)").click();
+          showConfiguration(oldData);
+        });		    
+		  }, {settings:false, onlyInitScripts:true});
+			
+			
+			
 			for (var key in localStorage) {
 				if (isSiteScriptName(key) || key === "Default" || key === "info") // info is the version
 					continue;
@@ -1331,22 +1353,8 @@
 				
 				settings[key] = localStorage[key];
 			}
-			settings["cacheCss"] = "";
-			settings["cacheScript"] = "";
 			
-			var data = JSON.stringify(settings), oldData = data;
-			data = formatter.formatJson(data);
-			var link = $('#__UI_dialog__link_init_setting');
-			link.attr('href', "data:text/plain;charset=UTF-8,"+encodeURIComponent(data));
-			link.attr('data-downloadurl', "text/plain:backup.json:"+"http://html5-demos.appspot.com/static/a.download.html");
-			link.show();
-			
-			console.log(data);
-			link.off("click");
-			link.click(function() {
-				$("#settings-list .jstbox:eq(1)").click();
-				showConfiguration(oldData);
-			});
+
 		}
 		
 		function loadDefaultSettings() {
@@ -1420,14 +1428,14 @@
 			// Data loading and saving behavior are defined in initControlsRelatingToLocalStorage functions
 			// with specific class pattern on html elements.
 			/*
-			if (localStorage["$setting.cloud-url"])
-				$("#cloudsave-url").val(localStorage["$setting.cloud-url"]);
-			if (localStorage["$setting.cloud-path"])
-				$("#cloudsave-path").val(localStorage["$setting.cloud-path"]);
-			if (localStorage["$setting.cloud-key"])
-				$("#cloudsave-key").val(localStorage["$setting.cloud-key"]);
-			if (localStorage["$setting.cloud-lastsave"])
-				$("#cloudrestore-key").val(localStorage["$setting.cloud-lastsave"]);
+			if (storage.getSetting("cloud-url"))
+				$("#cloudsave-url").val(storage.getSetting("cloud-url"));
+			if (storage.getSetting("cloud-path"))
+				$("#cloudsave-path").val(storage.getSetting("cloud-path"));
+			if (storage.getSetting("cloud-key"))
+				$("#cloudsave-key").val(storage.getSetting("cloud-key"));
+			if (storage.getSetting("cloud-lastsave"))
+				$("#cloudrestore-key").val(storage.getSetting("cloud-lastsave"));
 			*/
 			function setUIValue(node, value) {
 				if (node.is("span")) {
@@ -1450,15 +1458,17 @@
 					return node.val();
 				}
 			}
-			var refreshOnSaveAnOption = localStorage["$setting.misc_refreshOnSaveAnOption"] === "true";
-			var refreshOnSaveAllOptions = localStorage["$setting.misc_refreshOnSaveAllOptions"] === "true";
+			var refreshOnSaveAnOption = storage.getSetting("misc_refreshOnSaveAnOption") === "true";
+			var refreshOnSaveAllOptions = storage.getSetting("misc_refreshOnSaveAllOptions") === "true";
 			
 			$(".localstorage_itemvalue").each(function(ind, ele) {
 				var node = $(this);
 				var key = $(this).attr("target");
 				var defaultValue = $(this).attr("defaultvalue");
-				if (defaultValue !== undefined)
+				if (defaultValue !== undefined) {
+				  console.log("Default setting ", key, "=", defaultValue);
 					defaultSettings[key] = defaultValue;
+				}
 				
 				if (localStorage[key])
 					setUIValue(node, localStorage[key]);
@@ -1981,10 +1991,10 @@
 		}
 		
 		function cloudGetSaveObj() {
-			var url = localStorage["$setting.cloud-url"];
-			var path = localStorage["$setting.cloud-path"];
-			var passphrase = localStorage["$setting.cloud-passphrase"];
-			var keyiv = localStorage["$setting.cloud-keyiv"];
+			var url = storage.getSetting("cloud-url");
+			var path = storage.getSetting("cloud-path");
+			var passphrase = storage.getSetting("cloud-passphrase");
+			var keyiv = storage.getSetting("cloud-keyiv");
 			
 			return new CloudSave(url, path, passphrase, keyiv);
 		}
@@ -2005,7 +2015,7 @@
 			
 			cloudGetSaveObj().backupSingleFile(filename, data, function(data) {
 				// on ok
-					localStorage["$setting.cloud-lastsave"] = filename;
+					storage.setSetting("cloud-lastsave", filename);
 					$("#cloudrestore-key").val(filename);
 					showMessage("Configurations are backup up in cloud.");
 				
@@ -2133,9 +2143,9 @@
 		}
 		
 		function cloudStorageSaveSettings() {
-			// localStorage["$setting.cloud-url"] = $("#cloudsave-url").val();
-			// localStorage["$setting.cloud-path"] = $("#cloudsave-path").val();
-			// localStorage["$setting.cloud-key"] = $("#cloudsave-key").val();
+			// storage.setSetting("cloud-url", $("#cloudsave-url").val());
+			// storage.setSetting("cloud-path", $("#cloudsave-path").val());
+			// storage.setSetting("cloud-key", $("#cloudsave-key").val());
 			
 			// Data loading and saving behavior are defined in initControlsRelatingToLocalStorage functions
 			// with specific class pattern on html elements.
@@ -2145,6 +2155,59 @@
 				alert("Invalid key-iv length. The key has to be a text with 16 characters.");
 			else
 				showMessage("Cloud storage settings saved");
+		}
+		
+		function cloudStorageBackupTokens() {
+		  // Create a backup object
+		  storage.backup(function(backupObj) {
+		    // Stringify the backup object
+        var data = JSON.stringify(backupObj);
+        data = formatter.formatJson(data);
+        var link = $('#__UI_dialog__link_cloud_setting');
+        link.attr('href', "data:text/plain;charset=UTF-8,"+encodeURIComponent(data));
+        link.attr('data-downloadurl', "text/plain:backup.json:"+"http://html5-demos.appspot.com/static/a.download.html");
+        link.innerHtml = "Download";
+        link.show();
+      
+        //var bb = new Blob([data], {type: 'text/plain'});
+        //var href = URL.createObjectURL(bb);		    
+		  }, {onlyCloudSettings:true, meta:false, scripts:false, scriptContent:false});
+		}
+		
+		function cloudStorageRestoreTokens() {
+			var file = $('#__LocalStorageFP_cloudtokens')[0].files[0];
+			if (typeof file === 'undefined') {
+				alert("Please select a backup file first.");
+			} else {
+				var reader = new FileReader();
+				reader.onload = function() {
+					text = this.result;
+					console.log(text);
+					try {
+            var backupObj = JSON.parse(text);
+					  storage.restore(backupObj, function() {
+					    // On complete
+              alert("Cloud tokens are successfully restored.");
+              location.reload();
+					  }, {cloudSettings:true});
+					} catch(ex) {
+					  alert("Restoration failed due to invalid backup file, which can not be parsed as an JSON object.");
+					}
+					
+					/*
+					for (var v in localStorage) {
+						delete localStorage[v];
+					}
+					for (v in values) {
+						localStorage[v] = values[v];
+						/*console.log(v+"="+values[v]);
+					}*/
+				};
+				reader.readAsText(file);
+			}
+			
+			// REMEMBER TO CALL storage.rebuildScriptIndexes
+		  
 		}
 		
 		function cloudStorageAddKeysToUI(keys) {
@@ -2304,7 +2367,7 @@
 			var tmpl = template_content_script_all[tmplName];
 			if (tmpl) {
 				var context = {name: selectedContentScript, comments: {define: "", run: ""}};
-				if (localStorage["$setting.contentcripts_generateComments"] !== "false") {
+				if (storage.getSetting("contentcripts_generateComments") !== "false") {
 					context.comments.define = template_content_script_comment_define;
 					context.comments.run = template_content_script_comment_run;
 				}

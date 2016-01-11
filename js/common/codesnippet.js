@@ -39,8 +39,8 @@ var codesnippet_onBootCode =
 }) ();
 `
 
-function codesnippet_getOnBootCode(tabid, url, infoStr) {
-	var context = {tabid:tabid, url:url, infoStr:infoStr};    
+function codesnippet_getOnBootCode(tabid, url) {
+	var context = {tabid:tabid, url:url};    
   return compile_template(codesnippet_onBootCode, context);
 }
 

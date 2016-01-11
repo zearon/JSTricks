@@ -55,7 +55,15 @@ function createAutoload() {
       if (self.debug) {
         console.log("Object in storage", storage);
       }
-       
+      
+      // Apply theme for injected UI components.
+      // Corresponding CSS should be injected as configured in manifest.json, like
+      //     "css": ["css/jquery-ui.structure.css", "css/theme/jqueryui/jquery-ui.theme-light.css"], 
+      window.onload = function() {
+        setTheme("light");
+      }
+      
+      // Prepare loading scripts 
       prepare(self, storage);
     });
   };

@@ -57,7 +57,7 @@
 	<script src="js/common/templates.js" ></script>	
 	<script src="js/common/storage.js" ></script>	
 	<script src="js/common/codesnippet.js" ></script>	
-	<script src="js/theme.js" ></script>	
+	<script src="js/common/theme.js" ></script>	
 	
 	<script src="js/common/cloudsave/cryptojs/aes.js" ></script>	
 	<script src="js/common/cloudsave/cryptojs/md5.js" ></script>	
@@ -352,8 +352,7 @@
 				<div class="editwrap" >
 					<div class="editorPanel">
 						<div id="settings-global">
-							<h2>Options</h2>
-							<p>Refresh page to make settings effective.</p><hr/>
+							<h2 title="Refresh page to make settings effective in this page.">Options</h2>
 							<table class="localstorage_block">								
 								<tr class="togglePanel" target=".settings-theme" >
 									<td colspan="4"><h3>Theme …</h3></td>
@@ -368,7 +367,7 @@
 									</select>
 									</td>
 									<td><input type="button" class="localstorage_saveitem" target="$setting.theme_day" value="Save" /></td>
-									<td><input type="button" class="localstorage_resetitem" target="$setting.theme_day" value="Default" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.theme_day" value="Set to Default" /></td>
 								<tr>
 								<tr class="localstorage_item settings-theme hide">
 									<td>Night Theme in Automatic Mode</td>
@@ -380,7 +379,7 @@
 									</select>
 									</td>
 									<td><input type="button" class="localstorage_saveitem" target="$setting.theme_night" value="Save" /></td>
-									<td><input type="button" class="localstorage_resetitem" target="$setting.theme_night" value="Default" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.theme_night" value="Set to Default" /></td>
 								<tr>
 								<tr class="localstorage_item settings-theme hide">
 									<td title="Start time of night in format of hh:mm, e.g. 18:30">
@@ -536,6 +535,35 @@
 								
 								<tr>
 									<td colspan="4" class="" target="">
+									<h3>Backup and Restore</h3></td>
+								<tr>
+								<tr class="localstorage_item ">
+									<td title="Decide if the created backup JSON text is friendly for human-reading. A readable backup is properly indented and thus more human-friendly for reading but it takes more space in storage.">
+									Create reading-friendly backups</td>
+									<td>
+									<span class="localstorage_itemvalue" target="$setting.backup-readable" defaultvalue="false" >
+										<input type="radio" value="false" name="$setting.backup-readable" /><span class="option">No</span>
+										<input type="radio" value="true" name="$setting.backup-readable" /><span class="option">Yes</span>
+									<span>
+									</td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.backup-readable" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.backup-readable" value="Set to Default" /></td>
+								<tr>
+								<!--tr class="localstorage_item ">
+									<td title="Refresh this page when the <b>Save All</b> or <b>All Set to Default</b> button is clicked.">
+									Refresh Page On Change All Options</td>
+									<td>
+									<span class="localstorage_itemvalue" target="$setting.misc_refreshOnSaveAllOptions" defaultvalue="true" >
+										<input type="radio" value="true" name="$setting.misc_refreshOnSaveAllOptions" /><span class="option">Yes</span>
+										<input type="radio" value="false" name="$setting.misc_refreshOnSaveAllOptions" /><span class="option">No</span>
+									<span>
+									</td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.misc_refreshOnSaveAllOptions" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.misc_refreshOnSaveAllOptions" value="Set to Default" /></td>
+								<tr-->
+								
+								<tr>
+									<td colspan="4" class="" target="">
 									<h3>Misc.</h3></td>
 								<tr>
 								<tr class="localstorage_item ">
@@ -677,7 +705,18 @@
 							</tr>
 							<tr>
 								<td></td>
-								<td><input id="cloudsave-savesettings" class="localstorage_saveall" type="button" value="Save" /></td>
+								<td>
+								<input id="cloudsave-savesettings" class="localstorage_saveall" type="button" value="Save" />
+								<input id="cloudsave-backuptokens" class="" type="button" value="Backup Tokens Locally" />
+								<a id="__UI_dialog__link_cloud_setting" download="cloudtokens.json" title="Click to download the backup file cloudtokens.json." style="display:none;position:relative;top:5px">Download</a>
+								</td>
+							</tr>
+							<tr>
+								<td></td>
+								<td>
+								<input id="cloudsave-restoretokens" class="" type="button" value="Restore Tokens" />
+								<input id="__LocalStorageFP_cloudtokens" type="file" title="Please select the backup token file to restore" style="width:150px"/>
+								</td>
 							</tr>
 							</table>
 							
@@ -685,10 +724,10 @@
 							<div class="hide cloud-deployment" style="">
 								<p> The cloud storage system is a simple PHP application with only one php file. </p>
 								<p>Step 1. Create your passphrase and generate a Key-IV.</p>
-								<p>Step 2. Create a php file whose content can be fetch by clicking the "Show cloud save source" button below.</p>
-								<p>Step 3. Replace the variable value accordingly with php hosting setting and values got in step 1.</p>
-								<p>Step 4. Check if mcrypt is supported with phpinfo(). If not supported, install php5-mcrypt with "apt-get install" or "yum install"</p>
-								<p>Step 5. Deploy the php to your own php web server or php web hosting server.</p>
+								<p>Step 2. Create a <a href="cloudsave.php" target="_blank">php file</a> and replace the variable value accordingly with php hosting setting and values got in step 1.</p>
+								<p>Step 3. Check if mcrypt is supported with phpinfo(). If not supported, install php5-mcrypt with "apt-get install" or "yum install"</p>
+								<p>Step 4. Deploy the php to your own php web server or php web hosting server.</p>
+								<p>Step 5. (Optional) Enable gzip/deflate compression on your web hosting server if the network access speed from your computer to your server is not fast. One feasible choice on Apache (version >= 1.3) is adding the content in <a href="cloudsave.htaccess" target="_blank">this file</a> to your .htaccess file under the directory in which your php file is deployed.</p>
 								<input id="show-cloudsave-src" type="button" value="Show cloud save source" />
 							</div>
 							<hr/>

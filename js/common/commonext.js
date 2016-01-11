@@ -41,16 +41,6 @@
     return this.replace(pattern, replacement);
   };
 	
-	function isArray(it) { return Object.prototype.toString.call(it) === '[object Array]'; }
-	function isFunction(it) { return Object.prototype.toString.call(it) === '[object Function]'; }
-
-	function guid() {
-			return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-					var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-					return v.toString(16);
-			});
-	}
-	
 	Array.prototype.contains = function (element) {
 		return this.some(function(ele) { return ele === element; });
 	};
@@ -109,7 +99,44 @@
 	  return arr.concat(extraArgs ? extraArgs : []);
 	}
 	
-	function compareVersion(v1, v2) {
+	function isArray(it) { return Object.prototype.toString.call(it) === '[object Array]'; }
+	function isObject(it) { return Object.prototype.toString.call(it) === '[object Object]'; }
+	function isFunction(it) { return Object.prototype.toString.call(it) === '[object Function]'; }
+
+	function guid() {
+			return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+					var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+					return v.toString(16);
+			});
+	}
+	
+	var UTIL = {};	
+	UTIL.isArray = isArray;
+	UTIL.isObject = isObject;
+	UTIL.isFunction = isFunction;
+	UTIL.guid = guid;
+	
+	UTIL.timestamp = function() {
+	  return (new Date()).Format("yyyyMMdd-hhmmssS");
+	};
+	
+	UTIL.toArray = objectToArray;
+	
+	UTIL.extendObj = function(obj, extra, noProptotypeSearching) {
+	  if (extra === undefined) return obj;
+	  if (noProptotypeSearching === undefined) noProptotypeSearching = true;
+	  
+	  for (var key in extra) {
+	    if (noProptotypeSearching && !extra.hasOwnProperty(key))
+	      continue;
+	    
+	    obj[key] = extra[key];
+	  }
+	  
+	  return obj;
+	}
+	
+	UTIL.compareVersion = function(v1, v2) {
 	  var parts1 = v1.split("."), parts2 = v2.split(".");
 	  var len1 = parts1.length, len2 = parts2.length;
 	  var len = len1 >= len2 ? len1 : len2;
@@ -124,4 +151,4 @@
 	  } while (i < len && diff === 0);
 	  
 	  return diff;
-	}
+	};

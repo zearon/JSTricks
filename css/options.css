@@ -471,8 +471,18 @@
 			margin-left: 20px;
 		}
 		
-		#settings-global h3 {
+		#settings-global table.localstorage_block {
+		  margin-left:10px;
+		}
+		
+		#settings-global table.localstorage_block h3 {
 			font-weight: bold;
+			border-top: solid 1px;
+			margin-bottom: 0;
+		}
+		
+		#settings-global table.localstorage_block tr.localstorage_item  td {
+		  padding-left: 15px;
 		}
 		/*
 		::-webkit-scrollbar {

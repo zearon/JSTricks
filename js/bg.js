@@ -1,5 +1,4 @@
 var DEBUG = storage.getSetting("DEBUG") == "true";
-var infoStr = storage.getSetting("temp-infostr");
 var INFO;
 
 function log() {
@@ -29,9 +28,6 @@ function updateSettings(extraAttribute) {
 	}, function() {
 		// on complete
 		INFO = { enabled:enabled, loaded:{}, settings: setting, debug: DEBUG, meta_data: storage.getMetadata(true) };
-	
-		infoStr = encodeURIComponent(JSON.stringify(INFO));
-		storage.setSetting("temp-infostr", infoStr);
 				
 		// Save the meta object into chrome.storage.local so that autoload.js can create the 
 		// global variable INFO before any scripts are injected.
@@ -379,7 +375,7 @@ updateSettings();
 				
 			loadProperty.necessaryAdded = true;
 				
-			var setTabInfoCode = codesnippet_getOnBootCode(tabid, url, infoStr);
+			var setTabInfoCode = codesnippet_getOnBootCode(tabid, url);
 			// console.log(setMetaDataCode);
 			autoloadFileList.unshift(
 				{name:"boot/setMetaData", code:setTabInfoCode, type:"js"}/*,
@@ -679,7 +675,7 @@ updateSettings();
 			if (!confirm("New version installed! Do you want to override current configuration with the one in the new version?"))
 				return;
 				
-			if (compareVersion(localStorage["info"], "2.0.0") < 0) {			  
+			if (UTIL.compareVersion(localStorage["info"], "2.0.0") < 0) {			  
         storage.transferScripts(storage.lsst, storage.dbst, function() {
           console.info("Transfer scripts in LocalStorage to IndexedDB");
         });
