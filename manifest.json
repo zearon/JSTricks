@@ -14,7 +14,7 @@
 		"js": [
 			"injected/plugin/care-your-eyes.js",
 			"injected/dom.js", "injected/sea-debug.js", "injected/seajs_boot.js", "injected/ready.js", 
-			"injected/autoload.js", "injected/plugin/loader.js", "injected/nodeSelector.js"],
+			"js/common/theme.js", "injected/autoload.js", "injected/plugin/loader.js", "injected/nodeSelector.js"],
 		"css": ["css/jquery-ui.structure.css", "css/theme/jqueryui/jquery-ui.theme-light.css"],
 		"matches": [ "http://*/*", "https://*/*", "file://*/*" ],
 		"run_at": "document_start"

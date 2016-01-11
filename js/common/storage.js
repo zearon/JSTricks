@@ -37,7 +37,11 @@
 	 *             Public Interfaces             *
 	 *********************************************/
   Storage.genScriptID = function(type, name) {
-    return "$" + type + "-" + name;
+    return type + "-" + name;
+  }
+  Storage.parseID = function(scriptID) {
+    var match = scriptID.match(/^(.*?)-(.*)$/);
+    return match ? {type:match[1], name:match[2]} : undefined;
   }
   
   Storage.reportUsageAndQuota = function() {
@@ -80,11 +84,254 @@
 	}
   	 
 	/**
+	 * Get a JSON object representing the backup.
+	 *   callback: a function invoked with the backup object when complete. function callback(backupObj)
+	 *   options (optional):  a string tag or an array of string tags.
+	 *                        or an object of options, which can can none, some or all of the the object 
+	 *                          {tags:<tag array>, meta:<TRUE/false>, temp:<FALSE/true>, cloud:<FALSE/true>, onlyCloudSettings:<FALSE/true>
+	 *                           settings:<TRUE/false>, scripts:<TRUE/false>, scriptContent:<TRUE/false>}
+	 *                        , in which the first value in <true/false> pair is the default value.
+	 * var manifest = { 
+	 *		"timestamp": "20160101-121501000", 
+	 *		"tags": ["tag1", "tag2"],
+	 *    "metadata": <meta data object>,
+	 *		"props": {
+	 *			"key1": "value1",
+	 *			"key2":	"value2"
+	 *		}, 
+	 *		"assets": {
+	 *			"file1": "20160101-0810000",
+	 *			"file2": "20160101-0815213"
+	 *		},
+	 *		"assetStorage": {
+	 *			"file1": <JSON DATA of file1>
+	 *			"file2": <JSON DATA of file2>
+	 *		}
+	 *	}	 
+	 */
+	Storage.fn.backup = function (callback, options) {
+	  var timestamp  = UTIL.timestamp();
+	  var useOptions = {callback:callback, tags:[], meta:true, temp:false, cloud:false, onlyCloudSettings:false,
+	                    settings:true, scripts:true, scriptContent:true, onlyInitScripts:false}, key;	  
+	  var backup = { timestamp:timestamp };
+	  
+	  if (isObject(options)) {
+	    for (key in options) {
+	      useOptions[key] = options[key];
+	    }
+	    if (useOptions.onlyInitScripts) {
+	      useOptions.builtinLibs = this.getMetadata(true).builtinLibs;
+	      if (!useOptions.builtinLibs) useOptions.builtinLibs = [];
+	    }
+	  } else {
+	    // options is an string tag or an array of string tags
+	    if (isArray(options)) useOptions.tags = options; else useOptions.tags = options ? [ options ] : [];
+	  }
+	  
+		var steps = [], stepIndex = 0;
+		
+		if (useOptions.meta) {
+		  backupMetadata.call(this, backup, useOptions, steps, stepIndex++);
+		}
+		
+		if (useOptions.settings) {
+		  backupSettingInBackup.call(this, backup, useOptions, steps, stepIndex++);
+		}
+		
+		if (useOptions.onlyInitScripts) {
+		  backupInitScripts.call(this, backup, useOptions, steps, stepIndex++);
+		} else {
+      if (useOptions.scriptContent) {
+        backupScripts.call(this, backup, useOptions, steps, stepIndex++);
+      } else if (useOptions.scripts){
+        backupScriptList.call(this, backup, useOptions, steps, stepIndex++);
+      }
+		}
+		
+		// Execute the step chain
+		if (steps[0])
+		  steps[0]();
+	}
+	
+	function backupMetadata(backup, options, steps, stepIndex) {
+	  var self = this;
+	  steps.push(function() {
+      if (!backup.metadata)
+        backup.metadata = self.getMetadata(true);
+	    
+      // On complete, call next save step
+      executeNextStepInBackup(backup, options, steps, stepIndex)
+    });
+	}
+	
+	function backupSettingInBackup(backup, options, steps, stepIndex) {
+	  var self = this;
+	  steps.push(function() {
+	    if (!backup.props) backup.props = {};
+	    
+      self.iterateSettings(function(name, val) {
+        // On iterating over each setting
+          
+        if (options.onlyCloudSettings) {
+          if (!name.startsWith("cloud-"))
+            return;
+        } else {      
+          if (!options.temp && name.startsWith("temp-"))
+            return;
+        
+          if (!options.cloud && name.startsWith("cloud-"))
+            return;
+        }
+
+        
+        backup.props[name] = val;
+      }, function() {
+        // On complete, call next save step
+        executeNextStepInBackup(backup, options, steps, stepIndex)
+      }, false);
+    });
+	}
+	
+	function backupScriptList(backup, options, steps, stepIndex) {
+	  var self = this;
+	  steps.push(function() {      
+	    if (!backup.assets) backup.assets = {};
+	    
+	    // Load script list from index in cache
+	    var key, indexObj = self.loadIndexObj();
+	    // load content script list
+	    for (key in indexObj.contentScripts) {
+	      var id = Storage.genScriptID("cs", key);
+	      backup.assets[id] = indexObj.contentScripts[key].timestamp; 
+	    }
+	    // load site script list
+	    for (key in indexObj.siteScripts) {
+	      var type = key === "Main" || key === "Default" ? "dss" : "ss";
+	      var id = Storage.genScriptID(type, key);
+	      backup.assets[id] = indexObj.siteScripts[key].timestamp; 
+	    }
+	    
+      // On complete, call next save step
+      executeNextStepInBackup(backup, options, steps, stepIndex)
+    });
+	}
+	
+	function backupScripts(backup, options, steps, stepIndex) {
+	  var self = this;
+	  steps.push(function() {   
+	    if (!backup.assets) backup.assets = {};   
+	    if (!backup.assetStorage) backup.assetStorage = {};
+      self.getAllScripts(["dss", "ss", "cs"], function(scripts) {
+        // On complete, call next save step
+        executeNextStepInBackup(backup, options, steps, stepIndex)
+      }, function(name, type, script){
+        // On iterate over each script
+        var id = script.id;
+        backup.assets[id] = script.timestamp;
+        backup.assetStorage[id] = script;
+      });
+    });
+	}
+	
+	function backupInitScripts(backup, options, steps, stepIndex) {
+	  var self = this;
+	  steps.push(function() {   
+	    if (!backup.assets) backup.assets = {};   
+	    if (!backup.assetStorage) backup.assetStorage = {};
+      self.getAllScripts(["dss", "ss", "cs"], function(scripts) {
+        // On complete, call next save step
+        executeNextStepInBackup(backup, options, steps, stepIndex)
+      }, function(name, type, script){
+        // On iterate over each script, only backup Main site script and content scripts in biultinLibs array
+        if ( (type === "dss" && name === "Main") || 
+             (type === "cs" && options.builtinLibs.contains(name)) ) {
+          var id = script.id;
+          backup.assets[id] = script.timestamp;
+          backup.assetStorage[id] = script;
+        }
+      });
+    });
+	}
+	
+	function executeNextStepInBackup(backup, options, steps, stepIndex) {
+    var nextStep = steps[stepIndex + 1];
+    if (nextStep) nextStep();
+    else if (options.callback) options.callback(backup);
+	}
+  	 
+	/**
+	 * Restore every thing from a backup JSON object.
+	 *   backup: the JSON backup object
+	 *   callback: the callback function when restoration completes.
+	 *   options: an options object.
+	 *      {cloudSettings:<FALSE/true>}
+	 */
+	Storage.fn.restore = function (backup, callback, options) {
+		var key, useOptions = {cloudSettings:false}, steps = [], stepIndex = 0;
+		UTIL.extendObj(useOptions, options);
+		
+		for (key in backup) {
+		  switch(key) {
+		  case "metadata":
+		    restoreMetadata.call(this, backup);
+		    break;
+		  case "props":
+		    restoreSettings();
+		    break;
+		  case "assetStorage":
+		    restoreScripts();
+		    break;
+		  }
+		}
+		
+		// update 
+	}
+	
+	function restoreMetadata(backup, options, steps, stepIndex) {
+	  var self = this, options = {cloudSettings:true};
+	  steps.push(function() {
+      self.saveMetadata();
+	    
+      // On complete, call next save step
+      executeNextStepInBackup(backup, options, steps, stepIndex)
+    });
+	}
+	
+	function restoreSettings(backup, options, steps, stepIndex) {
+	  var self = this;
+	  steps.push(function() {
+	    if (!backup.props) backup.props = {};
+	    
+      self.iterateSettings(function(name, val) {
+        // On iterating over each setting
+          
+        if (options.onlyCloudSettings) {
+          if (!name.startsWith("cloud-"))
+            return;
+        } else {      
+          if (!options.temp && name.startsWith("temp-"))
+            return;
+        
+          if (!options.cloud && name.startsWith("cloud-"))
+            return;
+        }
+
+        
+        backup.props[name] = val;
+      }, function() {
+        // On complete, call next save step
+        executeNextStepInBackup(backup, options, steps, stepIndex)
+      }, false);
+    });
+	}
+	
+	/**
 	 * Get a setting value
 	 *   key: setting name
 	 *   asobj: get setting value as object.
+	 *   defaultValue: default value if the setting is not found. The default value will be automatically saved.
 	 */
-	Storage.fn.getSetting = function (key, asobj) {
+	Storage.fn.getSetting = function (key, asobj, defaultValue) {
 		return this.lsst.getSetting.apply(this.lsst, arguments);
 	}	
 	
@@ -282,6 +529,7 @@
 	    self.rebuildScriptIndexes(oncomplete);
 	  }, function(name, type, script) {
 	    // For UPGRADE
+	    script.timestamp = UTIL.timestamp();
 	    if (type == "cs") {
 	      if (script.index !== undefined)
 	        delete script["index"];
@@ -425,9 +673,9 @@
 	
 	function getScriptOptForIndex(script) {
 	  if (script.type === "cs")
-	    return {"group":script.group, "title":script.title, "import":script.sfile, "importOnce":script.importOnce};
+	    return {"group":script.group, "title":script.title, "import":script.sfile, "importOnce":script.importOnce, "timestamp":UTIL.timestamp()};
 	  else
-	    return {"active":script.autostart, "import":script.sfile};
+	    return {"active":script.autostart, "import":script.sfile, "timestamp":UTIL.timestamp()};
 	}
 	
 	function saveToChromeStorage(obj) {
@@ -540,18 +788,21 @@
 	
 	LocalStorage.fn.init = function() {}
 	
-	LocalStorage.fn.getSetting = function(key, asobj) {
+	LocalStorage.fn.getSetting = function(key, asobj, defaultValue) {
 		var valtext = localStorage["$setting." + key];
+		// If the setting is not found and a default value is given, save the default value with the key.
+		if (valtext === undefined && defaultValue !== undefined) {
+		  this.setSetting(key, defaultValue, asobj);
+		}
+		
 		if (asobj) {
 			try {
-				if (!valtext)
-					return undefined;
-				return JSON.parse(valtext);
+				return valtext === undefined ? defaultValue : JSON.parse(valtext);
 			} catch(ex) {
 				throw new Error("Invalid JSON object: " + valtext);
 			}
 		} else {
-			return valtext;
+			return valtext === undefined ? defaultValue : valtext;
 		}
 	}
 	

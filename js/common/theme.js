@@ -36,13 +36,15 @@ function setTheme(theme) {
 	var theme_codemirror = getCodeMirrorTheme(theme_), theme_jqueryui;
 	
 	theme_ = "theme-" + theme_;
-	var classes = $("body").attr("class");
+	var classes = document.body.className + " " + theme_;
 	classes = classes ? classes.replace(/theme-.+?\b/g, theme_) : theme_;
-	$("body").attr("class", classes);	
+	document.body.className = classes;	
 	
 	// editors is a list of CodeMirror objects
-	for (var i = 0; i < editors.length; ++ i) {
-		editors[i].setOption("theme", theme_codemirror);
+	if (window.editors) {
+    for (var i = 0; i < editors.length; ++ i) {
+      editors[i].setOption("theme", theme_codemirror);
+    }
 	}
 }
 
@@ -50,4 +52,5 @@ function loadTheme() {
 	setTheme(getStaticTheme());
 }
 
-$(loadTheme);
+if (window.$)
+  window.$(loadTheme);
