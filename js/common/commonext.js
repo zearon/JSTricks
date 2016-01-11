@@ -101,6 +101,14 @@
 	  return result;
 	}
 	
+	function argsToArr(args, extraArgs) {
+	  var argLen = args.length, arr = [];
+	  for (var i = 0; i < argLen; ++ i) {
+	    arr.push(args[i]);
+	  }
+	  return arr.concat(extraArgs ? extraArgs : []);
+	}
+	
 	function compareVersion(v1, v2) {
 	  var parts1 = v1.split("."), parts2 = v2.split(".");
 	  var len1 = parts1.length, len2 = parts2.length;

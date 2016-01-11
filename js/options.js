@@ -195,7 +195,7 @@
 				
 				updateMetaData(meta);
 				
-				// update meta data into chrome.storage.locale
+				// update meta data into chrome.storage.local
 				updateSettings();
 			} catch (ex) {
 				console.log(ex);
@@ -2333,7 +2333,7 @@
 			var importOnce = document.getElementById("importOnce").checked;
 			
 			var tmp =  {"name":selectedContentScript, "type":"cs", "index":index, 
-			  "group":group, "title":title, "sfile":sfile, "script": script, "importonce":importOnce};
+			  "group":group, "title":title, "sfile":sfile, "script": script, "importOnce":importOnce};
 			  
 			var noErrorsFound = checkScriptSyntax(script);
 			showMessage("Error found in current content script!");

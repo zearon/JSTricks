@@ -146,6 +146,17 @@
 	Storage.fn.getAllScripts = function (type, callback, filter, onerr) {
 		return this.sst.getAllScripts.apply(this.sst, arguments);
 	}
+
+	/**
+	 * Find all scripts with given type and name from storage with a iteration callback, 
+	 * and optionally an on error callback.
+	 * typeNamePairs: an array of [type, name] index identifying the scripts.
+	 * callback: a function get invoked after all scripts are fetched. function ( array of scripts ) {…}
+	 * The optional onerr callback should be like: onerr(err) {...}
+	 */
+	Storage.fn.findScripts = function (typeNamePairs, callback, onerr) {
+		return this.sst.findScripts.apply(this.sst, arguments);
+	}
 	
 	/**
 	 * Find a script with a given id and a given type.
@@ -414,7 +425,7 @@
 	
 	function getScriptOptForIndex(script) {
 	  if (script.type === "cs")
-	    return {"import":script.sfile, "group":script.group, "title":script.title};
+	    return {"group":script.group, "title":script.title, "import":script.sfile, "importOnce":script.importOnce};
 	  else
 	    return {"active":script.autostart, "import":script.sfile};
 	}
@@ -819,8 +830,13 @@
 	    types = type;
 	  else
 	    types = [ type ];
+	  
+	  //var startTime = Date.now();
 	    
 	  function oncomplete() {
+	    //var endTime = Date.now();
+	    //console.log("getAllScripts takes", endTime - startTime, "ms");
+	    
 	    if (callback) 
 	      callback(result);
 	  }
@@ -849,7 +865,44 @@
       
     }, onerr, oncomplete);
 	}
-	
+
+	/**
+	 * Find all scripts with given type and name from storage with a iteration callback, 
+	 * and optionally an on error callback.
+	 * typeNamePairs: an array of [type, name] index identifying the scripts.
+	 * callback: a function get invoked after all scripts are fetched. function ( array of scripts ) {…}
+	 * The optional onerr callback should be like: onerr(err) {...}
+	 */
+	DBStorage.fn.findScripts = function (typeNamePairs, callback, onerr) {
+	  var result = [];
+	  //var startTime = Date.now();
+	    
+	  function oncomplete() {
+	    //var endTime = Date.now();
+	    //console.log("getAllScripts takes", endTime - startTime, "ms");
+	    //console.log(result);
+	    
+	    if (callback) 
+	      callback(result);
+	  }
+	    
+		this.transaction(false, function(objStore) {
+		  var key, index = objStore.index("type,name");
+      
+      for (var i =  0; i < typeNamePairs.length; ++ i) {
+        key = typeNamePairs[i];
+        index.openCursor(IDBKeyRange.only(key)).onsuccess = function(e) {
+          var cursor = e.target.result;
+          if (cursor) {
+            result.push(cursor.value);
+            cursor.continue();
+          }
+        }
+      }
+      
+    }, onerr, oncomplete);
+	}
+		
 	/**
 	 * Find a script with a given id and a given type.
 	 * type: type of scripts, which can be "cs", "ss", "dss", …
