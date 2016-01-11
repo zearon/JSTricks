@@ -11,7 +11,7 @@
 			if (onload) { onload.apply(this, arguments); }
 		};
 		(document.head||document.documentElement).appendChild(s);
-	}
+	};
 	
 	window.InjectLinkElementToDom_____ = function (rel, href) {
 		var s = document.createElement('link');
@@ -19,7 +19,7 @@
 		s.setAttribute('href', href);
 		/*if (onload) { s.onload = onload; }*/
 		(document.head||document.documentElement).appendChild(s);
-	}
+	};
 	
 	window.DecorateStyleItems_____ = function (style) {
 		return style.replace(/(\S)(\s*)(\/\*[\s\S]*?\*\/)?(\s*\})/g, function(s, g1, g2, g3, g4) {
@@ -29,7 +29,7 @@
 							return g1+";"+g2+(g3?g3:"")+g4;
 					})
 					.replace(/;/g, " !important;");
-	}
+	};
 	
 	window.AppendStyleNodeToDom_____ = function (styles) {
 		var id = 'javascript-tricks';
@@ -45,5 +45,5 @@
 		//(document.body||document.documentElement).appendChild(s);
 		//document.documentElement.insertBefore(s, document.documentElement.childNodes[1]);
 		document.documentElement.appendChild(s);
-	}
+	};
 }) ()

@@ -279,7 +279,8 @@
       //console.log(keys);
       
       if (!inited) {
-        siteScripts = createDefaultAndMainSiteScript();
+        //action moved into Storage module
+        //siteScripts = createDefaultAndMainSiteScript();
       }
       
       // Do not need to filter scripts by its content
@@ -1278,7 +1279,7 @@
       
         //var bb = new Blob([data], {type: 'text/plain'});
         //var href = URL.createObjectURL(bb);		    
-		  });
+		  }, {cloud:true});
 
 		}
 		
@@ -1289,18 +1290,17 @@
 			} else {
 				var reader = new FileReader();
 				reader.onload = function() {
-					text = this.result;
-					console.log(text);
-					var values = JSON.parse(text);
-					for (var v in localStorage) {
-						delete localStorage[v];
+					try {
+				    text = this.result;
+            var backupObj = JSON.parse(text);
+					  storage.restore(backupObj, function() {
+					    // On complete
+              alert("All configurations and scripts are successfully restored.");
+              location.reload();
+					  }, {cloudSettings:false});
+					} catch(ex) {
+					  alert("Restoration failed due to invalid backup file, which can not be parsed as an JSON object.");
 					}
-					for (v in values) {
-						localStorage[v] = values[v];
-						/*console.log(v+"="+values[v]);*/
-					}
-					alert("Config loaded");
-					location.reload();
 				};
 				reader.readAsText(file);
 			}
@@ -1412,7 +1412,7 @@
           storage.rebuildScriptIndexes(function() {          
             win.initContextMenu();
             location.reload();
-          });
+          }, errEvent=>console.log(errEvent));
         });      
       }
     }
@@ -1466,7 +1466,7 @@
 				var key = $(this).attr("target");
 				var defaultValue = $(this).attr("defaultvalue");
 				if (defaultValue !== undefined) {
-				  console.log("Default setting ", key, "=", defaultValue);
+				  // console.log("Default setting ", key, "=", defaultValue);
 					defaultSettings[key] = defaultValue;
 				}
 				
@@ -1990,7 +1990,7 @@
 			alert($(this).prev().val());
 		}
 		
-		function cloudGetSaveObj() {
+		function cloudGetHandler() {
 			var url = storage.getSetting("cloud-url");
 			var path = storage.getSetting("cloud-path");
 			var passphrase = storage.getSetting("cloud-passphrase");
@@ -2000,7 +2000,7 @@
 		}
 		
 		function cloudStorageGenKey() {
-			var key = cloudGetSaveObj().genKeyIV();
+			var key = cloudGetHandler().genKeyIV();
 			
 			$("#cloudsave-key").val(key);
 			$(this).next().text(key);
@@ -2009,20 +2009,28 @@
 		
 		function cloudBackup() {
 			showMessage("Start backing configuration up in cloud.");	
-			var data = JSON.stringify(localStorage);
-			data = formatter.formatJson(data);
-			var filename = (new Date()).Format("yyyyMMdd-hhmmss");
 			
-			cloudGetSaveObj().backupSingleFile(filename, data, function(data) {
-				// on ok
-					storage.setSetting("cloud-lastsave", filename);
-					$("#cloudrestore-key").val(filename);
-					showMessage("Configurations are backup up in cloud.");
-				
-			}, 	function(err) {
-				// on err
-					alert("Failed to list configurations. \n" + err.message);
-			});
+		  // Create a backup object which does not contain cloud storage tokens
+		  storage.backup(function(backupObj) {
+		    // Stringify the backup object
+        var data = JSON.stringify(backupObj);
+        if (storage.getSetting("backup-readable", true, false))
+          data = formatter.formatJson(data);
+        var filename = (new Date()).Format("yyyyMMdd-hhmmss");
+      
+        cloudGetHandler().backupSingleFile(filename, data, function(data) {
+          // on ok
+            storage.setSetting("cloud-lastsave", filename);
+            $("#cloudrestore-key").val(filename);
+            showMessage("Configurations are backup up in cloud.");
+        
+        }, 	function(err) {
+          // on err
+            alert("Failed to list configurations. \n" + err.message);
+        }); 
+        // end of cloudGetHandler().backupSingleFile
+        
+		  }, {cloud:false}); // end of  storage.backup
 		}
 		
 		function cloudRestore() {
@@ -2030,29 +2038,22 @@
 			if (!confirm("All current settings and scripts will be erased. \nAre you sure you want to restore with configuration named " + key + "?"))
 				return;
 				
-			showMessage("Start backing configuration up in cloud.");	
+			showMessage("Start restoring configuration from the cloud.");	
 			
-			cloudGetSaveObj().restoreFromSingleFile(key, function(data) {
+			cloudGetHandler().restoreFromSingleFile(key, function(data) {
 				// on ok
 				console.log(data);
-				var v, values = JSON.parse(data);
-				for (v in localStorage) {
-					delete localStorage[v];
-				}
-				for (v in values) {
-					localStorage[v] = values[v];
-					/*console.log(v+"="+values[v]);*/
-				}
-				alert("Selected configuration is restored.");
-				location.reload();
-				
+				var backupObj = JSON.parse(data);				
+        storage.restore(backupObj, function() {
+          // On complete
+          alert("All configurations and scripts are successfully restored.");
+          location.reload();
+        }, {cloudSettings:false});				
 			});
-			
-			// REMEMBER TO CALL storage.rebuildScriptIndexes
 		}
 		
 		function cloudStorageList() {
-			cloudGetSaveObj().list(function(data) {
+			cloudGetHandler().list(function(data) {
 				// on ok
 				cloudStorageAddKeysToUI(data.result);					
 				showMessage("Configurations are listed out of cloud.");
@@ -2066,7 +2067,7 @@
 		function cloudStorageView() {
 			var key = $("#cloudrestore-key").val();
 			
-			cloudGetSaveObj().view(key, function(data) {
+			cloudGetHandler().view(key, function(data) {
 				// on ok
 				$("#settings-list .jstbox:eq(1)").click();
 				showConfiguration(data);
@@ -2105,7 +2106,7 @@
 		}
 		
 		function cloudStorageDeleteItem(key) {	
-			cloudGetSaveObj().remove(key, function(data) {
+			cloudGetHandler().remove(key, function(data) {
 				// on ok
 					$(`#cloudrestore-keys div.key[name='${key}']`).remove();
 					showMessage("Selected onfiguration is deleted.");
@@ -2117,7 +2118,7 @@
 		}
 		
 		function cloudStorageLeaveLast10() {
-			cloudGetSaveObj().leaveLast10(function(data) {
+			cloudGetHandler().leaveLast10(function(data) {
 				// on ok
 					$(`#cloudrestore-keys div.key[name='${key}']`).remove();
 					showMessage("Selected onfiguration is deleted.");
@@ -2193,21 +2194,9 @@
 					} catch(ex) {
 					  alert("Restoration failed due to invalid backup file, which can not be parsed as an JSON object.");
 					}
-					
-					/*
-					for (var v in localStorage) {
-						delete localStorage[v];
-					}
-					for (v in values) {
-						localStorage[v] = values[v];
-						/*console.log(v+"="+values[v]);
-					}*/
 				};
 				reader.readAsText(file);
-			}
-			
-			// REMEMBER TO CALL storage.rebuildScriptIndexes
-		  
+			}		  
 		}
 		
 		function cloudStorageAddKeysToUI(keys) {
@@ -2683,7 +2672,7 @@
 			$("#dcsindex").val(getCsScriptIndexInMenu(script.name));
 			$("#dcsgencodebytemplate")[0].selectedIndex = 0;
 			editorDynScript.setValue(script.script);
-			document.getElementById("importOnce").checked = script.importonce;
+			document.getElementById("importOnce").checked = script.importOnce;
 			$("#importOnce").button("refresh");
 			
 			currentSavedStateDCS = script.script;
