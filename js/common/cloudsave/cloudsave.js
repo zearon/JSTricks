@@ -218,6 +218,8 @@
 	
 		function onPostError(err) {
 			console.error(err);
+			if (window.alert)
+			  window.alert(err.statusText);
 		}
 	}
 

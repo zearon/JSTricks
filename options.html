@@ -665,7 +665,7 @@
 					<div class="editorPanel">
 						<div id="settings-default" class="settingPanel">
 							<h2>Cloud Storage Backup and Restore</h2>
-							<input class="cloudbackup" type="button" value="Backup" />
+							<input class="cloudbackup" type="button" value="Backup"  title="Backup all scripts and configurations <b>excluding</b> cloud storage tokens."/>
 							<input class="cloudrestore" type="button" value="Restore" /><br/><br/>
 							Settings to be load: 
 							<input id="cloudrestore-key" type="text" class="localstorage_itemvalue" target="$setting.cloud-lastsave" value="" size="20" />
@@ -733,7 +733,7 @@
 							<hr/>
 							
 							<h2>Local Storage Backup and Restore</h2>
-							<input type="button" id="backupbtn" value="Backup" style='height:25px' />
+							<input type="button" id="backupbtn" value="Backup" style='height:25px' title="Backup all scripts and configurations including cloud storage tokens." />
 							<a id="__UI_dialog__link" download="backup.json" title="Click to download the backup file." style="display:none;position:relative;top:5px">Download</a>
 							<br/>
 							Local storage backup file:
@@ -751,7 +751,6 @@
 							<input type="button" id="loadScriptsLStoDBBtn" value="Migrate Old -> New" style='height:25px' />
 							<input class="hide" type="button" id="loadScriptsDBtoLSBtn" value="Migrate New -> Old" style='height:25px' />
 							<input type="button" id="reportStorageUsageDbBtn" value="Report Usage" style='height:25px' />
-							<input type="button" id="clearDbBtn" value="Clear Database" style='height:25px' />
 							<br/>
 							<hr/>
 							
@@ -759,6 +758,7 @@
 								<h2>Generate Initial Settings (only for development use)</h2>
 								<input type="button" id="genInitSettingbtn" value="Generate" style='height:25px' />
 								<a id="__UI_dialog__link_init_setting" download="init_settings.json" title="Click to download and view the init_settings.json file." style="display:none;position:relative;top:5px">Download and View</a>
+								<input type="button" id="clearDbBtn" value="Clear Database" style='height:25px' />
 							</div>
 						</div>
 						<div id="settings-json-viewer" class="settingPanel">

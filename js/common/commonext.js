@@ -62,16 +62,18 @@
 	  }
 	};
 	
-	// useKeyAsItem: true / false / "pair"
+	// useKeyAsItem: true / false / "key" / "value" / "pair" / "keyinvalue[:keyname]"
+	//   "keyinvalue" ("keyinvalue:name") use name as keyname of key in value object / 
 	// filter(key, value) => true/false
+	// 
 	function objectToArray(obj, useKeyAsItem, filter) {
 	  var result = [];
 	  for (var key in obj) {
 	    var item, val = obj[key];
 	    if (!filter || filter(key, val) ) {
-	      if (useKeyAsItem === true) {
+	      if (useKeyAsItem === true || useKeyAsItem === "key") {
 	        item = key;
-	      } else if (useKeyAsItem === false) {
+	      } else if (useKeyAsItem === false || useKeyAsItem === "value") {
 	        item = val;
 	      } else if (useKeyAsItem === "pair") {
 	        item = {key:key, value:val};
