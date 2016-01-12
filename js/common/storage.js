@@ -290,11 +290,21 @@
     }
     
     steps.push(function () {
-      // Inform background page to update settings and context menus.
-      self.informBGPageUpdate();
-      
-      if (callback)
-        callback();
+      // Call initContextMenuOnInstalled in background page (bg_contextMenu.js) to 
+      // update settings and context menus.
+      if (window.initContextMenuOnInstalled) {
+        // In background page
+        initContextMenuOnInstalled();
+        updateSettings();
+        if (callback) callback();
+      } else {
+        // In pages other than background page of the extension;
+        chrome.runtime.getBackgroundPage(function(win) {
+          win.initContextMenuOnInstalled();
+          updateSettings();
+          if (callback) callback();
+        });
+      }
     });
     
     // Execute the step chain
@@ -426,12 +436,76 @@
   /**
    * Find all scripts with given type and name from storage with a iteration callback, 
    * and optionally an on error callback.
+   * writeAccess: need write to data store. If you don't need to write, set it to false.
    * typeNamePairs: an array of [type, name] index identifying the scripts.
-   * callback: a function get invoked after all scripts are fetched. function ( array of scripts ) {…}
-   * The optional onerr callback should be like: onerr(err) {...}
+   * callback (optional): a function get invoked after all scripts are fetched. function ( array of scripts ) {…}
+   * onfound (optional): a function get invoked when each matching record is found. function (name,type,script) { … return {action, value}; }
+   *     This function should return an object {action, value} if further modification on that item is required to perform.
+   *     {action:"update", value:<newValue>}: Modify current record with newValue. 
+   *     {action:"delete"} : Delete current record.
+   *     undefined or null or other: Nothing to do.
+   * onerr (optional): callback should be like: onerr(err) {...}
    */
-  Storage.fn.findScripts = function (typeNamePairs, callback, onerr) {
-    return this.sst.findScripts.apply(this.sst, arguments);
+  Storage.fn.findScripts = function (writeAccess, typeNamePairs, callback, onfound, onerr) {
+    var self = this, indexUpdate = [], indexObj = this.loadIndexObj();
+    // wrapper functions to update indexes in cache.
+    function onFoundInternal(name, type, script) {
+      var command = undefined;
+      if (onfound) {
+        var oldID = Storage.genScriptID(type, name);
+        command = onfound(name, type, script);
+        if (command && command.action === "update") {
+          var newValue = command.value;
+          if (newValue === undefined)
+            throw new Error("onfound callback for storage.prototype.findScripts returns a update command, but no value is given.");
+          
+          var newID = Storage.genScriptID(newValue.type, newValue.name);
+          if (newID !== oldID) {
+            indexUpdate.push([indexObj, "delete", newValue.name, newValue.type]);
+            indexUpdate.push([indexObj, "add", newValue.name, newValue.type, getScriptOptForIndex(newValue)] );
+          } else {
+            indexUpdate.push([indexObj, "update", newValue.name, newValue.type, getScriptOptForIndex(newValue)] );
+          }
+        } else if (command && command.action === "delete") {
+            indexUpdate.push([indexObj, "delete", name, type]);
+        }
+      }
+      
+      return command;
+    }
+    function onCompleteInternal(scripts) {
+      // update indexes
+      indexUpdate.forEach(function(ele) {
+        updateScriptIndex_internal.apply(this, ele);
+      });
+      
+      // Update indexes and context menues
+      self.saveIndexObj(indexObj);
+      self.updateContextMenuAndBGSettings(callback, scripts);
+      
+      /*
+      if (window.initContextMenuOnInstalled) {
+        initContextMenuOnInstalled();
+        if (callback) callback(scripts);
+      } else {
+        chrome.runtime.getBackgroundPage(function(win) {
+          // defined in bg_contextMenu.js
+          win.initContextMenuOnInstalled();
+        
+          // call the callback
+          if (callback) callback(scripts);
+        });   
+      }*/
+      
+    }
+    
+    // If no modification is made to the database, there's no need to use wrappers to update the indexes in cache.
+    var args = writeAccess ? 
+                  [writeAccess, typeNamePairs, onCompleteInternal, onFoundInternal, onerr] :
+                  [writeAccess, typeNamePairs, callback, onfound, onerr];
+    
+    // Call implementation
+    return this.sst.findScripts.apply(this.sst, args);
   };
   
   /**
@@ -459,74 +533,67 @@
    * The optional onerr callback should be like: onerr(err) {...}
    */
   Storage.fn.saveScript = function (script, onsaved) {
-    var scripts;
+    var scripts, self = this;
     if (!UTIL.isArray(script)) {
       scripts = [script];
     } else {
       scripts = script;
     }
     
-    var result = this.sst.saveScript.apply(this.sst, arguments);
-
-    /* Update script indexes in cache */ 
-    var indexObj = this.loadIndexObj();
-    for (var i = 0; i < scripts.length; ++ i) {
-      var script_ = scripts[i];
-      var id = Storage.genScriptID(script_.type, script_.name);
+    function onComplete() {
+      /* Update script indexes in cache */ 
+      var indexObj = self.loadIndexObj();
+      for (var i = 0; i < scripts.length; ++ i) {
+        var script_ = scripts[i];
+        var id = Storage.genScriptID(script_.type, script_.name);
       
-      // update index
-      updateScriptIndex_internal(indexObj, "add", script_.name, script_.type, 
-          getScriptOptForIndex(script_));
+        // update index
+        updateScriptIndex_internal(indexObj, "add", script_.name, script_.type, 
+            getScriptOptForIndex(script_));
+      }
+      self.saveIndexObj(indexObj);
+      self.updateContextMenuAndBGSettings();
+      
+      if (onsaved) onsaved();
     }
-    this.saveIndexObj(indexObj);
     
-    console.log("Indexes after saving script:", indexObj);
+    var result = this.sst.saveScript.call(this.sst, script, onComplete);
 
-    return indexObj;
+
+    return result;
   };
   
   /**
-   * Delete a script or several scripts.
-   * deleteScript(name, type, onok)
-   * deleteScript(filterFunc, onok), in which filterFunc(name, type, obj)
+   * Delete a script or several scripts according to type and names.
+   * deleteScript(typeNamePair, onok)     typeNamePair is like [type, name], where type can be "dss", "ss", or "cs"
+   * deleteScript(typeNamePairs, onok)    typeNamePair is like [[type1, name1], [type2, name2], …]
+   * If your want to decide whether deleting a script based on its content, please refer to findScripts() function.
    */
-  Storage.fn.deleteScript = function (name, type, onok, onerr) {
-    var self = this, nameIsFilter = false, filter = name, indexObj;
+  Storage.fn.deleteScript = function (typeNamePair, onok, onerr) {
+    var self = this, typeNamePairs;
+    if (!isArray(typeNamePair))
+      throw new Error("The first parameter must be a [type, name] array or an array of it.");
+    if (isArray(typeNamePair[0]))
+      typeNamePairs = typeNamePair;
+    else
+      typeNamePairs = [typeNamePair];
     
-    function wrappedFilter() {
-      return function(name, type, script) {
-        var result = filter(name, type, script);        
-        if (result) {
-          // The record (name, type, script) is to be deleted, so update script index
-          updateScriptIndex_internal(indexObj, "delete", name, type);
-        }
-        
-        return result;
-      };
-    }
-    
-    function wrappedOnok() {
+    function onComplete() {
+      // Update indexes
+      var indexObj = self.loadIndexObj();
+      typeNamePairs.forEach(function(typeNamePair) {
+        updateScriptIndex_internal(indexObj, "delete", typeNamePair[1], typeNamePair[0]);
+      });
       self.saveIndexObj(indexObj);
+      // Update context menus
+      self.updateContextMenuAndBGSettings();
       
+      // Callback onok
       if (onok)
         onok();
     }
     
-    if (UTIL.isFunction(name)) {
-      indexObj = this.loadIndexObj(); 
-      nameIsFilter = true;     
-      arguments[0] = wrappedFilter(); // jshint ignore:line
-      arguments[2] = wrappedOnok;     // jshint ignore:line
-    }
-    
-    var result = this.sst.deleteScript.apply(this.sst, arguments);
-    
-    if (!nameIsFilter) {
-      // only delete one record
-      this.updateScriptIndex("delete", name, type);
-    
-      console.log("Indexes after deleteing script:", this.loadIndexObj(), "script is", name);
-    }
+    var result = this.sst.deleteScript.call(this.sst, typeNamePair, onComplete, onerr);
     
     return result;
   };
@@ -585,7 +652,7 @@
       // when iterate over each script   
       updateScriptIndex_internal(indexObj, "add", name, type, getScriptOptForIndex(obj));      
     }, onerr);
-  };
+  }; 
 
   /**
    * Load a object representing script indexes.
@@ -721,6 +788,27 @@
   }
   
   /**
+   * Update context menus and settings in background page
+   * updateContextMenuAndBGSettings(callback, cbArg1, cbArg2, …)
+   */
+  Storage.fn.updateContextMenuAndBGSettings = function(callback) {
+    var cbArgs = argsToArr(arguments).slice(1);
+    // Update indexes and context menues
+    if (window.initContextMenuOnInstalled) {
+      initContextMenuOnInstalled();
+      if (callback) callback.apply(this, cbArgs);
+    } else {
+      chrome.runtime.getBackgroundPage(function(win) {
+        // defined in bg_contextMenu.js
+        win.initContextMenuOnInstalled();
+      
+        // call the callback
+        if (callback) callback.apply(this, cbArgs);
+      });   
+    }
+  }
+  
+  /**
    * Get the script dependencies in the cached index.
    */
   Storage.fn.cachedScriptDeps = function() {
@@ -812,6 +900,7 @@
    *        Internal Implementations           *
    *                                           *
    *          with LocalStorage API            *
+   *            (may be outdated)              *
    *********************************************/
    
   function LocalStorage() {
@@ -1107,9 +1196,9 @@
    * type: type of scripts, which can be "cs", "ss", "dss", …. It can be a string or an array of string.
    * callback: a function get invoked after all scripts are fetched. function ( array of scripts ) {…}
    * filter (optional): a filter callback determines if the script being iterated should be in the result set. It should be like:
-   *   filter(id, type, obj) {... return true/false.} 
+   *   filter(name, type, obj) {... return true/false.} 
    * in which
-   *   id: domain of site-script, name of content-script
+   *   name: domain of site-script, name of content-script
    *   type: 'ss' for site-script, 'cs' for content-script, 'meta' for mata data
    *   return value: determines if the obj should be in the result set.
    * The optional onerr callback should be like: onerr(err) {...}
@@ -1142,11 +1231,11 @@
             var obj = cursor.value;
             
             var typeMatches = types.contains(key);
-            var filterMatches = !filter || filter(obj.name, obj.type, obj) ;
-            //console.log("Iterating obj:", obj.name, obj, typeMatches, filterMatches);  
-            
-            if (typeMatches && filterMatches ) {
-              result.push(obj);
+            if (typeMatches) {
+              var filterMatches = !filter || filter(obj.name, obj.type, obj); 
+              if (filterMatches ) {
+                result.push(obj);
+              }
             }
             
             cursor.continue();  
@@ -1159,12 +1248,19 @@
   /**
    * Find all scripts with given type and name from storage with a iteration callback, 
    * and optionally an on error callback.
+   * writeAccess: need write to data store. If you don't need to write, set it to false.
    * typeNamePairs: an array of [type, name] index identifying the scripts.
-   * callback: a function get invoked after all scripts are fetched. function ( array of scripts ) {…}
-   * The optional onerr callback should be like: onerr(err) {...}
+   * callback (optional): a function get invoked after all scripts are fetched. function ( array of scripts ) {…}
+   * onfound (optional): a function get invoked when each matching record is found. function (name,type,script) { … return {action, value}; }
+   *     This function should return an object {action, value} if further modification on that item is required to perform.
+   *     {action:"update", value:<newValue>}: Modify current record with newValue. 
+   *     {action:"delete"} : Delete current record.
+   *     undefined or null or other: Nothing to do.
+   * onerr (optional): callback should be like: onerr(err) {...}
    */
-  DBStorage.fn.findScripts = function (typeNamePairs, callback, onerr) {
-    var result = [];
+  DBStorage.fn.findScripts = function (writeAccess, typeNamePairs, callback, onfound, onerr) {
+    var result = [], needResult = callback !== undefined;
+    var modifiedObj;
     //var startTime = Date.now();
       
     function oncomplete() {
@@ -1176,7 +1272,7 @@
         callback(result);
     }
       
-    this.transaction(false, function(objStore) {
+    this.transaction(writeAccess, function(objStore) {
       var key, index = objStore.index("type,name");
       
       for (var i =  0; i < typeNamePairs.length; ++ i) {
@@ -1187,7 +1283,23 @@
       function onsuccess(e) {
           var cursor = e.target.result;
           if (cursor) {
-            result.push(cursor.value);
+            var value = cursor.value;
+            if (onfound) {
+              var command = onfound(value.name, value.type, value, cursor);
+              if (command) {
+                if (command.action === "update" && command.value !== undefined) {
+                  console.log("Update object", command.value, e);
+                  var newValue = command.value;
+                  // since none of name and type changes, there's no need to update object id.
+                  objStore.put(newValue);
+                } else if (command.action === "delete") {
+                  cursor.delete();
+                }
+              }
+            }
+              
+            if (needResult)
+              result.push(value);
             cursor.continue();
           }
       }
@@ -1196,25 +1308,29 @@
   };
     
   /**
-   * Find a script with a given id and a given type.
+   * Find a script with a given name and a given type.
    * type: type of scripts, which can be "cs", "ss", "dss", …
    * The onok callback should be like:
-   *   onok(obj, id, type) {...} 
+   *   onok(obj, name, type) {...} 
    * in which
-   *   id: domain of site-script, name of content-script
+   *   name: domain of site-script, name of content-script
    *   type: 'ss' for site-script, 'cs' for content-script, 'meta' for mata data
    * The optional onerr callback should be like: onerr(err) {...}
    */
-  DBStorage.fn.getScript = function (id, type, onok, onerr) {
+  DBStorage.fn.getScript = function (name, type, onok, onerr) {
     var types = type;
     if (!UTIL.isArray(type)) {
       types = [type];
     }
     
+    function onCompleted() {
+      //
+    }
+    
     this.transaction(false, function(objStore) {
       var indexGet;
       for (var i = 0; i < types.length; ++ i) {
-        indexGet = objStore.index("type,name").get([types[i], id]);
+        indexGet = objStore.index("type,name").get([types[i], name]);
         indexGet.onsuccess = onsuccess;
       }
       
@@ -1222,10 +1338,10 @@
         var obj = e.target.result;
       
         if (onok) {
-          onok(obj, id, types[i]);
+          onok(obj, name, types[i]);
         }
       }
-    }, onerr);
+    }, onerr, onCompleted);
   };
 
   /**
@@ -1260,49 +1376,41 @@
   };
   
   /**
-   * Delete a script or several scripts.
-   * deleteScript(id, type, onok)
-   * deleteScript(filterFunc, onok), in which filterFunc(id, type, obj)
+   * Delete a script or several scripts according to type and names.
+   * deleteScript(typeNamePair, onok)     typeNamePair is like [type, name], where type can be "dss", "ss", or "cs"
+   * deleteScript(typeNamePairs, onok)    typeNamePair is like [[type1, name1], [type2, name2], …]
+   * If your want to decide whether deleting a script based on its content, please refer to findScripts() function.
    */
-  DBStorage.fn.deleteScript = function (id, type, onok, onerr) {
-    var filter = null, genID = Storage.genScriptID(type, id);
-    if (UTIL.isFunction(id)) {
-      filter = id;
-      onok = type;
-    }
+  DBStorage.fn.deleteScript = function (typeNamePair, onok, onerr) {
+    var self = this, typeNamePairs;
+    if (!isArray(typeNamePair))
+      throw new Error("The first parameter must be a [type, name] array or an array of it.");
+    if (isArray(typeNamePair[0]))
+      typeNamePairs = typeNamePair;
+    else
+      typeNamePairs = [typeNamePair];
     
     this.transaction(true, function(objStore) {
-      var index = objStore.index("type");
-      var cursorReq;
-      // open a cursor
-      if (filter) {
-        cursorReq = objStore.index("type").openCursor();
-      } else {
-        console.log(objStore);
-        cursorReq = objStore.openCursor(IDBKeyRange.only(genID));
-      }
-      // iterate over all records with the cursor
-      cursorReq.onsuccess = function(event) {
-        var cursor = event.target.result;  
-              
-        if (cursor) {
-          if (filter) {
-            var key = cursor.key; 
-            var obj = cursor.value;
-            
-            if (filter(obj.name, obj.type, obj)) {
-              objStore.delete(obj.id);
-            } 
-          } 
-          
-          else {
-            objStore.delete(cursor.primaryKey);
-          }
-            
-          cursor.continue();
-        }  
-      };
+      typeNamePairs.forEach(function(typeNamePair) {
+        var genID = Storage.genScriptID(typeNamePair[0], typeNamePair[1]);
+        // open a cursor
+        var cursorReq = objStore.openCursor(IDBKeyRange.only(genID));        
+        // iterate over all records with the cursor
+        cursorReq.onsuccess = onRecordFound;
+      });     
     }, onerr, onok);
+    
+    function onRecordFound(event) {
+      var cursor = event.target.result; 
+      if (cursor) {
+        var req = cursor.delete();
+//         req.onsuccess = function(event) {
+//           console.log("Record deleted event=", event);
+//         }
+        
+        cursor.continue();
+      }
+    }
   };
   
   function defaultScriptFilter(id, type) {
@@ -1341,16 +1449,20 @@
     function openTransaction() {
       var transaction = self.db.transaction([ self.scriptStoreName ], 
         writeAccess ? "readwrite" : "readonly");
-      if (onerr) {
-        transaction.onerror = function(event) {
+      transaction.onerror = onError;
+      transaction.oncomplete = onComplete;
+      function onError(event) {
+        console.log("Database error", event);
+        if (onerr) {
           // Database error
           onerr(event.target.errorCode);
-        };
+        }
       }
-      if (oncomplete) {
-        transaction.oncomplete = function(event) {
+      function onComplete(event) {
+        console.log("Database transaction completes.");
+        if (oncomplete) {
           oncomplete();
-        };
+        }
       }
       var objStore = transaction.objectStore(self.scriptStoreName);
       

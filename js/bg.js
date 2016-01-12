@@ -34,7 +34,6 @@ function updateSettings(extraAttribute) {
     chrome.storage.local.set({"INFO": INFO});
     chrome.storage.local.set({"enabled": enabled});
 
-
     console.log("Settings are updated, and new INFO is", INFO);
   });
 }
@@ -57,26 +56,11 @@ if (localStorage["info"])
 3. chrome.tabs.executeScript()
 */
     // Fix a chrome bug which mess up tab id for prerendered page
-    // webNavigation.onTabReplaced
-    //chrome.tabs.onReplaced.addListener(function(newTabId, oldTabId) {
-//     chrome.webNavigation.onTabReplaced.addListener(function(oldTabId, newTabId) {
-//       console.log(`TAB-REPLACEMENT: Tab ${oldTabId} is replaced by tab ${newTabId}`);
-//       
-//       processTab(newTabId, "JSTinjectScript");
-//     });
-    
-//     chrome.webNavigation.onDOMContentLoaded.addListener(onUpdateTab);
-//     chrome.webNavigation.onCompleted.addListener(onUpdateTab);
-//     
-//     function onUpdateTab(details) {
-//       var tabid = details.tabId;
-//       var frameid = details.frameId;
-//       var timestamp = details.timeStamp;
-//       
-//       // The top frame
-//       if (frameid == 0)
-//         setIconSet(tabid, "inactive");
-//     }
+    chrome.webNavigation.onTabReplaced.addListener(function(detail) {
+      console.log(`TAB-REPLACEMENT: Tab ${detail.replacedTabId} is replaced by tab ${detail.tabId}`);
+      
+      processTab(detail.tabId, "JSTinjectScript");
+    });
       
     
     //chrome.extension.onRequest.addListener(function(request, sender) {
@@ -510,7 +494,7 @@ if (localStorage["info"])
           }, []);
       
       // Load the scripts from data store
-      storage.findScripts(indexes, function(scripts) {
+      storage.findScripts(false, indexes, function(scripts) {
         loadedScriptCount = scripts.length;
         duration = Date.now() - startTime;
         

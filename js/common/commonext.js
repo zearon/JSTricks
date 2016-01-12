@@ -41,8 +41,11 @@
     return this.replace(pattern, replacement);
   };
 	
-	Array.prototype.contains = function (element) {
-		return this.some(function(ele) { return ele === element; });
+	Array.prototype.contains = function (element, comparator) {
+		return this.some(function(ele) {
+		  if ((comparator)) return comparator(ele, element);
+		  else return ele === element; 
+		});
 	};
 	
 	Array.prototype.removeElement = function (element) {

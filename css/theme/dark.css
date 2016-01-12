@@ -14,13 +14,15 @@ html body.theme-dark { background:#0f0f0f; color:#eeeeee; }
 .theme-dark .editorPanel { background:#555; }
 .theme-dark .jstbox {
 	border-bottom:1px solid rgba(0,0,0,0.2);
-	border-top:1px solid white;
+	border-top:1px solid #777777;
 	background:#555;
 	/*text-shadow:white 0 1px;		*/	
 	-webkit-transition: background-color 0.2s linear, margin 0.2s linear;
 }
 .theme-dark .jstbox:hover { background:  rgba(64,64,64,1); }
 .theme-dark .jstbox.selected { background: rgba(50,50,50,1); }
+.theme-dark .jstbox.contentScriptGroup { background: rgba(70,70,70,1) url(img/folder-opened-white.gif) no-repeat left center; }
+.theme-dark .jstbox.contentScriptGroup.closed { background: rgba(70,70,70,1) url(img/folder-closed-white.gif) no-repeat left center; }
 .theme-dark .jstbox.autostart { background-image: url(img/autostart.png); background-repeat: no-repeat; }
 .theme-dark .jstbox.plugin .jsttitle { background-image: url(img/plugin.png); }
 .theme-dark #jstmessage {
@@ -32,6 +34,10 @@ html body.theme-dark { background:#0f0f0f; color:#eeeeee; }
 .theme-dark .jstmessage.ok { color:white; background:green;	}
 .theme-dark .jstmessage.error { color:white; background:red; }
 .theme-dark .hiddenFlag { color:#999; }
+.theme-dark #dcsmultiselect { 
+	/* -webkit-filter:invert(1); */
+	background: url('img/check.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868)); 
+}
 .theme-dark #dcsindexup { 
 	/* -webkit-filter:invert(1); */ 
 	background: url('img/arrow_up_white.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868)); 
