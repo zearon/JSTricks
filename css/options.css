@@ -35,8 +35,9 @@
 			/*text-shadow:white 0 1px;		*/	
 			-webkit-transition: background-color 0.2s linear, margin 0.2s linear;
 			overflow:hidden;
-			height: 30px;
+			height: 20px;
 		}
+		
 		.jstbox:hover
 		{
 			background:  rgba(247,223,29,0.5);
@@ -46,6 +47,13 @@
 			background: rgba(247,223,29,1) ;			
 			font-weight:900;
 		}
+		.jsttitle
+		{
+			font-size:11pt;			
+			line-height:20px;
+			float:left;
+		}
+		
 		.jstbox.selected:hover img.edit
 		{
 			visibility: visible;
@@ -58,19 +66,30 @@
 			background-repeat: no-repeat; 
 		}
 		.jstbox.siteScriptKey.autostart {
-			background-position: 0 9px; 
+			background-position: 0 center; 
 		}
 		.jstbox.contentScriptKey.autostart {
-			background-position: 20px 0; 
+			background-position: right center; 
 		}
 		.jstbox.plugin .jsttitle {
 			background-repeat: no-repeat; 
-			background-position: 0px 0px; 
+			background-position: 2px center; 
+		}
+		#contentscript-menu .jstbox.contentScriptGroup .group
+		{
+			position: relative;
+			left: 15px;
+			font-variant: small-caps;
+			/*text-transform: capitalize;*/
+		}
+		#contentscript-menu .contentScriptKey.jstbox.closed
+		{
+			display: none;
 		}
 		#contentscript-menu .jstbox.contentScriptKey span
 		{
 			position: relative;
-			top: 6px;
+			/*top: 4px;*/
 		}
 		#contentscript-menu .jstbox.contentScriptKey .index
 		{			
@@ -85,18 +104,39 @@
 		}
 		#contentscript-menu .jstbox.contentScriptKey .group
 		{
-			display: inline;
+			display: none/*inline*/;
 			color: #aaaaaa;
 			font-size: 10px;
 			position: absolute;
 			top: -6px;
 			left: 50px;
 		}
-		.jsttitle
+		#script-list .jstbox .select
 		{
-			font-size:11pt;			
-			line-height:30px;
-			float:left;
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			display: none;
+		}
+		#script-list.multi-select .jstbox .select
+		{
+		  display: block;
+		}
+		#contentscript-menu .jstbox .select input[type=checkbox]
+		{
+			position: relative;
+			top: 0px;
+			margin: 0 0 0 2px;
+		}
+		#contentscript-menu .jstbox.file .select input[type=checkbox]
+		{
+			margin: 0 0 0 8px;
+		}
+		#settings-list .jstbox {
+		  height: 30px;
+		}
+		#settings-list .jsttitle {
+		  line-height: 30px;
 		}
 		#jstmessage
 		{
@@ -150,7 +190,7 @@
 		{
 			position:absolute;
 			right: 5px;
-			margin:8px 0 0 5px;;
+			margin:4px 0 0 5px;;
 		}
 		img.edit
 		{
@@ -263,7 +303,13 @@
 		.actions input[type=button] {
 			position: relative;
 			top: -3px;
-			padding: 3px 9px;
+			padding: 3px 4px;
+		}
+		
+		#dcsmultiselect {
+			position: relative;
+			top: 0px;
+			width: 26px;
 		}
 		
 		#dcsindexup {

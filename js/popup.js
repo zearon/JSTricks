@@ -201,7 +201,7 @@ function log() {
 				
 			API_GetTabURL(function(url) {
 				var domain = url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
-				storage.deleteScript(domain, "ss");
+				storage.deleteScript(["ss", domain]);
 				
         chrome.runtime.sendMessage({method:"UpdateIconForDomain", data: domain });
 			  

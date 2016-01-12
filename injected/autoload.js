@@ -155,7 +155,7 @@ function createAutoload() {
     var allScripts = self.storage.siteIndex;
     var siteOption = allScripts[self.domain];
     var defaultEnabled = allScripts["Default"].active;
-    console.log(allScripts, siteOption, defaultEnabled);
+   // console.log(allScripts, siteOption, defaultEnabled);
   
     if (!self.storage.enabled) {
       self.siteStatus = "disabled";

@@ -21,6 +21,8 @@ html body.theme-light { background:rgb(252,252,252); }
 }
 .theme-light .jstbox:hover { background:  rgba(200,200,200,0.5); }
 .theme-light .jstbox.selected { background: rgba(200,200,200,1); }
+.theme-light .jstbox.contentScriptGroup { background: rgba(200,200,200,0.6) url(img/folder-opened.gif) no-repeat left center; }
+.theme-light .jstbox.contentScriptGroup.closed { background: rgba(200,200,200,0.6) url(img/folder-closed.gif) no-repeat left center; }
 .theme-light .jstbox.autostart { background-image: url(img/autostart.png); background-repeat: no-repeat; }
 .theme-light .jstbox.plugin .jsttitle { background-image: url(img/plugin.png); }
 .theme-light #jstmessage {
@@ -32,6 +34,10 @@ html body.theme-light { background:rgb(252,252,252); }
 .theme-light .jstmessage.ok { color:white; background:green;	}
 .theme-light .jstmessage.error { color:white; background:red; }
 .theme-light .hiddenFlag { color:#999; }
+.theme-light #dcsmultiselect { 
+	/* -webkit-filter:invert(1); */
+	background: url('img/check.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0)); 
+}
 .theme-light #dcsindexup { 
 	/* -webkit-filter:invert(1); */
 	background: url('img/arrow_up.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));

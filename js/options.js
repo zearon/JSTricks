@@ -34,7 +34,12 @@
 		
 		var jsonFileAnchor = 0;
 		var selectedContentScript = "";
+		var groupOfSelectedCS = null;
+		var selectedCSGroup = null;
 		var currentSavedStateDCS = "";
+		
+		var contentScriptGroups = {};
+		var csGroupUIprops = storage.getSetting("csgroup-ui", true, {});
 
 
 		var optionPageParams = {};
@@ -222,7 +227,7 @@
 			
 			if(confirm("Do you realy want to delete that trick?"))
 			{
-				storage.deleteScript(key, "ss");
+				storage.deleteScript(["ss", key]);
 			  chrome.runtime.sendMessage({method:"UpdateIconForDomain", data: key });
 			  
 				showMessage("'"+key+"' site's trick deleted!");
@@ -267,7 +272,7 @@
 		function isContentScriptName(v) {
 			return v.startsWith("$cs-");
 		}
-		function loadSiteScripts(filterOptions, contentType, nameFilter) {			
+		function loadSiteScripts(filterOptions, contentType, nameFilter, callback) {			
 			$("#menu").empty();
 
       var values = null, siteScripts = storage.loadIndexObj("ss").siteScripts;
@@ -277,11 +282,6 @@
       keys.sort();
       keys.unshift("Main", "Default");
       //console.log(keys);
-      
-      if (!inited) {
-        //action moved into Storage module
-        //siteScripts = createDefaultAndMainSiteScript();
-      }
       
       // Do not need to filter scripts by its content
       if (!filterOptions) {
@@ -298,7 +298,7 @@
         //console.log(values);
         
         // Filter site scripts and add them to script menu list.
-        filterSiteScript(keys, values, filterOptions, contentType, nameFilter);
+        filterSiteScript(keys, values, filterOptions, contentType, nameFilter, callback);
       } 
       
       // Filter scripts by its content
@@ -311,7 +311,7 @@
           //console.log(values);
           
           // Filter site scripts and add them to script menu list.
-          filterSiteScript(keys, values, filterOptions, contentType, nameFilter);
+          filterSiteScript(keys, values, filterOptions, contentType, nameFilter, callback);
         }, function(name, type, script) {
           // in filter
           values[name] = script;
@@ -326,13 +326,7 @@
       }      
 		}
 		
-		function createDefaultAndMainSiteScript() {
-      var mainScript =  {"name":"Main", "type":"dss", "script": "", "autostart": false, "sfile": "", "css": ""};
-      var defaultScript =  {"name":"Default", "type":"dss", "script": "", "autostart": false, "sfile": "", "css": ""};
-			return storage.saveScript([mainScript, defaultScript]).siteScripts;
-		}
-		
-		function filterSiteScript(keys, values, filterOptions, contentType, nameFilter) {
+		function filterSiteScript(keys, values, filterOptions, contentType, nameFilter, callback) {
 		
 		  for(var i = 0; i < keys.length; ++ i) {
         try {
@@ -388,7 +382,7 @@
             addMenuBox(v,lsd);
           
         } catch(e) {
-          console.log(`Invalid! localStorage[${v}]=${localStorage[v]}`);
+          console.error("Error:", e);
         }
       }      
 
@@ -396,6 +390,9 @@
       if (storage.getSetting("sitescripts_showMainScript") !== "true") {
         $(".siteScriptKey[data-site='Main']").hide();
       }
+      
+      if (callback)
+        callback();
 		}
 		
 		function addMenuBox(v,lsd)
@@ -451,7 +448,6 @@
 				$("#editorJs").hide().css({"visibility":""}).fadeIn();
 			
 			var v = $(obj).text();
-			//var lsd = JSON.parse(localStorage[v]);
 			
 			var flag = {index:1, len:2, found:false}
 			
@@ -472,6 +468,7 @@
 			  showMessage("Cannot load script due to " + err.message);
 			});
 		}
+		
 		function selectSiteOnScriptLoaded(obj, lsd) {
 			var mapOptions = {command:"HightlightMatchedText", editor:editorJs, editor2:editorCss};
 			mapSiteScriptFunc(lsd, mapOptions);
@@ -536,6 +533,16 @@
 			
 			showMessage("Loaded '"+lsd.name+"' site's trick!");
 		}
+					
+    // Click on the script selected before. If none is selected, select the first script.
+    // Used as call back (last argument) for loadSiteScripts
+    function clickOnSelectedSite() {
+      var site = selectedTitle;
+      var selectedSiteMenu = $(`#site-list .jstbox[data-site='${site}']`).click();
+      if (selectedSiteMenu.length < 1)
+        $("#site-list .jstbox:first").click();
+    }
+			
 		function editTitle($box)
 		{
 			$(".jsttitle", box);
@@ -558,27 +565,27 @@
 			}
 			return false;
 		}
-		function filterSiteScriptByJSContent() {
-			var content = $("#jscontentfiltertext").val();
-			var mode = $("#contentfiltermode")[0].selectedIndex;
-			var filter = content;
-			if (mode){
-				filter = new RegExp(content);
-			}
-			loadSiteScripts(filter, "js");
-		}
-		function filterSiteScriptByCSSContent() {
-			var content = $("#jscontentfiltertext").val();
-			var mode = $("#contentfiltermode")[0].selectedIndex;
-			var filter = content;
-			if (mode){
-				filter = new RegExp(content);
-			}
-			loadSiteScripts(filter, "css");
-		}
-		function filterSiteScriptShowAll() {
-			loadSiteScripts();
-		}
+//   	function filterSiteScriptByJSContent() {
+// 			var content = $("#jscontentfiltertext").val();
+// 			var mode = $("#contentfiltermode")[0].selectedIndex;
+// 			var filter = content;
+// 			if (mode){
+// 				filter = new RegExp(content);
+// 			}
+// 			loadSiteScripts(filter, "js");
+// 		}
+// 		function filterSiteScriptByCSSContent() {
+// 			var content = $("#jscontentfiltertext").val();
+// 			var mode = $("#contentfiltermode")[0].selectedIndex;
+// 			var filter = content;
+// 			if (mode){
+// 				filter = new RegExp(content);
+// 			}
+// 			loadSiteScripts(filter, "css");
+// 		}
+// 		function filterSiteScriptShowAll() {
+// 			loadSiteScripts();
+// 		}
 		
 		 
 				
@@ -611,15 +618,14 @@
 			});
 // 			$("#testtest").click(cloudStorageGenCode);
 		
-			$("#jscontentfilterbtn").click(filterSiteScriptByJSContent);
-			$("#csscontentfilterbtn").click(filterSiteScriptByCSSContent);
-			$("#clearcontentfilterbtn").click(filterSiteScriptShowAll);
+// 			$("#jscontentfilterbtn").click(filterSiteScriptByJSContent);
+// 			$("#csscontentfilterbtn").click(filterSiteScriptByCSSContent);
+// 			$("#clearcontentfilterbtn").click(filterSiteScriptShowAll);
 			
 			//$("#forjscb").click(changeAutostart);
 			$("#jscb").change(changeAutostart);
 			$("#jssave").click(saveSiteScript);
 			$("#jsdelete").click(deleteRecord);	
-			$("#exportbtn").click(exportSettings);
 			$(".findReplaceDialogBtn").click(showFindReplaceDialog);
 			$("input:button.textSizeUpBtn").click(function(){textSize(1);});
 			$("input:button.textSizeDownBtn").click(function(){textSize(-1);});				
@@ -656,6 +662,8 @@
 			
 			$("#dcssave").click(save);
 			$("#dcsadd").click(addContentScript);
+			$("#dcsdelete-allselected").click(deleteAllSelectedContentScripts);
+			$("#dcsregroup").click(regroupAllSelectedContentScripts);
 			$("#dcsrename").click(renameContentScript);
 			$("#dcsgencodebytemplate").change(generateContentScript);
 			$("#dcsdelete").click(deleteContentScript);
@@ -678,6 +686,10 @@
 			initControlsRelatingToLocalStorage();
 			
 			setupKeyEventHandler();
+			
+			$("#dcsmultiselect").click(function() {
+        setMultiSelectionEnabled(this); 
+			});
 			
 			// Find all nodes with class "togglePanel" , and add an event handler to toggle 
 			// those nodes with css selector matching the .togglePanel node's target attribute value.
@@ -961,7 +973,9 @@
 			});
 			$(".navbar *").click(function(event) {
 				focusNotOnMenuList = false;
-				focusedMenuItem = $(event.target).closest(".jstbox");
+				var node = $(event.target).closest(".jstbox");
+				if (!node.hasClass("folder"))
+				  focusedMenuItem = node;
 				//console.log(focusedMenuItem);
 			});
 			
@@ -986,30 +1000,38 @@
 					if (focusNotOnMenuList)
 						return;
 					
-					event.preventDefault();
-					var node = null;
+					event.preventDefault();					
+					// 22 is the height of .jstbox
+					var node = focusedMenuItem, menuItemHeight = 22, yCodMoved = 0;
 					
 					if(event.which === 38) {
-						node = focusedMenuItem.prev();
+					  do {
+						  node = node.prev();
+              yCodMoved += menuItemHeight;
+						} while (node.length > 0 && !(node.hasClass("contentScriptKey") && node.hasClass("opened") ));
 					} else if (event.which === 40) {
-						node = focusedMenuItem.next();
+					  do {
+						  node = node.next();
+              yCodMoved += menuItemHeight;
+						} while (node.length > 0 && !(node.hasClass("contentScriptKey") && node.hasClass("opened") ));
 					}
+					console.log("--", node.attr("name"));
 					
 					if (node.length < 1)
 						return;
-					
-					node.click();
+					  
+					node.click();					  
+					// Scroll the scrollbar if needed
 					var container = node.parent();
 					var containerHeight = container.height();
 					var pos = node.position();
 					var pos_y = pos.top; // 32 is the height of the menu item.
 					console.log(`Container height is ${containerHeight} and y position is ${pos_y}`);
 					
-					// 32 is the height of .jstbox
-					if (pos_y + 32 > containerHeight) {
-						container[0].scrollTop += 32;
+					if (pos_y + yCodMoved > containerHeight) {
+						container[0].scrollTop += yCodMoved;
 					} else if (pos_y < 0) {
-						container[0].scrollTop -= 32;
+						container[0].scrollTop -= yCodMoved;
 					}
 					console.log(container[0].scrollTop);
 				}
@@ -1032,7 +1054,7 @@
 							if(el.id === target)
 								$(el).css({"z-index":200}).animate({"margin-left":0});
 							else
-								$(el).animate({"margin-left":-$(tabs).width()});
+								$(el).animate({"margin-left":-$("body").width() });
 								
 						});
 					});
@@ -1205,19 +1227,6 @@
 			
 			});
 		}
-		function exportSettings()
-		{
-			var w = window.open();
-			w.document.write("<pre>");
-			if(localStorage && localStorage.length !== 0)
-			{
-				for(var v in localStorage)
-				{
-					w.document.write("exported['"+v+"'] = \"" + localStorage[v].replace(/\"/g,"\\\"") + "\" \n");
-				}
-			}
-			w.document.write("</pre>");
-		}		
 		function textSize(val)
 		{
 			var v = parseInt($(".CodeMirror").css("font-size")) + val;
@@ -1338,23 +1347,6 @@
           showConfiguration(oldData);
         });		    
 		  }, {settings:false, onlyInitScripts:true});
-			
-			
-			
-			for (var key in localStorage) {
-				if (isSiteScriptName(key) || key === "Default" || key === "info") // info is the version
-					continue;
-					
-				if (key.startsWith("$cs-") && false)
-					continue;
-				
-				if (key.startsWith("$setting")) 
-					continue;
-				
-				settings[key] = localStorage[key];
-			}
-			
-
 		}
 		
 		function loadDefaultSettings() {
@@ -1750,21 +1742,17 @@
 				if (options.filter) {
 					loadSiteScripts(findReplaceDialog_replaceKey, findReplaceDialog_replaceKey["targetType"],
 					  function(name) {
+					    var nameMatches = true; // Now content script and other settings don't come here
 					  	if (findReplaceDialog_replaceKey["containsDefaultScript"]) {
-							return isSiteScriptName(name) || name === "Default"; 
+							  return nameMatches || name === "Default" || name === "Main"; 
 					  	} else {
-							return isSiteScriptName(name); 
+							  return nameMatches; 
 					  	}
-					  } );
+					  }, 
+					  clickOnSelectedSite);
 				} else {
-					loadSiteScripts();
+					loadSiteScripts(undefined, undefined, undefined, clickOnSelectedSite);
 				}
-			
-			// Select the script selected before. If none is selected, select the first script.
-			var site = selectedTitle;
-			var selectedSiteMenu = $(`#site-list .jstbox[data-site='${site}']`).click();
-			if (selectedSiteMenu.length < 1)
-				$("#site-list .jstbox:first").click();
 			
 			// Switch editor to JS/CSS according to search target
 			if (options.switcheditor) {
@@ -1795,9 +1783,9 @@
 					//var filter = {content:findReplaceDialog_replaceKey["pattern"]};
 					//if (findReplaceDialog_replaceKey["name"] ) { filter.name = findReplaceDialog_replaceKey["name"]; }
 					//loadAllContentScripts(filter);
-					loadAllContentScripts(findReplaceDialog_replaceKey);
+					loadAllContentScripts(findReplaceDialog_replaceKey, clickOnSelectedContentScript);
 				} else {
-					loadAllContentScripts();
+					loadAllContentScripts(undefined, clickOnSelectedContentScript);
 				}
 			
 			// Select the script selected before. If none is selected, select the first script.
@@ -1929,30 +1917,60 @@
 		
 		function findReplaceDialog_replaceSiteScripts() {		
 			findReplaceDialog_updateReplaceKey();
-			var name = findReplaceDialog_replaceKey["name"];
+			var nameKey = findReplaceDialog_replaceKey["name"];
+			var updated
 			
-			for(var v in localStorage) {	
-				if (name && name !== v)
+			storage.getAllScripts(["dss", "ss"], function() {
+			  // On complete of transaction
+			  // Do nothing.
+			}, function(name, type, script) {
+			  // On filtering every "dss" and "ss" scripts
+				if (nameKey && nameKey !== name)
+					return;
+					
+				var nameMatches = true;	// 
+        if (findReplaceDialog_replaceKey["containsDefaultScript"]) {
+          isSiteScript = nameMatches || v === "Default" || v === "Main"; 
+        } else {
+          isSiteScript = nameMatches; 
+        }
+        if (!isSiteScript)
+          return;
+        
+        findReplaceDialog_mapReplacedScript(script);
+        
+        // save new script back
+			  // Updating record is in another thread other than the getting record thread in IndexedDB
+        localStorage[v] = JSON.stringify(lsd);
+			});
+			
+			function onComplete() {
+			  //
+			}
+			/*
+			for(var v in localStorage) {
+				if (nameKey && nameKey !== v)
 					continue;
 					
 				try {
-					var isSiteScript = false;		
+					var nameMatches = true;	// 
 					if (findReplaceDialog_replaceKey["containsDefaultScript"]) {
-						isSiteScript = isSiteScriptName(v) || v === "Default"; 
+						isSiteScript = nameMatches || v === "Default" || v === "Main"; 
 					} else {
-						isSiteScript = isSiteScriptName(v); 
+						isSiteScript = nameMatches; 
 					}
 					if (!isSiteScript)
 						continue;
 					
 					var lsd = JSON.parse(localStorage[v]);
 					findReplaceDialog_mapReplacedScript(lsd);
-						
+					
+					// save new script back
 					localStorage[v] = JSON.stringify(lsd);
 				} catch(e) {
 					console.log(`Invalid! localStorage[${v}]=${localStorage[v]}`);
 				}
-			}
+			}*/
 		}
 		
 		function findReplaceDialog_replaceContentScripts() {	
@@ -1970,6 +1988,7 @@
 					var lsd = JSON.parse(localStorage[v]);
 					findReplaceDialog_mapReplacedScript(lsd);
 						
+					// save new script back
 					localStorage[v] = JSON.stringify(lsd);
 				} catch(e) {
 					console.log(`Invalid! localStorage[${v}]=${localStorage[v]}`);
@@ -2299,7 +2318,7 @@
 			if (!contentScriptSaved())
 				return;
 				
-			var name = prompt("Script name:");
+			var cs, name = prompt("Script name:");
 			if (!name)
 				return;
 			name = name.trim();
@@ -2308,8 +2327,8 @@
 				return;
 			}
 				
-			if (checkDuplicateContentScript(name)) {
-				alert("A script with the given name already exists. Please change a name.");
+			if ((cs = checkDuplicateContentScript(name)) ) {
+				alert("A script with the given name already exists in group /" + cs.group + ". Please change a name.");
 				return;
 			}	
 
@@ -2329,13 +2348,9 @@
 			
 			saveContentScript();
 			
-			loadAllContentScripts();
-			// Select the script selected before. If none is selected, select the first script.
-			var selectedSiteMenu = $(`#contentscript-menu .jstbox[name='${name}']`).click();
-			
+			loadAllContentScripts();			
 			
 			updateContentScriptForContextMenu();
-			
 		}
 					
 		function loadContentScriptTemplate() {
@@ -2395,18 +2410,35 @@
 				  return;
 			}
 			
-			storage.saveScript(tmp);
-			setCsScriptIndexInMenu(selectedContentScript, index);
-			
 			$(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`).attr("index", index)
-				.find(".index").text(index);
-				
+				.find(".index").text(index);				
 			$(`#contentscript-menu > .jstbox[name='${selectedContentScript}'] .group`).text(group + "/");
 			
+			setCsScriptIndexInMenu(selectedContentScript, index);
 			currentSavedStateDCS = editorDynScript.getValue();
-			showMessage("Content script saved!");
 			
-			updateContentScriptForContextMenu();
+			storage.saveScript(tmp, function() {
+        
+        // If group is changed, reload the content script list
+        if (group !== groupOfSelectedCS) {
+         /* // This is a new group
+          if (!csGroupUIprops[group]) {
+            alert("New group");
+            chrome.runtime.getBackgroundPage(function(win) {
+              win.initContextMenuOnInstalled();
+              loadAllContentScripts();
+            });
+          } 
+          // This is an existing group
+          else {
+            loadAllContentScripts();
+          }*/
+          loadAllContentScripts();
+        }
+      
+        showMessage("Content script saved!");
+			
+			});
 		}
 		
 		function renameContentScript() {
@@ -2421,7 +2453,7 @@
 				else
 					return;
 			
-			var newName = "";
+			var cs, newName = "";
 			
 			do {
 				newName = prompt("New name:", selectedContentScript);			
@@ -2429,8 +2461,8 @@
 					return;	
 						
 				newName = newName.trim();
-				if (checkDuplicateContentScript(newName)) {
-					alert("A script with the given name already exists. Please change a name.");
+        if ((cs = checkDuplicateContentScript(newName)) ) {
+          alert("A script with the given name already exists in group /" + cs.group + ". Please change a name.");
 				} else {
 					break;
 				}
@@ -2438,7 +2470,7 @@
 				
 			var script = editorDynScript.getValue();
 			var name = selectedContentScript;
-			storage.deleteScript(name, "cs");
+			storage.deleteScript(["ss", name]);
 			deleteCsScriptIndexInMenu(name);
 			
 			//var commentRegExp = "(\\/\\*([\\s\\S]*?)\\*\\/|([^:]|^)\\/\\/(.*)$)";
@@ -2463,7 +2495,7 @@
 				return;
 			
 			if (confirm(`Do you realy want to delete content script ${selectedContentScript}?`)) {
-				storage.deleteScript(selectedContentScript, "cs");
+				storage.deleteScript(["cs", selectedContentScript]);
 				deleteCsScriptIndexInMenu(selectedContentScript);
 				$(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`).remove();
 
@@ -2480,6 +2512,80 @@
 			updateContentScriptForContextMenu();
 		}
 		
+		function getAllSelectedContentScripts(node) {
+		  var container = $(node).closest(".navbar");
+		  if (!container.hasClass("multi-select"))
+		    return undefined;
+		  
+		  var result = [];
+		  container.find(".file:checkbox:checked").each(function(idx, ele) {
+		    var elenode = $(ele);
+		    result.push(["cs", elenode.attr("name")]);
+		  });
+		  
+		  return result;
+		}
+		
+		function deleteAllSelectedContentScripts() {
+		  var typeNamePairs = getAllSelectedContentScripts(this);
+		  if (!typeNamePairs) {
+		    alert("Your are not in multi-selection mode. Switch to that mode first.");
+		    return;
+		  }
+		  
+		  if (typeNamePairs.length < 1) {
+		    alert("No script is selected.");
+		    return;
+		  } else if (!confirm("WARNING!!! Are your sure you want to delete all selected scripts?")) {
+		    return;
+		  }
+		  var global = this;
+		  
+		  storage.deleteScript(typeNamePairs, function() {
+		    // On complete, disable multi-selectin mode, reload menu list and update context menues
+		    setMultiSelectionEnabled.call(global, undefined, false);
+        loadAllContentScripts();
+        updateContentScriptForContextMenu();
+		  });		  	
+		}
+		
+		function regroupAllSelectedContentScripts() {
+		  var typeNamePairs = getAllSelectedContentScripts(this);
+		  if (!typeNamePairs) {
+		    alert("Your are not in multi-selection mode. Switch to that mode first.");
+		    return;
+		  }
+		  
+		  if (typeNamePairs.length < 1) {
+		    alert("No script is selected.");
+		    return;
+		  }
+		    
+		  var newGroupName = prompt("Please type in a new group name:");
+		  var global = this;
+		  console.log(newGroupName);
+		  
+		  storage.findScripts(true, typeNamePairs, function(scripts) {
+		    // On complete, disable multi-selectin mode, reload menu list and update context menues
+		    setMultiSelectionEnabled.call(global, undefined, false);
+        loadAllContentScripts();	
+        updateContentScriptForContextMenu();	
+		  }, function(name, type, script) {
+		    // On each script found, update the script with the new group name
+		    script.group = newGroupName;		    
+		    return {action:"update", value:script};
+		  });
+		}
+		
+		function setMultiSelectionEnabled(node, enabled) {	  
+      var container = node ? $(node).closest(".navbar") : $("#script-list.navbar");
+      var multiSelectMode = enabled === undefined ? container.hasClass("multi-select") : !enabled;
+      if (multiSelectMode)
+        container.removeClass("multi-select");
+      else
+        container.addClass("multi-select");			   		
+		}
+		
 		function sortContentScript() {
 			console.log('sortContentScript');
 			$("#contentscript-menu > .jstbox").remove();
@@ -2489,48 +2595,33 @@
 		}
 		
 		function moveUpContentScript() {
-			console.log('moveUpContentScript');
-			if (selectedContentScript === "")
+			if (selectedContentScript === "" && selectedCSGroup === null)
 				return;
 			
-			var node = $(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`);
-			var targetNode = node.prev();
-			var target = targetNode[0];
-			if (!target) {
-				alert("This is already the first script.");
-				return;
-			}
-			
-			var scriptMenuIndex = loadCsScriptMenuIndex();
-			var nodeName = node.attr("name");
-			var targetName = $(target).attr("name");
-			var nodeIndex = scriptMenuIndex[nodeName];
-			var targetIndex = scriptMenuIndex[targetName];
-			
-			$("#dcsindex").val(targetIndex);
-			targetNode.attr("index",nodeIndex)
-				.find(".index").text(nodeIndex);
-			node.detach().insertBefore(`#contentscript-menu > .jstbox[name='${targetName}']`)
-				.click(loadContentScript)
-				.attr("index", targetIndex)
-				.find(".index").text(targetIndex);
-				
-			scriptMenuIndex[nodeName] = targetIndex;
-			scriptMenuIndex[targetName] = nodeIndex;
-			saveCsScriptMenuIndex(scriptMenuIndex);						
-			updateContentScriptForContextMenu();
+			if (selectedCSGroup !== null)
+			  swapTwoContentScriptGroup(true);
+			else
+			  swapTwoContentScriptPos(true);
 		}
 		
 		function moveDownContentScript() {
-			console.log('moveDownContentScript');
-			if (selectedContentScript === "")
+			if (selectedContentScript === "" && selectedCSGroup === null)
 				return;
 			
+			if (selectedCSGroup !== null)
+			  swapTwoContentScriptGroup(false);
+			else
+			  swapTwoContentScriptPos(false);
+		}
+		
+		function swapTwoContentScriptPos(moveForward) {
 			var node = $(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`);
-			var targetNode = node.next();
+			var targetNode = moveForward ? node.prev() : node.next();
 			var target = targetNode[0];
-			if (!target) {
-				alert("This is already the last script.");
+			var group = node.attr("group");
+			if (!target || targetNode.hasClass("contentScriptGroup")) {
+			  var posStr = moveForward ? "first" : "last";
+				alert("This is already the " + posStr + " script in the group.");
 				return;
 			}			
 			
@@ -2543,8 +2634,12 @@
 			$("#dcsindex").val(targetIndex);
 			targetNode.attr("index", nodeIndex)
 				.find(".index").text(nodeIndex);
-			node.detach().insertAfter(`#contentscript-menu > .jstbox[name='${targetName}']`)
-				.click(loadContentScript)
+			if (moveForward)
+			  node.detach().insertBefore(`#contentscript-menu > .jstbox.contentScriptKey[name='${targetName}']`)
+			else	
+			  node.detach().insertAfter(`#contentscript-menu > .jstbox.contentScriptKey[name='${targetName}']`)
+			
+			node.click(loadContentScript)
 				.attr("index", targetIndex)
 				.find(".index").text(targetIndex);
 				
@@ -2553,7 +2648,45 @@
 			saveCsScriptMenuIndex(scriptMenuIndex);						
 			updateContentScriptForContextMenu();
 		}
-		
+
+    function swapTwoContentScriptGroup(moveForward) {
+			console.log("Move group:", selectedCSGroup, moveForward ? "up" : "down");
+			  
+			var groupNode = $(`#contentscript-menu > .jstbox.folder[group='${selectedCSGroup}']`);
+			var groupName = groupNode.attr("group");
+			var targetGroupNode = moveForward ? groupNode.prevAll(".jstbox.folder:first") : groupNode.nextAll(".jstbox.folder:first");
+			var targetGroupName = targetGroupNode.attr("group");
+			var targetAnchorNode = moveForward ? targetGroupNode : groupNode.parentsUntil(".navbar").find(`.jstbox.file[group='${targetGroupName}']:last`);
+			
+			console.log("Move group. anchor node is", targetAnchorNode[0]);
+			
+			if (targetAnchorNode.length < 1) {
+			  alert("This is already the " + (moveForward ? "first" : "last") + " group among all groups.");
+			  return;
+			}			
+			
+			// Swap index attribute on two group nodes
+		  var tempIndex;
+		  var groupIndex = csGroupUIprops[groupName].index;
+		  var targetGroupIndex = csGroupUIprops[targetGroupName].index;
+		  tempIndex = csGroupUIprops[groupName].index;
+		  csGroupUIprops[groupName].index = targetGroupIndex;
+		  csGroupUIprops[targetGroupName].index = tempIndex;
+			storage.setSetting("csgroup-ui", csGroupUIprops, true);
+			
+			// Move UI Nodes
+			groupNode.attr("groupindex", targetGroupIndex);
+			targetGroupNode.attr("groupindex", groupIndex);
+			var allGroupNodes = $(`#contentscript-menu .jstbox[group='${groupName}']`).detach();
+			if (moveForward)
+			  allGroupNodes.insertBefore(targetAnchorNode);
+			else
+			  allGroupNodes.insertAfter(targetAnchorNode);	
+		  
+		  // Update the context menues		  
+			updateContentScriptForContextMenu();
+    }
+
 		function reindexContentScript() {
 			console.log('reindexContentScript');
 			$("#contentscript-menu > .jstbox").remove();
@@ -2572,9 +2705,7 @@
 			console.log(scriptMenuIndex);
 			
 			saveCsScriptMenuIndex(scriptMenuIndex);
-			loadAllContentScripts();
-			// Select the script selected before. If none is selected, select the first script.
-			var selectedSiteMenu = $(`#contentscript-menu .jstbox[name='${name}']`).click();
+			loadAllContentScripts(undefined, clickOnSelectedContentScript);
 		}
 		
 		function updateContentScriptForContextMenu() {
@@ -2583,7 +2714,7 @@
 			chrome.runtime.sendMessage({method: "UpdateContextMenu"});
 		}
 		
-		function addContentScriptMenu(name, index, group) {
+		function addContentScriptMenu(name, title, index, group) {
 			// console.log('addContentScriptMenu: ' + name);
 			if (!group)
 				group = "";
@@ -2605,11 +2736,40 @@
           }
 			  }
 			}
-			var extraClassStr = extraClass.join(" ");
-
 			var container = $("#contentscript-menu");
-			container.find("> .jstbox").removeClass("selected");
-			var node = $(`<div class="jstbox contentScriptKey selected ${extraClassStr}" name="${name}" title="${name}" index="${index}">
+      var groupItem = container.find(".contentScriptGroup[group='${group}']");
+      var groupStatus = contentScriptGroups[group];
+      if (!groupStatus) {
+        groupStatus = contentScriptGroups[group] = {};
+        // load from setting
+		    var props = csGroupUIprops[group];
+        groupStatus.className = (props && props.closed) ? "closed" : "opened";
+        groupStatus.index = props.index;
+        //console.log("Adding item", name, group, props, groupStatus);
+        var groupItem = $(`
+          <div class="jstbox contentScriptGroup folder ${groupStatus.className}" group="${group}" groupindex="${groupStatus.index}">
+            <div class="jsttitle" style="display:inline;font-variant:normal;position:relative;">
+              <span class="group">/${group}</span>
+						  <div class="select" group="${group}"><input class="folder" group="${group}" type="checkbox" /></div>
+            </div>
+          </div>
+        `).appendTo(container).click(toggleConentScriptGroup);
+        
+        
+        // Add event handler for checkbox on group menu item in content script tab
+        groupItem.find("input:input").click(function(e) {
+          var node = $(this);
+          var checked = node[0].checked;
+          var group = node.attr("group");
+          var groupNodes = node.parentsUntil(".navbar").find(`input.file:checkbox[group='${group}']`);
+          console.log( "-------"  );
+          groupNodes.each(function(idx, ele) { ele.checked = checked; });
+        });
+      }
+      
+			var extraClassStr = extraClass.join(" ");
+			container.find(" .jstbox").removeClass("selected");
+			var node = $(`<div class="jstbox contentScriptKey file selected ${groupStatus.className} ${extraClassStr}" name="${name}" title="name:${name}<br/>title:${title}" index="${index}" group="${group}">
 					<div class="jsttitle" style="display:inline;font-variant:normal;position:relative;">
 						<nobr>
 						<span class="index">${index}</span>
@@ -2617,10 +2777,39 @@
 						<span class="name">${name}</span>
 						</nobr>
 						<div class="group">${group}/</div>
+						<div class="select"><input class="file" group="${group}" name="${name}" type="checkbox" /></div>
 					</div>
 				</div>
 			`).appendTo(container).click(loadContentScript);
-			container[0].scrollTop += 32;  //container.height();
+			
+			container.find("input").click(function(event) { event.stopPropagation(); } );
+			//container[0].scrollTop += 22;  //container.height();
+		}
+		
+		function toggleConentScriptGroup() {
+      console.log(this);
+      var groupBar = $(this), group = groupBar.attr("group");
+      var groupItems = $(`#contentscript-menu .contentScriptKey[group='${group}']`);
+      var closed = groupBar.hasClass("closed");
+      selectedCSGroup = group;
+      if (closed) {
+        groupItems.show();
+        groupItems.removeClass("closed").addClass("opened");
+        groupBar.removeClass("closed").addClass("opened");
+      } else {
+        groupItems.hide();
+        groupItems.removeClass("opened").addClass("closed");
+        groupBar.removeClass("opened").addClass("closed");
+      }
+      
+      // Remember the status
+      closed = !closed;
+      csGroupUIprops = storage.getSetting("csgroup-ui", true, {});
+      var props = csGroupUIprops[group];
+      if (props) props.closed = closed;
+      else props = {closed:closed};
+      csGroupUIprops[group] = props;
+      storage.setSetting("csgroup-ui", csGroupUIprops, true);
 		}
 		
 		function checkDuplicateContentScript(name) {
@@ -2630,6 +2819,7 @@
 		function loadContentScript() {
 			var name = $(this).attr('name');
 			console.log("loadContentScript: " + name);
+			selectedCSGroup = null;
 			
 			if (!contentScriptSaved())
 				return;
@@ -2638,13 +2828,6 @@
 			$(this).addClass("selected");
 			
 			selectedContentScript = name;
-			/*var data, value = localStorage["$cs-"+name];
-			try {
-				data = JSON.parse(value);
-			} catch (exception) {
-				console.error(value);
-				return;
-			}*/
 			
 			storage.getScript(name, "cs", function(script, name, type) {
 			  // On loaded
@@ -2675,6 +2858,8 @@
 			document.getElementById("importOnce").checked = script.importOnce;
 			$("#importOnce").button("refresh");
 			
+			groupOfSelectedCS = script.group;
+			
 			currentSavedStateDCS = script.script;
 			editorDynScript.clearHistory();
 			
@@ -2688,7 +2873,16 @@
 			showMessage("Loaded content script: '" + script.name + "'!");
 		}
 		
-		function loadAllContentScripts(filter, options) {
+		// Select the script selected before. If none is selected, select the first script.
+		// Used as callback for loadContentScript after performing find/replace action.
+		function clickOnSelectedContentScript() {
+		  if (selectedContentScript)
+			  $(`#contentscript-menu .jstbox[name='${selectedContentScript}']`).click();
+			else
+			   $(`#contentscript-menu .jstbox:first`).click();
+		}
+		
+		function loadAllContentScripts(filter, callback) {
 			$("#contentscript-menu").empty();
 			
 			loadAllContentScripts_internal(function(s) {
@@ -2705,7 +2899,7 @@
 				// If searched text is /msg/g then /([\s\S]*?)msg/g should be used for searching
 				var match = s.script.match(contentFilter);
 				return match !== null;
-			}, filter !== undefined);
+			}, filter !== undefined, callback);
 		}
 		
 		// addMenuFilter: a true/false value or a function accepting a script object and
@@ -2713,7 +2907,7 @@
 		// loadScriptContent: true/false value indicate if it is required to load the
 		// whole script content from storage. If it is set to false, then the value for 
 		// the addMenuFilter parameter is only like {name, group}, but no detail content.
-		function loadAllContentScripts_internal(addMenuFilter, loadScriptContent) {
+		function loadAllContentScripts_internal(addMenuFilter, loadScriptContent, callback) {
 		  if (!loadScriptContent) {
 		    // load script list from index stored in cache
 		    var scriptsIndex = storage.loadIndexObj().contentScripts;
@@ -2722,18 +2916,20 @@
 		      return ele.value;
 		    })
 		    
-		    loadAllContentScripts_onScriptLoaded(scripts, addMenuFilter);
+		    loadAllContentScripts_onScriptLoaded(scripts, addMenuFilter, callback);
 		  } else {
 		    // load script list with detailed script content from data storage.
 		    storage.getAllScripts("cs", function(scripts) {
-		      loadAllContentScripts_onScriptLoaded(scripts, addMenuFilter);
+		      loadAllContentScripts_onScriptLoaded(scripts, addMenuFilter, callback);
 		    });
 		  }
 		}
 		
-		function loadAllContentScripts_onScriptLoaded(scripts, addMenuFilter) {
+		function loadAllContentScripts_onScriptLoaded(scripts, addMenuFilter, callback) {
 		  var scriptMenuIndex = loadCsScriptMenuIndex();
 			scripts.sort(getCSSorter(scriptMenuIndex));
+			contentScriptGroups = [];
+			csGroupUIprops = storage.getSetting("csgroup-ui", true, {});
 			
 			for ( var i = 0; i < scripts.length; ++ i ) {
 				var script = scripts[i];
@@ -2744,7 +2940,7 @@
 						flag = addMenuFilter(script);
 						
 					if (flag)
-						addContentScriptMenu(script.name, index, script.group);
+						addContentScriptMenu(script.name, script.title, index, script.group);
 				}
 			}
 			
@@ -2752,22 +2948,36 @@
 			if (selectedContentScript)
 				$(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`).addClass("selected");
 		
-		  // inline script comparison function for sorting
+		  if (callback)
+		    callback();
 		}
 		
+		// script comparison function for sorting
 		function getCSSorter(scriptMenuIndex) {
 		  if (!scriptMenuIndex) scriptMenuIndex = loadCsScriptMenuIndex();
 		  
       return function(a, b) {
         a.index = scriptMenuIndex[a.name]; b.index = scriptMenuIndex[b.name];
-        var groupDiff = a.group.localeCompare(b.group);
-        var indexDiff = (a.index === undefined && b.index === undefined) ? 0 : 
-          (a.index === undefined ? 1 : 
-          (b.index === undefined ? -1 : a.index - b.index ));
+        a.gindex = csGroupUIprops[a.group], a.gindex = a.gindex ? a.gindex.index : undefined;
+        b.gindex = csGroupUIprops[b.group], b.gindex = b.gindex ? b.gindex.index : undefined;
+        var groupDiff = compareNumberWithUndef(a.gindex, b.gindex);
+        var indexDiff = compareNumberWithUndef(a.index, b.index);
         var nameDiff  = a.name.localeCompare(b.name);
         return groupDiff !== 0 ? groupDiff :
                 (indexDiff !== 0 ? indexDiff :
                 nameDiff);
+  
+        function compareNumberWithUndef(a, b) {
+          return (a === undefined && b === undefined) ? 0 : 
+            (a === undefined ? 1 : 
+              (b === undefined ? -1 : a - b ));
+        }
+    
+        function compareStrWithUndef(a, b) {
+          return (a === undefined && b === undefined) ? 0 : 
+            (a === undefined ? 1 : 
+              (b === undefined ? -1 : a.localeCompare(b) ));
+        }
       }
 		}
 		
