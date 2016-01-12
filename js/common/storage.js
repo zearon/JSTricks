@@ -552,9 +552,8 @@
             getScriptOptForIndex(script_));
       }
       self.saveIndexObj(indexObj);
-      self.updateContextMenuAndBGSettings();
-      
-      if (onsaved) onsaved();
+      // update context menu and invoke callback
+      self.updateContextMenuAndBGSettings(onsaved);
     }
     
     var result = this.sst.saveScript.call(this.sst, script, onComplete);
@@ -585,12 +584,8 @@
         updateScriptIndex_internal(indexObj, "delete", typeNamePair[1], typeNamePair[0]);
       });
       self.saveIndexObj(indexObj);
-      // Update context menus
-      self.updateContextMenuAndBGSettings();
-      
-      // Callback onok
-      if (onok)
-        onok();
+      // Update context menus and invoke callback
+      self.updateContextMenuAndBGSettings(onok);
     }
     
     var result = this.sst.deleteScript.call(this.sst, typeNamePair, onComplete, onerr);
