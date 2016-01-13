@@ -93,7 +93,8 @@ if (localStorage["info"])
         chrome.tabs.get(tabid, function(tab) {
           if (chrome.runtime.lastError) {
             // tab is not fetched successfully
-            console.error(`Tab ${tabid} does not exist`);
+            // May be it is a prefetch (prerendering) tab
+            console.log(`--- [Invisible Tab] ${tabid} does not exist`);
           } else {
             // debug_log(`[JScript Tricks] processing tab ${tab.id} title:${tab.title}, url:${tab.url}`);
             processRequest(tab.id, tab.url, requestMethod, requestData);
