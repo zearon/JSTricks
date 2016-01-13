@@ -37,6 +37,7 @@
 		var groupOfSelectedCS = null;
 		var selectedCSGroup = null;
 		var currentSavedStateDCS = "";
+		var selectedCSGroupBtnTitle;
 		
 		var contentScriptGroups = {};
 		var csGroupUIprops = storage.getSetting("csgroup-ui", true, {});
@@ -677,6 +678,28 @@
 			$("#dcsreindex").click(reindexContentScript);			
 			$("#importOnce").change(saveContentScript);
 			$("#dcsupdatemenu").click(updateContentScriptForContextMenu);
+			$("#dcsshownameortitle").click(toggleConentScriptNameDisplay);
+			
+			// Use jQuery UI buttons
+			$("input:button, button").button();
+			$("#dcsmultiselect").button({icons: { primary: "ui-icon-circle-check" }, text:false });
+			$("#dcsadd").button({icons: { primary: "ui-icon-plusthick" }, text:false });
+			$("#dcsdelete-allselected").button({icons: { primary: "ui-icon-minusthick" }, text:false });
+			$("#dcsindexup").button({icons: { primary: "ui-icon-circle-arrow-n" }, text:false });
+			$("#dcsindexdown").button({icons: { primary: "ui-icon-circle-arrow-s" }, text:false });
+			$("#dcsrename").button({icons: { primary: "ui-icon-pencil" }, text:false });
+			$("#dcsreindex").button({icons: { primary: "ui-icon-arrowthick-2-n-s" }, text:false });
+			$("#dcsregroup").button({icons: { primary: "ui-icon-folder-collapsed" }, text:false });
+			$("#dcsshownameortitle").button();
+			$("#dcsgroupselected").button().click(function(e) {e.preventDefault();});
+			selectedCSGroupBtnTitle = $("#dcsgroupselected").next().attr("title");
+			
+				
+				
+			$("#jscb, #jshid, #importOnce").button({icons: {
+						primary: "ui-icon-close"
+					}
+				});
 			
 			//$(".colorpicker").colorpicker();
 			
@@ -795,11 +818,7 @@
 			tabs();
 			//dialog
 			dialog = $("#floatingWindow").dialog({"autoOpen":false, height:500,"width":600});
-			//buttons
-			$("#jscb, #jshid, #importOnce").button({icons: {
-						primary: "ui-icon-close"
-					}
-				});
+			
 			$('#json-viewer-tabs').tabs();
 			
 			loadMetaData();
@@ -936,14 +955,14 @@
       var plugins = meta.plugins;
       
       var menuItem = $('.contentScriptKey.jstbox');
-      menuItem.removeClass("autostart").removeClass("plugin");
-      var i, title = menuItem.attr("name");
+      menuItem.removeClass("include").removeClass("plugin");
+      var i;
       
       if (includes)
         for (i = 0; i < includes.length; ++i) {
           var include = includes[i];
           menuItem = $(`.contentScriptKey.jstbox[name='${include}']`);
-          menuItem.addClass("autostart").attr("title", title + " will be automatically loaded");
+          menuItem.addClass("include");
         }
         
       if (plugins)
@@ -955,12 +974,6 @@
           if (pluginScript) {
             menuItem = $(`.contentScriptKey.jstbox[name='${pluginScript}']`);
             menuItem.addClass("plugin");
-            title = menuItem.attr("title");
-            if (menuItem.hasClass("autostart"))
-              title += " and also loaded as a plugin";
-            else
-              title += " will be loaded as a plugin";
-            menuItem.attr("title", title);
           }
         }
 		}
@@ -1469,14 +1482,14 @@
 				if (localStorage[key])
 					setUIValue(node, localStorage[key]);
 					
-				node.parents(".localstorage_item").first().find(".localstorage_saveitem").click(function() {
+				node.parents(".localstorage_item").first().find(".localstorage_saveitem").button().click(function() {
 					localStorage[key] =  getUIValue(node);
 					showMessage("The setting is saved.");
 					updateSettings();
 					if (refreshOnSaveAnOption)
 						location.reload();
 				});
-				node.parents(".localstorage_item").first().find(".localstorage_resetitem").click(function() {
+				node.parents(".localstorage_item").first().find(".localstorage_resetitem").button().click(function() {
 					if (!confirm("Do you really want to set to default value: " + defaultValue + "?"))
 						return;
 					setUIValue(node, defaultValue);
@@ -1495,7 +1508,7 @@
 				localStorage[key] = value;
 			});
 			
-			$(".localstorage_saveall").click(function() {
+			$(".localstorage_saveall").button().click(function() {
 				$(this).parents(".localstorage_block").find(".localstorage_itemvalue").each(function(index, ele) {
 					var node = $(ele);
 					var target = node.attr('target');
@@ -1507,7 +1520,7 @@
 				if (refreshOnSaveAllOptions)
 					location.reload();
 			});
-			$(".localstorage_resetall").click(function() {
+			$(".localstorage_resetall").button().click(function() {
 				if (!confirm("Do you really want to set all settings to default values?"))
 					return;
 				$(this).parents(".localstorage_block").find(".localstorage_itemvalue").each(function(index, ele) {
@@ -2318,6 +2331,14 @@
 		// **              Dynamic Content Scripts              **
 		// *******************************************************
 		
+		function toggleConentScriptNameDisplay() {
+		  var showTitle = this.checked;
+		  if (showTitle) 
+		    $("#contentscript-menu").addClass("showTitle");
+		  else
+		    $("#contentscript-menu").removeClass("showTitle");
+		}
+		
 		function addContentScript() {			
 			if (!contentScriptSaved())
 				return;
@@ -2413,9 +2434,10 @@
 				  return;
 			}
 			
-			$(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`).attr("index", index)
-				.find(".index").text(index);				
-			$(`#contentscript-menu > .jstbox[name='${selectedContentScript}'] .group`).text(group + "/");
+			var menuNode = $(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`);
+			menuNode.attr("index", index).find(".index").text(index);
+			menuNode.find(".group").text(group + "/");
+			menuNode.find(".title").text(title);
 			
 			setCsScriptIndexInMenu(selectedContentScript, index);
 			currentSavedStateDCS = editorDynScript.getValue();
@@ -2725,7 +2747,7 @@
 			var extraClass = [];
 			if (metadata) {
 			  if (isArray(metadata.include) && metadata.include.contains(name))
-			    extraClass.push("autostart");
+			    extraClass.push("include");
 			    
 			  if (isArray(metadata.plugins)) {
           for (i = 0; i < metadata.plugins.length; ++i) {
@@ -2750,7 +2772,7 @@
         groupStatus.index = props.index;
         //console.log("Adding item", name, group, props, groupStatus);
         var groupItem = $(`
-          <div class="jstbox contentScriptGroup folder ${groupStatus.className}" group="${group}" groupindex="${groupStatus.index}">
+          <div class="jstbox contentScriptGroup folder ${groupStatus.className}" group="${group}" groupindex="${groupStatus.index}" title="Group ${group === '' ? ['default'] : group}">
             <div class="jsttitle" style="display:inline;font-variant:normal;position:relative;">
               <span class="group">/${group}</span>
 						  <div class="select" group="${group}"><input class="folder" group="${group}" type="checkbox" /></div>
@@ -2783,6 +2805,10 @@
 						<div class="group">${group}/</div>
 						<div class="select"><input class="file" group="${group}" name="${name}" type="checkbox" /></div>
 					</div>
+          <div class="iconset">
+            <div class="icon plugin-icon" title="This script will be loaded as a plugin as configured in the plugins section of the meta data."></div>
+            <div class="icon include-icon" title="This script will be automatically loaded in every website as configured in the include section of the meta data."></div>
+          </div>
 				</div>
 			`).appendTo(container).click(loadContentScript);
 			
@@ -2795,7 +2821,7 @@
       var groupBar = $(this), group = groupBar.attr("group");
       var groupItems = $(`#contentscript-menu .contentScriptKey[group='${group}']`);
       var closed = groupBar.hasClass("closed");
-      selectedCSGroup = group;
+      setSelectedCSGroup(group);
       if (closed) {
         groupItems.show();
         groupItems.removeClass("closed").addClass("opened");
@@ -2816,6 +2842,22 @@
       storage.setSetting("csgroup-ui", csGroupUIprops, true);
 		}
 		
+		function setSelectedCSGroup(group) {
+		  selectedCSGroup = group;
+		  
+		  // Update UI
+		  var groupStr = "No group is selected. <br/>Click on the bar for a group in the navigator will choose it.<br\>";
+		  var groupSelectBtn = $("#dcsgroupselected"), selectedVal = false;
+		  if (typeof group === "string") {
+		    groupStr = "Group " + (group === "" ? "[default]" : group) + " is selected.<br\>";
+		    selectedVal = true;
+		  }
+		  
+		  groupSelectBtn[0].checked = selectedVal;
+		  groupSelectBtn.button("refresh");
+		  groupSelectBtn.next().attr("title", groupStr + selectedCSGroupBtnTitle)
+		}
+		
 		function checkDuplicateContentScript(name) {
 			return storage.loadIndexObj().contentScripts[name];
 		}
@@ -2823,7 +2865,7 @@
 		function loadContentScript() {
 			var name = $(this).attr('name');
 			console.log("loadContentScript: " + name);
-			selectedCSGroup = null;
+			setSelectedCSGroup(null);
 			
 			if (!contentScriptSaved())
 				return;
