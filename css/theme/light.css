@@ -23,8 +23,8 @@ html body.theme-light { background:rgb(252,252,252); }
 .theme-light .jstbox.selected { background: rgba(200,200,200,1); }
 .theme-light .jstbox.contentScriptGroup { background: rgba(200,200,200,0.6) url(img/folder-opened.gif) no-repeat left center; }
 .theme-light .jstbox.contentScriptGroup.closed { background: rgba(200,200,200,0.6) url(img/folder-closed.gif) no-repeat left center; }
-.theme-light .jstbox.autostart { background-image: url(img/autostart.png); background-repeat: no-repeat; }
-.theme-light .jstbox.plugin .jsttitle { background-image: url(img/plugin.png); }
+.theme-light .include-icon { background-image: url(img/autostart.png); }
+.theme-light .plugin-icon { background-image: url(img/plugin.png); }
 .theme-light #jstmessage {
 	background:rgba(252,252,252,1);
 	box-shadow:rgba(0,0,0,0.4) 0 3px 10px;
@@ -34,37 +34,10 @@ html body.theme-light { background:rgb(252,252,252); }
 .theme-light .jstmessage.ok { color:white; background:green;	}
 .theme-light .jstmessage.error { color:white; background:red; }
 .theme-light .hiddenFlag { color:#999; }
-.theme-light #dcsmultiselect { 
-	/* -webkit-filter:invert(1); */
-	background: url('img/check.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0)); 
-}
-.theme-light #dcsindexup { 
-	/* -webkit-filter:invert(1); */
-	background: url('img/arrow_up.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
-}
-.theme-light #dcsindexdown {
-	/* -webkit-filter:invert(1); */
-	background: url('img/arrow_down.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
-}
+.theme-light #dcsmultiselect .dcsmultiselect { 	background-image: url('img/check.png'); }
 
 
 /* Common styles for both options window and popup window */
-.theme-light input[type=button] {
-	border:1px solid rgba(124,122,12,1);
-	color: black;
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
-	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
-	text-shadow:rgba(255,255,255,0.6) 0 1px;
-}
-.theme-light input[type=button]:hover,
-.theme-light input[type=button]:focus {
-	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset,rgba(247,223,29,1) 0 0px 15px;
-	/*background-color*/
-}
-.theme-light input[type=button]:active {
-	box-shadow: rgba(0,0,0,0.2) 0 1px 2px inset,rgba(255,255,255,1) 0 -1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
-}
 .theme-light div.tabs > ul li,
 .theme-light #tabs > ul li,
 .theme-light li.tab-title {
@@ -80,7 +53,7 @@ html body.theme-light { background:rgb(252,252,252); }
 .theme-light li.tab-title.selected {
 	border:1px solid #aaaaaa;
 	background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), /*color-stop(50%,#fce448), color-stop(51%,#f4d300), */color-stop(100%,#fefefe));
-	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(0,0,0,0.5) 0 1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
+	box-shadow: rgba(0,0,0,0.2) 0 0 1px;
 }
 
 

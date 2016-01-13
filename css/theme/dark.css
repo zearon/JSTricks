@@ -23,8 +23,8 @@ html body.theme-dark { background:#0f0f0f; color:#eeeeee; }
 .theme-dark .jstbox.selected { background: rgba(50,50,50,1); }
 .theme-dark .jstbox.contentScriptGroup { background: rgba(70,70,70,1) url(img/folder-opened-white.gif) no-repeat left center; }
 .theme-dark .jstbox.contentScriptGroup.closed { background: rgba(70,70,70,1) url(img/folder-closed-white.gif) no-repeat left center; }
-.theme-dark .jstbox.autostart { background-image: url(img/autostart.png); background-repeat: no-repeat; }
-.theme-dark .jstbox.plugin .jsttitle { background-image: url(img/plugin.png); }
+.theme-dark .include-icon { background-image: url(img/autostart.png); }
+.theme-dark .plugin-icon { background-image: url(img/plugin.png); }
 .theme-dark #jstmessage {
 	background: #1C77FF;
 	box-shadow:rgba(0,0,0,0.4) 0 3px 10px;
@@ -34,36 +34,9 @@ html body.theme-dark { background:#0f0f0f; color:#eeeeee; }
 .theme-dark .jstmessage.ok { color:white; background:green;	}
 .theme-dark .jstmessage.error { color:white; background:red; }
 .theme-dark .hiddenFlag { color:#999; }
-.theme-dark #dcsmultiselect { 
-	/* -webkit-filter:invert(1); */
-	background: url('img/check.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868)); 
-}
-.theme-dark #dcsindexup { 
-	/* -webkit-filter:invert(1); */ 
-	background: url('img/arrow_up_white.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868)); 
-}
-.theme-dark #dcsindexdown { 
-	/* -webkit-filter:invert(1); */
-	background: url('img/arrow_down_white.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868)); 
-}
+.theme-dark #dcsmultiselect .dcsmultiselect { 	background-image: url('img/check.png'); }
 
 /* Common styles for both options window and popup window */
-.theme-dark input[type=button] {
-	border:1px solid #bbbbbb;
-	color: #eeeeee;
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868));
-	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
-	text-shadow:rgba(255,255,255,0) 0 0px;
-}
-.theme-dark input[type=button]:hover,
-.theme-dark input[type=button]:focus {
-	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset,rgba(247,247,247,1) 0 0px 15px;
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#288eb2), color-stop(50%,#288eb2), color-stop(51%,#0078a3), color-stop(100%,#3a97b8));
-}
-.theme-dark input[type=button]:active {
-	box-shadow: rgba(0,0,0,0.2) 0 1px 2px inset,rgba(255,255,255,1) 0 -1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
-}
 .theme-dark div.tabs > ul li,
 .theme-dark #tabs > ul li,
 .theme-dark li.tab-title {

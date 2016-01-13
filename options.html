@@ -133,13 +133,13 @@
 								</tr>
 								</table>
 							</div>
-							<div class="toolbar" style="top:0px;" >	
+							<div class="toolbar" >	
 								<!-- div style="">
 									<input id="jscontentfilterbtn" type="button" value="Filter JS" />
 									<input id="csscontentfilterbtn" type="button" value="Filter CSS" />
 									<input id="clearcontentfilterbtn" type="button" value="Show All" style="width:107px" />
 								</div -->
-								<div style="margin-bottom: 6px;">
+								<div style="margin-bottom: 3px;">
 									<input id="jscb" type='checkbox' /><label for='jscb' id="forjscb" style="height:20px; top:-1px;">Autostart</label>
 									<input id="jshid" type='checkbox' style='display:none'/><label for='jshid' style='display:none'>Hidden</label>
 									<input id="jssave" type='button' value="Save [Ctrl+S]" style="width: 98px;" />
@@ -260,19 +260,26 @@
 			<div id="tabs-dcs" class="tab">
 				<div class="editwrap" >
 					<div id="script-list" class="navbar" style="overflow:hidden">
-						<div class="actions" style="height:28px; border:white solid; border-width:1px 1px 0 0; padding-top:4px; padding-left: 0px;">
-							<input id="dcsmultiselect" type='button' title="" style="width:26px;" />
-							<input id="dcsadd" type='button' value="+" style="width:20px;" title="Create a new content script."/>
-							<input id="dcsdelete-allselected" type='button' value="-" style="width:20px;" title="Delete <font color='red'>ALL</font> selected scripts."/>
-							<input id="dcsreindex" type='button' value="IDX" title="Reset the display order of scripts in context menues with continuous numbers starting from 1 according to current order." />
-							<input id="dcsrename" type='button' value="Ren" title="Rename current script in edit." />	
-							<input id="dcsregroup" type='button' value="ReG" title="Reset group of <font color='red'>ALL</font> selected scripts." />	
-							<input id="dcsindexup" type="button" title="Move Up" style="width:26px;" />
-							<input id="dcsindexdown" type="button" title="Move Down" style="width:26px;" />
-							<input id="dcssort" type='button' value="Sort" style="display:none" />
-							<input id="dcsupdatemenu" type='button' value="Re-Menu" style="display:none" title="Refresh context menu" />
+						<div class="actions ui-widget-header ui-corner-all" style="">
+							<div id="dcstoolbar-1" class="">  <!--class="ui-widget-header ui-corner-all"-->
+								<!-- input id="dcsmultiselect" type='button' title="" style="width:26px;" / -->
+								<button id="dcsadd" value="+" title="Create a new content script."></button>
+								<button id="dcsdelete-allselected" value="-" title="Delete <font color='red'>ALL</font> selected scripts."></button>
+								<button id="dcsindexup" title="Move Up" ></button>
+								<button id="dcsreindex" value="IDX" title="Reset the display order of scripts in context menues with continuous numbers starting from 1 according to current order."  ></button>
+								<button id="dcssort"  value="Sort" style="display:none" ></button>
+								<button id="dcsregroup" value="ReG" title="Reset group of <font color='red'>ALL</font> selected scripts."  ></button>
+								<input id="dcsupdatemenu" type='button' value="Re-Menu" style="display:none" title="Refresh context menu" />
+							</div>
+							<div id="dcstoolbar-2" class="">  <!--class="ui-widget-header ui-corner-all"-->
+								<input type="checkbox" id="dcsmultiselect"/><label for="dcsmultiselect" title="Toggle multiple selection mode" ></label>
+								<button id="dcsrename" value="Ren" title="Rename current script in edit."  ></button>
+								<button id="dcsindexdown" title="Move Down" ></button>
+								<input id="dcsshownameortitle" type="checkbox"/><label for="dcsshownameortitle" title="Show title instead of name of scripts." >Title</label>
+								<input id="dcsgroupselected" type="checkbox"/><label for="dcsgroupselected" title="If group is selected, The move up/down will move all the scripts in this group." >Group</label>
+							</div>							
 						</div>
-						<div id='contentscript-menu' style='overflow:auto;min-width:200px; position:absolute; bottom:0; left:0; right:0; top: 30px;'>
+						<div id='contentscript-menu' style=''>
 						</div>
 					</div>
 					<div class="editorPanel">
