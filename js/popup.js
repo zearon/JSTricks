@@ -251,8 +251,7 @@ function log() {
 				status.innerHTML = "";
 			}, 750);
 			
-			var noErrorFound = checkScriptSyntax(tmpp.script);
-			console.log(JSHINT.data());	
+			var noErrorFound = checkScriptSyntax(editor);
 			
 			//Inject CSS immediately
 			API_InsertCssInTab(tmpp.css);
@@ -352,10 +351,14 @@ function log() {
 		
 		
 		function checkScriptSyntax(source) {
+		  // utilizing check result of CodeMirror Lint addon
+		  return !cmEditor.performLintErrorFound();
+		  /*
+		  var source = cmEditor.getValue();
 			return JSHINT(source, {"esversion":6, "expr":true, "indent":2}, 
 				{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, 
 				"INFO":false, "window":false, "document":false, "alert":false, "confirm":false, 
-				"prompt":false, "setTimeout":false, "setInterval":false, "location":false});
+				"prompt":false, "setTimeout":false, "setInterval":false, "location":false});*/
 		}
 		
 		function showJSSyntaxCheckReport(editor, data) {

@@ -133,10 +133,10 @@
 			currentSavedState = editorJs.getValue();
 			currentSavedStateCss = editorCss.getValue();
 			
-			var noErrorFound = checkScriptSyntax(val);
-			console.log("Syntax check report:", JSHINT.data());		
+			var noErrorFound = checkScriptSyntax(editorJs);	
 			if (!noErrorFound) {
 				showMessage("Error found in current site script!");
+				return;
 			} else {
 				showMessage("Script and CSS tricks saved!");
 			}
@@ -144,11 +144,15 @@
 			run("save");
 		}
 		
-		function checkScriptSyntax(source) {
+		function checkScriptSyntax(cmEditor) {
+		  // utilizing check result of CodeMirror Lint addon
+		  return !cmEditor.performLintErrorFound();
+		  /*
+		  var source = cmEditor.getValue();
 			return JSHINT(source, {"esversion":6, "expr":true, "indent":2}, 
 				{"console":false, "chrome":false, "run":false, "seajs":false, "define":false, 
 				"INFO":false, "window":false, "document":false, "alert":false, "confirm":false, 
-				"prompt":false, "setTimeout":false, "setInterval":false, "location":false});
+				"prompt":false, "setTimeout":false, "setInterval":false, "location":false});*/
 		}
 		/*
 		function showJSSyntaxCheckReport(editor, data) {
@@ -2402,10 +2406,9 @@
 			var tmp =  {"name":selectedContentScript, "type":"cs", "index":index, 
 			  "group":group, "title":title, "sfile":sfile, "script": script, "importOnce":importOnce};
 			  
-			var noErrorsFound = checkScriptSyntax(script);
-			showMessage("Error found in current content script!");
+			var noErrorsFound = checkScriptSyntax(editorDynScript);
 			if (!noErrorsFound) {
-				console.log(JSHINT.data());
+			  showMessage("Error found in current content script!");
 				if (!confirm("There are possible error in this file. Do you really want to save?"))
 				  return;
 			}
@@ -2775,6 +2778,7 @@
 						<span class="index">${index}</span>
 						<span>-</span>
 						<span class="name">${name}</span>
+						<span class="title">${title}</span>
 						</nobr>
 						<div class="group">${group}/</div>
 						<div class="select"><input class="file" group="${group}" name="${name}" type="checkbox" /></div>
