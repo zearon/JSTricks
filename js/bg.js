@@ -495,7 +495,7 @@ if (localStorage["info"])
           }, []);
       
       // Load the scripts from data store
-      storage.findScripts(false, indexes, function(scripts) {
+      storage.findScripts(false, "type,name", indexes, function(scripts) {
         loadedScriptCount = scripts.length;
         duration = Date.now() - startTime;
         

@@ -723,7 +723,7 @@ function log() {
 				$("#editor-script-gen-ui").append('<div id="'+divID+'" class="tab-pane"></div>');
 				var sectionDiv = $('#' + divID);
 				//sectionDiv.append('<div><h3 class="section-title" data="'+section.objName+' = Object.create">'+section.title+'<input type="text" value="'+section.title+'" style="display:none" /></h3></div>');
-				sectionDiv.append(`<div style="display:inline; margin-right:5px;"><input class="add-script-btn init-script-btn" type="button" value="Init" title="${title}" data-module="${section.moduleName}" data-obj="${section.objName}" data-addRequires="${addRequires}" data-code="" /></div>`);
+				sectionDiv.append(`<div style="display:inline; margin-right:5px;"><button class="add-script-btn init-script-btn" type="button" title="${title}" data-module="${section.moduleName}" data-obj="${section.objName}" data-addRequires="${addRequires}" data-code="" >Init</button></div>`);
 				for (var j=0; j < section.commands.length; ++ j) {
 					var command = section.commands[j];
 					var statementType = command.statement ? command.statement : "common";
@@ -731,6 +731,7 @@ function log() {
 					// Besides, commands taking none argument are also shown in "display:inline". 
 					// Other commands are shown in "display:block0."
 					var display = (j<1) || !command["args"] || (command.args.length<1) ? 'inline':'block';
+					var displayClass = display === "block" ? "line" : "";
 					//console.log(display);
 					
 					// If run is set to true, then the generated code will get run instead of inserted 
@@ -749,13 +750,13 @@ function log() {
 					var moduleName = command.moduleName ? command.moduleName : section.moduleName;
 					var objName = command.objName ? command.objName : section.objName;
 					if (command.loadModule == "true") {
-						var element = `<div style="display:inline"><input class="add-script-btn${runClass} init-script-btn" type="button" value="${command.title}" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-addRequires="${addRequires}" data-code="" /></div>`
+						var element = `<div style="display:inline" class="${displayClass}"><button class="add-script-btn${runClass} init-script-btn" type="button" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-addRequires="${addRequires}" data-code="" >${command.title}</button></div>`
 						sectionDiv.append(element);
 					} else if (code) {
-						var element = `<div style="display:inline"><input class="add-script-btn${runClass}" type="button" value="${command.title}" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-code="${command.code}" /></div>`
+						var element = `<div style="display:inline" class="${displayClass}"><button class="add-script-btn${runClass}" type="button" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-code="${command.code}" >${command.title}</button></div>`
 						sectionDiv.append(element);
 					} else {
-						var src = `<div style="display:${display}"><input class="add-script-btn${runClass}" type="button" value="${command.title}" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-statement="${statementType}" data-func="${section.objName}.${command.funcname}" /></div>`;
+						var src = `<div style="display:${display}" class="${displayClass}"><button class="add-script-btn${runClass}" type="button" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-statement="${statementType}" data-func="${section.objName}.${command.funcname}" >${command.title}</button></div>`;
 						var commandDiv = $(src).appendTo(sectionDiv);
 						for (var k=0; k < command.args.length; ++ k) {
 							var arg = command.args[k];
@@ -804,6 +805,7 @@ function log() {
 				
 			$(".init-script-btn").click(addRequireFile);
 			$(".select-domnode-btn").click(startSelectingDomNode).mouseenter(hightlightSelectorNode);
+			$("#editor-script-gen-ui input:button, #editor-script-gen-ui button").button();
 			
 			//console.log("active module is", `#genUITab-${metadataSetting.active_module}`);
 			//$(`li.tab-title[module='${metadataSetting.active_module}']`).addClass("selected");
