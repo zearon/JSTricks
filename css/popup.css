@@ -36,17 +36,23 @@ ul {
 	clear:both;			
 }
 h4{margin:0px;}
+#editor-script-gen-ui {
+  padding-top: 1px;
+}
+#editor-script-gen-ui button {
+  margin-right: 3px;
+}
+#editor-script-gen-ui .ui-button-text-only .ui-button-text  {
+  padding: 2px 3px 2px 3px;
+}
+#editor-script-gen-ui div.line  {
+  margin-top: 2px;
+}
 input[type=button]
 {
 	display:block;
 	float:right;
-	border:1px solid rgba(124,122,12,1);
 	cursor:pointer;
-	background-color:rgba(247,223,29,1); 
-	background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b));
-	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
-	/*padding:3px 10px;*/
-	text-shadow:rgba(255,255,255,0.6) 0 1px;
 }
 input[type=button]:hover,input[type=button]:focus
 {
@@ -60,11 +66,11 @@ input[type=button]:active
 }
 input.select-domnode-btn {
 	position: relative;
-	top: 4px; /* 2px on mac os x*/
+	top: -2px; /* -1px on mac os x*/
 	margin-left: 0px;
 	height: 21px;
 }
-.osx input.select-domnode-btn { top: 2px; }
+.osx input.select-domnode-btn { top: -1px; }
 #tabs{
 	position:relative;
 	overflow:hidden;
@@ -149,15 +155,17 @@ input.select-domnode-btn {
 	z-index: 999999;
 	background:   url('img/setting.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
 }
-input[type=button].add-script-btn {
+#editor-script-gen-ui .add-script-btn {
 	height: 22px;
 	float: none;
 	display: inline;
 }
-input[type=button].init-script-btn {
+#editor-script-gen-ui .init-script-btn {
+  color: black;
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#D6FCB4), color-stop(50%,#D0FC48), color-stop(51%,#B8F400), color-stop(100%,#DFFB8B));
 }
-input[type=button].run-script-btn {
+#editor-script-gen-ui .run-script-btn {
+  color: black;
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#D6FCB4), color-stop(50%,#D0FC48), color-stop(51%,#B8F400), color-stop(100%,#DFFB8B));
 }
 
@@ -200,7 +208,7 @@ li.tab-title.selected
 	background-color:rgba(247,223,29,1);
 	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
 }
-input[type=button].add-script-btn {
+#editor-script-gen-ui .add-script-btn {
 	margin-right:1px;
 }
 #editor-script-gen-ui .select-domnode-btn { 
@@ -216,7 +224,7 @@ input[type=button].add-script-btn {
 	width: calc(100% - 60px);
 	height: 28px;
 }
-.for-disabled {
+#editor-script-gen-ui .for-disabled {
 	z-index: 5000;
 	position:absolute;
 	top: 0;
@@ -225,7 +233,7 @@ input[type=button].add-script-btn {
 	height: 100%;
 	background-color: rgba(255,255,255,0.8);
 }
-.for-disabled h1 {
+#editor-script-gen-ui .for-disabled h1 {
 	color: black;
 	text-align: center;
 	padding: 250px 0;

@@ -185,11 +185,12 @@
 									<option>String</option>
 									<option>Regular Expression</option>
 								</select>
-								<span class="findDialog-for-site-script">in
+								<span class="">in
 									<select id="findDialog-searchfor"> 
-										<option>Script</option>
-										<option>CSS</option>
-										<option>Both</option>
+										<option value="Script">Script</option>
+										<option value="CSS" class="findDialog-for-site-script">CSS</option>
+										<option value="Both" class="findDialog-for-site-script">Both</option>
+										<option value="Name" class="findDialog-for-site-script">Name</option>
 									</select></span>
 								</div>
 								<div><textarea id="findDialog-findstring" style="width:100%" ></textarea></div>
@@ -244,7 +245,7 @@
 									<option value="current">Current</option>
 									<option value="all">All</option>
 								</select>
-								<b><span id="findDialog-target">Site-Scripts</span></b>:
+								<b><span id="findDialog-target">Site-Scripts</span></b> (save first):
 								<div style="margin-top: 2px;">
 								<input type="button" id="findDialog-findBtn" value="Find" />
 								<input type="button" id="findDialog-previewBtn" value="Preview Replace" />

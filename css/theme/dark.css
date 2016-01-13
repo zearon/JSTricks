@@ -23,8 +23,9 @@ html body.theme-dark { background:#0f0f0f; color:#eeeeee; }
 .theme-dark .jstbox.selected { background: rgba(50,50,50,1); }
 .theme-dark .jstbox.contentScriptGroup { background: rgba(70,70,70,1) url(img/folder-opened-white.gif) no-repeat left center; }
 .theme-dark .jstbox.contentScriptGroup.closed { background: rgba(70,70,70,1) url(img/folder-closed-white.gif) no-repeat left center; }
-.theme-dark .include-icon { background-image: url(img/autostart.png); }
-.theme-dark .plugin-icon { background-image: url(img/plugin.png); }
+.theme-dark .jstbox .include-icon { background-image: url(img/autostart.png); }
+.theme-dark .jstbox .plugin-icon { background-image: url(img/plugin.png); }
+.theme-dark .jstbox.top .plugin-icon { background-image: url(img/plugin-top.png); }
 .theme-dark #jstmessage {
 	background: #1C77FF;
 	box-shadow:rgba(0,0,0,0.4) 0 3px 10px;

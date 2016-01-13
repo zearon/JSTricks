@@ -437,7 +437,10 @@
    * Find all scripts with given type and name from storage with a iteration callback, 
    * and optionally an on error callback.
    * writeAccess: need write to data store. If you don't need to write, set it to false.
-   * typeNamePairs: an array of [type, name] index identifying the scripts.
+   * indexName: name of index defined in indexedDB. can be "name"/"type,name"/"type"
+   * indexValueArr: An array of values that are keys of records you are searching for.
+   *     E.g. if indexName is "type,name", then indexValueArr should be an array of 
+   *     [type, name] index identifying the scripts.
    * callback (optional): a function get invoked after all scripts are fetched. function ( array of scripts ) {…}
    * onfound (optional): a function get invoked when each matching record is found. function (name,type,script) { … return {action, value}; }
    *     This function should return an object {action, value} if further modification on that item is required to perform.
@@ -446,7 +449,7 @@
    *     undefined or null or other: Nothing to do.
    * onerr (optional): callback should be like: onerr(err) {...}
    */
-  Storage.fn.findScripts = function (writeAccess, typeNamePairs, callback, onfound, onerr) {
+  Storage.fn.findScripts = function (writeAccess, indexName, indexValueArr, callback, onfound, onerr) {
     var self = this, indexUpdate = [], indexObj = this.loadIndexObj();
     // wrapper functions to update indexes in cache.
     function onFoundInternal(name, type, script) {
@@ -460,6 +463,7 @@
             throw new Error("onfound callback for storage.prototype.findScripts returns a update command, but no value is given.");
           
           var newID = Storage.genScriptID(newValue.type, newValue.name);
+          newValue.id = newID;
           if (newID !== oldID) {
             indexUpdate.push([indexObj, "delete", newValue.name, newValue.type]);
             indexUpdate.push([indexObj, "add", newValue.name, newValue.type, getScriptOptForIndex(newValue)] );
@@ -482,27 +486,12 @@
       // Update indexes and context menues
       self.saveIndexObj(indexObj);
       self.updateContextMenuAndBGSettings(callback, scripts);
-      
-      /*
-      if (window.initContextMenuOnInstalled) {
-        initContextMenuOnInstalled();
-        if (callback) callback(scripts);
-      } else {
-        chrome.runtime.getBackgroundPage(function(win) {
-          // defined in bg_contextMenu.js
-          win.initContextMenuOnInstalled();
-        
-          // call the callback
-          if (callback) callback(scripts);
-        });   
-      }*/
-      
     }
     
     // If no modification is made to the database, there's no need to use wrappers to update the indexes in cache.
     var args = writeAccess ? 
-                  [writeAccess, typeNamePairs, onCompleteInternal, onFoundInternal, onerr] :
-                  [writeAccess, typeNamePairs, callback, onfound, onerr];
+                  [writeAccess, indexName, indexValueArr, onCompleteInternal, onFoundInternal, onerr] :
+                  [writeAccess, indexName, indexValueArr, callback, onfound, onerr];
     
     // Call implementation
     return this.sst.findScripts.apply(this.sst, args);
@@ -1244,7 +1233,10 @@
    * Find all scripts with given type and name from storage with a iteration callback, 
    * and optionally an on error callback.
    * writeAccess: need write to data store. If you don't need to write, set it to false.
-   * typeNamePairs: an array of [type, name] index identifying the scripts.
+   * indexName: name of index defined in indexedDB. can be "name"/"type,name"/"type"
+   * indexValueArr: An array of values that are keys of records you are searching for.
+   *     E.g. if indexName is "type,name", then indexValueArr should be an array of 
+   *     [type, name] index identifying the scripts.
    * callback (optional): a function get invoked after all scripts are fetched. function ( array of scripts ) {…}
    * onfound (optional): a function get invoked when each matching record is found. function (name,type,script) { … return {action, value}; }
    *     This function should return an object {action, value} if further modification on that item is required to perform.
@@ -1253,7 +1245,7 @@
    *     undefined or null or other: Nothing to do.
    * onerr (optional): callback should be like: onerr(err) {...}
    */
-  DBStorage.fn.findScripts = function (writeAccess, typeNamePairs, callback, onfound, onerr) {
+  DBStorage.fn.findScripts = function (writeAccess, indexName, indexValueArr, callback, onfound, onerr) {
     var result = [], needResult = callback !== undefined;
     var modifiedObj;
     //var startTime = Date.now();
@@ -1268,10 +1260,10 @@
     }
       
     this.transaction(writeAccess, function(objStore) {
-      var key, index = objStore.index("type,name");
+      var key, index = objStore.index(indexName); // e.g. indexName = "type,name"
       
-      for (var i =  0; i < typeNamePairs.length; ++ i) {
-        key = typeNamePairs[i];
+      for (var i =  0; i < indexValueArr.length; ++ i) {
+        key = indexValueArr[i];
         index.openCursor(IDBKeyRange.only(key)).onsuccess = onsuccess;
       }
       
@@ -1283,9 +1275,9 @@
               var command = onfound(value.name, value.type, value, cursor);
               if (command) {
                 if (command.action === "update" && command.value !== undefined) {
-                  console.log("Update object", command.value, e);
+                  //console.log("Update object", command.value, e);
                   var newValue = command.value;
-                  // since none of name and type changes, there's no need to update object id.
+                  // id has been updated in Storage.fn.findScripts
                   objStore.put(newValue);
                 } else if (command.action === "delete") {
                   cursor.delete();
@@ -1454,7 +1446,7 @@
         }
       }
       function onComplete(event) {
-        console.log("Database transaction completes.");
+        //console.log("Database transaction completes.");
         if (oncomplete) {
           oncomplete();
         }

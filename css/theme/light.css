@@ -23,8 +23,9 @@ html body.theme-light { background:rgb(252,252,252); }
 .theme-light .jstbox.selected { background: rgba(200,200,200,1); }
 .theme-light .jstbox.contentScriptGroup { background: rgba(200,200,200,0.6) url(img/folder-opened.gif) no-repeat left center; }
 .theme-light .jstbox.contentScriptGroup.closed { background: rgba(200,200,200,0.6) url(img/folder-closed.gif) no-repeat left center; }
-.theme-light .include-icon { background-image: url(img/autostart.png); }
-.theme-light .plugin-icon { background-image: url(img/plugin.png); }
+.theme-light .jstbox .include-icon { background-image: url(img/autostart.png); }
+.theme-light .jstbox .plugin-icon { background-image: url(img/plugin.png); }
+.theme-light .jstbox.top .plugin-icon { background-image: url(img/plugin-top.png); }
 .theme-light #jstmessage {
 	background:rgba(252,252,252,1);
 	box-shadow:rgba(0,0,0,0.4) 0 3px 10px;
