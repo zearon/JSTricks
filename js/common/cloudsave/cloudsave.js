@@ -59,8 +59,8 @@
 	/**
 	 * Restore a file from cloud.
 	 */
-	function restoreFromSingleFile(filename, onComplete) {
-		this.view(filename, onComplete);
+	function restoreFromSingleFile(filename, onComplete, onerr) {
+		this.view(filename, onComplete, onerr);
 	}
 	
 	function backupPackage(manifest, assetFetcher, onok, onerr) {
@@ -111,9 +111,9 @@
 		this.cloudStoragePost({"method":"list"}, true, onok, onerr);
 	}
 	
-	function view(filename, oncomplete) {
+	function view(filename, oncomplete, onerr) {
 		//cloudsave.php?method=load&path=chrome-ext&key=20151101-185152
-		this.cloudStoragePost({"method":"load", "key":filename}, false, oncomplete);
+		this.cloudStoragePost({"method":"load", "key":filename}, false, oncomplete, onerr);
 	}
 	
 		
@@ -188,7 +188,11 @@
 	 		
 	function cloudStoragePost(data, resInJson, onok, onerr) {
 		if (!this.url || !this.passphrase || !this.keyiv) {
-			onerr(new Error("Cannot initialize cloud save. Cloud storage is not set yet."));
+		  var err = new Error("Cannot initialize cloud save. Cloud storage is not set yet.");
+		  if (onerr)
+			  onerr(err);
+			else
+			  throw err;
 			return;
 		}
 		
@@ -196,11 +200,9 @@
 		data["path"] = this.path;			
 		data["time"] = timestr;
 		data["token"] = cloudStorageGenCode(timestr, this.passphrase, this.keyiv);
+
 		
-		if (!onerr)	
-			onerr = onPostError;
-		
-		$.post(this.url, data).done(onPostComplete).fail(onerr);
+		$.post(this.url, data).done(onPostComplete).fail(onPostError);
 	
 		function onPostComplete(data) {
 			if (resInJson) {
@@ -216,10 +218,14 @@
 			}
 		}
 	
-		function onPostError(err) {
-			console.error(err);
-			if (window.alert)
-			  window.alert(err.statusText);
+		function onPostError(err) {		  		
+      if (!onerr)	{
+        onerr = onPostError;
+			} else {
+			  console.error(err);
+        if (window.alert)
+          window.alert(err.statusText);
+      }
 		}
 	}
 

@@ -38,6 +38,7 @@
     var selectedCSGroup = null;
     var currentSavedStateDCS = "";
     var selectedCSGroupBtnTitle;
+    var csPosInMetaData = {}; // a dictionary shows in appearances of a script in the meta data (include and plugins section)
     
     var contentScriptGroups = {};
     var csGroupUIprops = storage.getSetting("csgroup-ui", true, {});
@@ -955,6 +956,8 @@
     function updateUIbyMetaData(meta) {
       var includes = meta.include;
       var plugins = meta.plugins;
+      var newScriptListsInCSL = []; // CSL is short for chrome.storage.local
+      csPosInMetaData = {};
       
       var menuItem = $('.contentScriptKey.jstbox');
       menuItem.removeClass("include").removeClass("plugin");
@@ -965,6 +968,11 @@
           var include = includes[i];
           menuItem = $(`.contentScriptKey.jstbox[name='${include}']`);
           menuItem.addClass("include");
+          
+          newScriptListsInCSL.addIfNotIn(include);
+          if (!csPosInMetaData[include] )
+            csPosInMetaData[include] = [];
+          csPosInMetaData[include].push("include[" + i + "]");
         }
         
       if (plugins)
@@ -977,12 +985,30 @@
           if (pluginScript) {
             menuItem = $(`.contentScriptKey.jstbox[name='${pluginScript}']`);
             menuItem.addClass("plugin");
-            if (topFrame)
+            if (topFrame) {
               menuItem.addClass("top");
-            else
+            } else {
               menuItem.removeClass("top");
+            }
+
+            newScriptListsInCSL.addIfNotIn(pluginScript);
+            if (!csPosInMetaData[pluginScript] )
+              csPosInMetaData[pluginScript] = [];              
+            csPosInMetaData[pluginScript].push("plugins[" + i + "]");
           }
         }
+        
+      // update script stored in chrome.storage.local
+      //console.log(csPosInMetaData);
+      storage.updateTopFrameScriptList(newScriptListsInCSL, function(errmsg, notFound) {
+        if (errmsg) {
+          var notFoundPos = notFound.map(function(name) { 
+            return name + ": " + csPosInMetaData[name].join(", ");
+          }).join("\n");
+          
+          alert(errmsg + ".\nTheir positions in meta data are:\n" + notFoundPos);
+        }
+      });
     }
     
     function setupKeyEventHandler() {
@@ -2090,6 +2116,11 @@
     
     function cloudRestore() {
       var key = $("#cloudrestore-key").val();
+      if (!key) {
+        alert("No setting is specified as backup to restore. \nPlease goto the Backup and Restore tab, list all backups and choose one as the backup to restore.");
+        return;
+      }
+      
       if (!confirm("All current settings and scripts will be erased. \nAre you sure you want to restore with configuration named " + key + "?"))
         return;
         
@@ -2101,9 +2132,13 @@
         var backupObj = JSON.parse(data);        
         storage.restore(backupObj, function() {
           // On complete
+          storage.setSetting("cloud-lastsave", key);
           alert("All configurations and scripts are successfully restored.");
           location.reload();
         }, {cloudSettings:false});        
+      }, function(err) {
+        // On Error
+        alert(err.message);
       });
     }
     
@@ -2828,13 +2863,20 @@
             <div class="select"><input class="file" group="${group}" name="${name}" type="checkbox" /></div>
           </div>
           <div class="iconset">
-            <div class="icon plugin-icon" title="This script will be loaded as a plugin as configured in the plugins section of the meta data."></div>
-            <div class="icon include-icon" title="This script will be automatically loaded in every website as configured in the include section of the meta data."></div>
+            <div class="icon plugin-icon" data-csname="${name}" data-title="This script will be loaded as a plugin as configured in the plugins section of the meta data."></div>
+            <div class="icon include-icon" data-csname="${name}" data-title="This script will be automatically loaded in every website as configured in the include section of the meta data."></div>
           </div>
         </div>
       `).appendTo(container).click(loadContentScript);
       
       container.find("input").click(function(event) { event.stopPropagation(); } );
+      // Set tooltip of icons
+      container.find(".icon").on("mouseenter", function() {
+        var node = $(this), name = node.attr("data-csname"), title = node.attr("data-title");
+        title += "<br/>The appearances of this script in the meta data:<br/>" + 
+                  csPosInMetaData[name].join(", ");
+        $(this).attr("title", title); 
+      });
       //container[0].scrollTop += 22;  //container.height();
     }
     

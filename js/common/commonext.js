@@ -57,12 +57,40 @@
 	    return;
 	    
 	  this.push(element);
+	  return this;
 	};
 	
 	Array.prototype.addAllIfNotIn = function (array) {
 	  for (var i = 0; i < array.length; ++ i) {
 	    this.addIfNotIn(array[i]);
 	  }
+	  return this;
+	};
+	
+	// Get a difference array representing (this - arr)
+	// equals is optional, which is a function returns true if two objects are considered 
+	// the same, and false otherwise.
+	Array.prototype.notin = function (arr, equals) {
+	  return this.filter(function(a) { 
+	    return !arr.some(function(b) {
+	      if (equals)
+	        return equals(a,b)
+	      return a===b; 
+	    }); 
+	  });
+	};
+	
+	// Get a difference array representing (this - arr)
+	// equals is optional, which is a function returns true if two objects are considered 
+	// the same, and false otherwise.
+	Array.prototype.in = function (arr, equals) {
+	  return this.filter(function(a) { 
+	    return arr.some(function(b) {
+	      if (equals)
+	        return equals(a,b)
+	      return a===b; 
+	    }); 
+	  });
 	};
 	
 	// useKeyAsItem: true / false / "key" / "value" / "pair" / "keyinvalue[:keyname]"
