@@ -66,7 +66,7 @@
         storage.rebuildScriptIndexes(function() {
           // defined in bg_contextMenu.js
           initContextMenuOnInstalled();
-          updateSettings();  
+          updateSettings();
         });        
       }
     }

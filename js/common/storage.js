@@ -175,7 +175,7 @@
         // On iterating over each setting
           
         if (options.onlyCloudSettings) {
-          if (!name.startsWith("cloud-"))
+          if (!name.startsWith("cloud-") || name.startsWith("cloud-lastsave"))
             return;
         } else {      
           if (!options.temp && name.startsWith("temp-"))
@@ -267,7 +267,7 @@
    *   backup: the JSON backup object
    *   callback: the callback function when restoration completes.
    *   options: an options object.
-   *      {cloudSettings:<FALSE/true>}
+   *      {cloudSettings:<FALSE/true>, incremental:<FALSE/true>}
    */
   Storage.fn.restore = function (backup, callback, options) {
     var self = this, key, useOptions = {cloudSettings:false}, steps = [], stepIndex = 0;
@@ -280,10 +280,12 @@
     
     // If the restore is limited to cloudSettings, do not restore meta data and any scripts.
     if (!useOptions.cloudSettings) {
+      // must be in front of restoreScripts, because the scripts list stored in chrome.storage.local
+      // is generate from the meta data, and be used in resotreScripts when adding/deleting content scripts.
       if (backup.metadata) {
         restoreMetadata.call(this, backup, useOptions, steps, stepIndex++);
-      }
-    
+      }  
+      
       if (backup.assetStorage) {
         restoreScripts.call(this, backup, useOptions, steps, stepIndex++);
       }
@@ -316,15 +318,50 @@
     var self = this;
     steps.push(function() {
       self.setMetadata(backup.metadata, false);
+      try {
+        var meta = JSON.parse(backup.metadata);
+      } catch(ex) { throw new Error("Invalid meta data! It is not a valid JSON object representation."); }
       
-      // On complete, call next step
-      executeNextStepInRestore(backup, options, steps, stepIndex);
+      // Set content script list that should stored in chrome.storage.local
+      var includes = meta.include ? meta.include : [];
+      var plugins = meta.plugins ? meta.plugins : [];      
+      var activePluginCSNames = plugins.filter(function(plg) { 
+        try {
+          // the first expression ensures plg.action.script exists
+          // and the second expression is the returned value.
+          return plg.action.script, plg.action.topFrame;
+        } catch (ex) { return false; }
+      }).map(function(plg) { return plg.action.script; } );
+      
+      var allCslCSNames = includes.addAllIfNotIn(activePluginCSNames);
+      
+      console.log("In meta data, names of scripts in include and topFrame plugins are:", allCslCSNames);
+      // Remove all information in CSL, chrome.storage.local, and let following steps to rebuild them
+      chrome.storage.local.clear(function() {
+        cslSaveScriptList(allCslCSNames, function() {
+          // On complete, call next step
+          executeNextStepInRestore(backup, options, steps, stepIndex);
+        });
+      });
+      
     });
   }
   
   function restoreSettings(backup, options, steps, stepIndex) {
     var self = this;
     steps.push(function() {
+      // delete all old settings if it is not restoring only cloud settings
+      if (!options.cloudSettings) {
+        for (var key in localStorage) {
+          if (key.startsWith("$setting.cloud-"))
+            continue;
+        
+          if (key.startsWith("$setting."))
+            delete localStorage[key];
+        }
+      }
+      
+      // reset with new settings
       for (var name in backup.props) {
         // directly save as string
         if (options.cloudSettings && !name.startsWith("cloud-"))
@@ -447,10 +484,11 @@
    *     {action:"update", value:<newValue>}: Modify current record with newValue. 
    *     {action:"delete"} : Delete current record.
    *     undefined or null or other: Nothing to do.
+   *     Note: If your want to update or delete found record, the writeAccess argument must be set to TRUE!
    * onerr (optional): callback should be like: onerr(err) {...}
    */
   Storage.fn.findScripts = function (writeAccess, indexName, indexValueArr, callback, onfound, onerr) {
-    var self = this, indexUpdate = [], indexObj = this.loadIndexObj();
+    var self = this, indexUpdate = [], indexObj = this.loadIndexObj(), updatedCSs = [], deletedCSNames = [];
     // wrapper functions to update indexes in cache.
     function onFoundInternal(name, type, script) {
       var command = undefined;
@@ -467,11 +505,15 @@
           if (newID !== oldID) {
             indexUpdate.push([indexObj, "delete", newValue.name, newValue.type]);
             indexUpdate.push([indexObj, "add", newValue.name, newValue.type, getScriptOptForIndex(newValue)] );
+            if (type === "cs") deletedCSNames.push(name);
+            if (newValue.type === "cs") updatedCSs.push(newValue);
           } else {
             indexUpdate.push([indexObj, "update", newValue.name, newValue.type, getScriptOptForIndex(newValue)] );
+            if (newValue.type === "cs") updatedCSs.push(newValue);
           }
         } else if (command && command.action === "delete") {
-            indexUpdate.push([indexObj, "delete", name, type]);
+          indexUpdate.push([indexObj, "delete", name, type]);
+          if (type === "cs") deletedCSNames.push(name);
         }
       }
       
@@ -485,7 +527,18 @@
       
       // Update indexes and context menues
       self.saveIndexObj(indexObj);
-      self.updateContextMenuAndBGSettings(callback, scripts);
+      self.updateContextMenuAndBGSettings(function() {
+        // update chrome.storage.local if these scripts are configured to be auto-loaded from meta data
+        self.updateExistingTopFrameScripts(updatedCSs, function() {
+          // delete scripts frome chrome.storage.local
+          self.deleteExistingTopFrameScripts(deletedCSNames, function() {
+            // call the callback
+            if (callback) callback(scripts);
+          });        
+        });
+        
+
+      });
     }
     
     // If no modification is made to the database, there's no need to use wrappers to update the indexes in cache.
@@ -542,7 +595,10 @@
       }
       self.saveIndexObj(indexObj);
       // update context menu and invoke callback
-      self.updateContextMenuAndBGSettings(onsaved);
+      self.updateContextMenuAndBGSettings(function() {      
+        // update chrome.storage.local if these scripts are configured to be auto-loaded from meta data
+        self.updateExistingTopFrameScripts(scripts, onsaved);
+      });
     }
     
     var result = this.sst.saveScript.call(this.sst, script, onComplete);
@@ -574,7 +630,12 @@
       });
       self.saveIndexObj(indexObj);
       // Update context menus and invoke callback
-      self.updateContextMenuAndBGSettings(onok);
+      self.updateContextMenuAndBGSettings(function() {  
+        // delete scripts frome chrome.storage.local
+        var csNameDeleted = typeNamePairs.filter(function(tnp) { return tnp[0] === "cs"; })
+            .map(function(tnp) { return tnp[1]; });
+        self.deleteExistingTopFrameScripts(csNameDeleted, onok);
+      });
     }
     
     var result = this.sst.deleteScript.call(this.sst, typeNamePair, onComplete, onerr);
@@ -624,16 +685,16 @@
    * Transfer all scripts from a storage area to another.
    */
   Storage.fn.rebuildScriptIndexes = function(onok, onerr) {
-    var self = this, indexObj = this.loadIndexObj("empty");
+    var self = this, indexObj = this.loadIndexObj("empty"), meta = getMetadata(true);
     
     this.getAllScripts(["dss", "ss", "cs"], function() {
       // on complete
-      self.saveIndexObj(indexObj);
+      self.saveIndexObj(indexObj);      
     
       if (onok)
         onok();      
-    }, function(name, type, obj) {   
-      // when iterate over each script   
+    }, function(name, type, obj) {
+      // when iterate over each script
       updateScriptIndex_internal(indexObj, "add", name, type, getScriptOptForIndex(obj));      
     }, onerr);
   }; 
@@ -675,8 +736,10 @@
     }    
     if (indexObj.contentScripts)
       this.setSetting("temp-index-script-content", indexObj.contentScripts, true);
-    if (indexObj.cachedDeps)
+    if (indexObj.cachedDeps) {
       this.setSetting("temp-index-script-deps", indexObj.cachedDeps, true);
+      chrome.storage.local.set({cacehdDeps:indexObj.cachedDeps});
+    }
   };
   
   
@@ -688,7 +751,7 @@
    * type: type of script: one of "dss", "ss" and "cs"
    * opts: options of the script. If there is no options provided, an empty one is created.
    */
-  Storage.fn.updateScriptIndex = function (action, name, type, opts) {
+  /*Storage.fn.updateScriptIndex = function (action, name, type, opts) {
     var indexedScripts = null, siteScripts, contentScripts, scriptOpts, cachedDeps;    
     // Load the index from cache
     cachedDeps = this.getSetting("temp-index-script-deps", true);
@@ -710,7 +773,7 @@
       // Save index into chrome.storage.local as well for access in content scripts.
       saveToChromeStorage({"siteIndex": siteScripts});
     }
-  };
+  };*/
   
   // Operate in an array but not do load and save operations
   function updateScriptIndex_internal(indexObj, action, name, type, opts) {
@@ -858,6 +921,141 @@
     cachedDeps[id] = depsArr;
     this.setSetting("temp-index-script-deps", cachedDeps, true);
   };
+  
+  
+
+  /*********************************************
+   *    CSL Storage (chrome.storage.local)     *
+   *********************************************/  
+   
+  Storage.fn.rebuildCSLStorage = function(scripts) {
+  }
+   
+   
+  /**
+   * Update the top frame scripts, which can be fetched and injected directly 
+   * in the content page, according to plugins section of metadata.
+   * The scripts will be loaded from database and cached in chrome.storage.local
+   * callback(errmsg, notFoundScriptNameList)  if no error, errmsg = undefined
+   */
+  Storage.fn.updateTopFrameScriptList = function(newScriptList, callback) {
+    if (newScriptList == undefined) { // or undefined
+      newScriptList = [];
+    }
+    
+    if (!isArray(newScriptList)) {
+      throw new Error("updateTopFrameScripts(newScriptList, callback): newScriptList must be an array.");
+    }
+    
+    var self = this;
+    cslGetScriptList(function(scriptList) {
+      var tobeDeletedNames = scriptList.notin(newScriptList);
+      var tobeAddedNames = newScriptList.notin(scriptList);
+      var tobeAddedIndexes = tobeAddedNames.map(function(name) { return ["cs", name]; });  
+      console.log("Updating scripts in chrome.storage.local: Adding", tobeAddedNames, "and removing", tobeDeletedNames);    
+      
+      cslRemoveScripts(tobeDeletedNames);
+      cslSaveScriptList(newScriptList, function() {
+        // after new script list is saved, save each script to be added into chrome.storage.local      
+        self.findScripts(false, "type,name", tobeAddedIndexes, function(scriptsObjLoaded) {
+          // All scripts in newScriptList are loaded        
+          var tobeSaved = {}, addedNames = [];
+          scriptsObjLoaded.forEach(function(scriptObj) { 
+            tobeSaved[scriptObj.id] = scriptObj;
+            addedNames.push(scriptObj.name);
+          });
+          
+        
+          // Save these scripts to chrome.storage.local, and invoke callback when completes.
+          chrome.storage.local.set(tobeSaved, function() {
+            if (tobeAddedNames.length > addedNames.length) {
+              var notFoundScripts = tobeAddedNames.notin(addedNames);
+              // Save script list
+              newScriptList = newScriptList.notin(notFoundScripts);
+              cslSaveScriptList(newScriptList, function() {
+                var errmsg = "Following scripts configured in meta data can not be found: " + notFoundScripts.join(", ");
+                console.error(errmsg);
+                callback(errmsg, notFoundScripts);
+              });
+            } else {
+              callback();
+            }
+          });
+        });
+      });
+    });
+  }
+  
+  /**
+   * Update scripts already stored in chrome.storage.local, and call the callback.
+   * If the scripts is not in the storage area yet, then nothing extra is done, and the callback is invoked.
+   */
+  Storage.fn.updateExistingTopFrameScripts = function(scriptObjList, callback) {
+    cslGetScriptList(function(scriptList) {
+      var tobeSaved = {}, empty = true;
+      scriptObjList.forEach(function(scriptObj) { 
+        var shouldAdd = scriptObj.type === "cs" && scriptList.contains(scriptObj.name);
+        if (shouldAdd) {
+          empty = false;
+          tobeSaved[scriptObj.id] = scriptObj; 
+        }
+      });
+      
+      if (!empty)
+        // save new scripts already existing in the script list.
+        chrome.storage.local.set(tobeSaved, callback);
+      else if (callback)
+        callback();
+    });
+  }
+  
+  /**
+   * Delete scripts already stored in chrome.storage.local, and call the callback.
+   * If the scripts is not in the storage area yet, then nothing extra is done, and the callback is invoked.
+   */
+  Storage.fn.deleteExistingTopFrameScripts = function(deletedCSNames, callback) {
+    cslDeleteScript(deletedCSNames);
+    
+    cslGetScriptList(function(scriptList) {
+      var newScriptList = scriptList.notin(deletedCSNames);
+      // None in the list is deleted
+      if (newScriptList.length === scriptList.length) {
+        if (callback) callback();
+      } 
+      // Some scripts in the list is deleted
+      else {
+        // save new scripts list and call the callback
+        cslSaveScriptList(newScriptList, callback);
+      }
+    });
+  }
+  
+  // if scriptNameList is null or undefined, all existing top frame scripts are removed
+  function cslRemoveScripts(scriptNameList, callback) {
+    scriptNameList.forEach(cslDeleteScript);
+  }
+
+  // csl is short for chrome.storage.local
+  // callback(scriptNameList)
+  function cslGetScriptList(callback) {
+    chrome.storage.local.get(["topScripts"], function(obj) {
+      if (obj.topScripts) {
+        callback( obj.topScripts );
+      } else {
+        var emptyList = [];
+        callback(emptyList);
+      }
+    });
+  }
+  
+  function cslSaveScriptList(list, callback) {
+    chrome.storage.local.set({topScripts:list}, callback);
+  }
+  
+  function cslDeleteScript(name) {
+    var id = Storage.genScriptID("cs", name); 
+    chrome.storage.local.remove(id);
+  }
   
   /**
    * Update the auto start status of a site script.

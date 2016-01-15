@@ -124,12 +124,38 @@
   function doAction(action) {
     if (action.info)
       console.log("[Plugin Loader] " + action.info);
-    var script = action.script, code = action.code; var msgData = {name:script};
+    var script = action.script, code = action.code; 
     if (debug)
       console.log("[Plugin Loader] Loading content script", action.script, "with code:", code);
-    
-    if (!!code) { msgData.extraCode = code; }
-    
+      
+    if (action.topFrame) {
+      addScriptNodeWithDataURI(script, code);
+    } else {
+      sendContentScriptLoadingRequest(script, code);
+    }
+  }
+  
+  function sendContentScriptLoadingRequest(scriptName, extraCode) {
+    var msgData = {name:scriptName};
+    if (!!code) { msgData.extraCode = extraCode; }    
     chrome.runtime.sendMessage( {method:"ExecuteContentScript", data:msgData } );
+  }
+  
+  function addScriptNodeWithDataURI(scriptName, extraCode) {
+    var scriptKeyName = "cs-" + scriptName;
+    chrome.storage.local.get([scriptKeyName], function(obj) {
+      var scriptObj = obj[scriptKeyName];
+      if (!scriptObj) {
+        console.error("Script", scriptName, "can not be found in cache (chrome.storage.local)");
+      } else {
+        var scriptCode = scriptObj.script;
+        scriptCode += "\n\n//Extra code:\n" + extraCode;
+        var dataUri = "data:text/javascript;charset=UTF-8," + encodeURIComponent(scriptCode);
+        
+        // add this script node. InjectCodeToOriginalSpace is defined in dom.js, which is already injected
+        // as content script.
+        InjectCodeToOriginalSpace(dataUri);
+      }
+    });
   }
 }) ();

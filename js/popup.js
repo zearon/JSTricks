@@ -350,7 +350,7 @@ function log() {
 		}
 		
 		
-		function checkScriptSyntax(source) {
+		function checkScriptSyntax(cmEditor) {
 		  // utilizing check result of CodeMirror Lint addon
 		  return !cmEditor.performLintErrorFound();
 		  /*
