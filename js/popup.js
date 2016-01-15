@@ -288,7 +288,7 @@ function log() {
 		}
 		function execute(name, script, css) {
 			if(css != "") {
-				chrome.tabs.insertCSS(null,{code:css});
+				API_InsertCssInTab(css);//chrome.tabs.insertCSS(null,{code:css});
 			}
 			
 			if(script != "") {
