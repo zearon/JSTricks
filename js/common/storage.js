@@ -685,7 +685,7 @@
    * Transfer all scripts from a storage area to another.
    */
   Storage.fn.rebuildScriptIndexes = function(onok, onerr) {
-    var self = this, indexObj = this.loadIndexObj("empty"), meta = getMetadata(true);
+    var self = this, indexObj = this.loadIndexObj("empty"), meta = this.getMetadata(true);
     
     this.getAllScripts(["dss", "ss", "cs"], function() {
       // on complete
