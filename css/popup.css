@@ -64,13 +64,22 @@ input[type=button]:active
 	background-color:rgba(227,203,09,1);
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
 }
-input.select-domnode-btn {
+#editor-script-gen-ui .add-script-btn {
+	margin-right:1px;
+}
+#editor-script-gen-ui .select-domnode-btn { 
+  float:none;
+  display: inline;
+	width:16px;
+	height: 21px;
 	position: relative;
 	top: -2px; /* -1px on mac os x*/
 	margin-left: 0px;
-	height: 21px;
+	background-image: url("theme/img/target.jpg");
+	background-size:contain;
+	background-repeat: no-repeat;
 }
-.osx input.select-domnode-btn { top: -1px; }
+.osx #editor-script-gen-ui input.select-domnode-btn { top: -1px; }
 #tabs{
 	position:relative;
 	overflow:hidden;
@@ -207,14 +216,6 @@ li.tab-title.selected
 	background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b));
 	background-color:rgba(247,223,29,1);
 	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
-}
-#editor-script-gen-ui .add-script-btn {
-	margin-right:1px;
-}
-#editor-script-gen-ui .select-domnode-btn { 
-	background-image: url("theme/img/target.jpg");
-	background-size:contain;
-	width:20px;
 }
 #cover-center {
 	top: 28px;

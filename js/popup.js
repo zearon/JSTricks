@@ -20,8 +20,8 @@ var ENABLED = storage.getSetting("enabled") !== 'false';
 window.addEventListener("message", function(event) {
 	//console.debug("Receive message posted:", event.data);
 	// We only accept messages from ourselves
-	if (event.data.tabid != tabID)
-		return;
+	//if (event.data.tabid != tabID)
+	//	return;
 	
 	if (event.data.type == "RestoreEditDialogContextResponse") {
 		//console.log(event.data.context);
