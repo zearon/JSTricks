@@ -33,7 +33,7 @@
         
         // Set disabled icon
         rules.push( {
-          id: "setDisabledIcon", priority: 0,
+          id: "setDisabledIcon", priority: 10,
           conditions: [
             new chrome.declarativeContent.PageStateMatcher({
               pageUrl: { urlMatches: storage.getExtDisabledPattern() },

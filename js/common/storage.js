@@ -685,18 +685,21 @@
    * Rebuild script indexes.
    */
   Storage.fn.rebuildScriptIndexes = function(onok, onerr) {
-    var self = this, indexObj = this.loadIndexObj("empty"), meta = this.getMetadata(true);;
+    var self = this, indexObj = this.loadIndexObj("empty"), 
+        meta = this.getMetadata(true), scriptListInCSL = this.getScriptListInCSL(meta);
     
     this.getAllScripts(["dss", "ss", "cs"], function(scripts) {
       // on complete
       // Remove all information in CSL, chrome.storage.local, and let following steps to rebuild them
       chrome.storage.local.clear(function() {
         self.saveIndexObj(indexObj);       
-        self.rebuildCSLStorage(meta, scripts, onok); 
+        self.rebuildCSLStorage(scriptListInCSL, scripts, onok); 
       });
     }, function(name, type, obj) {
       // when iterate over each script
-      updateScriptIndex_internal(indexObj, "add", name, type, getScriptOptForIndex(obj));      
+      updateScriptIndex_internal(indexObj, "add", name, type, getScriptOptForIndex(obj));
+      
+      return scriptListInCSL.contains(name);
     }, onerr);
   }; 
 
@@ -927,9 +930,9 @@
 
   /*********************************************
    *    CSL Storage (chrome.storage.local)     *
-   *********************************************/  
+   *********************************************/ 
    
-  Storage.fn.rebuildCSLStorage = function(meta, scripts, callback) {
+  Storage.fn.getScriptListInCSL = function(meta) {
     // Set content script list that should stored in chrome.storage.local
     var includes = meta && meta.include ? meta.include : [];
     var plugins = meta && meta.plugins ? meta.plugins : [];      
@@ -942,7 +945,11 @@
     }).map(function(plg) { return plg.action.script; } );
   
     var allCslCSNames = includes.addAllIfNotIn(activePluginCSNames);
-  
+    
+    return allCslCSNames;
+  }
+   
+  Storage.fn.rebuildCSLStorage = function(allCslCSNames, scripts, callback) {  
     console.log("In meta data, names of scripts in include and topFrame plugins are:", allCslCSNames);
   
     cslSaveScriptList(allCslCSNames, function() {
@@ -950,7 +957,7 @@
       if (scripts) {
         var objSaved = {};
         scripts.forEach(function(script) {
-          if (scripts.type === "cs" && allCslCSNames.contains(script.name)) {
+          if (script.type === "cs" && allCslCSNames.contains(script.name)) {
             objSaved[script.id] = script;              
           }
         });
