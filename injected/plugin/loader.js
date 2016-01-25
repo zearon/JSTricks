@@ -18,6 +18,7 @@
 
   function loadPlugins(plugins) {
     //console.log("plugins obj in storage", plugins);
+    var pluginLoaded = false;
     
     plugins.sort(function(p1, p2) {
       var index1 = p1.index ? p1.index : 0;
@@ -27,15 +28,16 @@
   
     for (var i = 0; i < plugins.length; ++ i) {
       var plugin = plugins[i];
+      var enabled = plugin.enabled !== false;
+      if (!enabled)
+        continue;
+      
       loadPlugin(plugin);
+      pluginLoaded = true;
     }
   }
 
   function loadPlugin(plugin) {
-    var enabled = plugin.enabled !== false;
-    if (!enabled)
-      return;
-      
     var info = plugin.info;
     var conditions = plugin.conditions;
     var action = plugin.action;
