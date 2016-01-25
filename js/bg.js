@@ -302,8 +302,8 @@ if (localStorage["info"])
     }
     
     function setIconSet(tabid, domain, status) {
-      if (status === undefined || status === "enabled") {
-        // one of "default+active", "default", "active", "inactive", "none"
+      if (status == undefined || status === "enabled") {
+        // one of "default+active", "active", "default+inactive", "inactive", "none"
         status = getSiteStatus(domain);
       }
       
@@ -317,32 +317,61 @@ if (localStorage["info"])
       case "inactive":
         iconPath = {"19":"icon/ICON19_inactive.png", "38":"icon/ICON38_inactive.png"};
         break;
+      case "inactive+plugin":
+        iconPath = {"19":"icon/ICON19_inactive_plugin.png", "38":"icon/ICON38_inactive_plugin.png"};
+        break;
       case "active":
         iconPath = {"19":"icon/ICON19_active.png", "38":"icon/ICON38_active.png"};
+        break;
+      case "active+plugin":
+        iconPath = {"19":"icon/ICON19_active_plugin.png", "38":"icon/ICON38_active_plugin.png"};
         break;
       case "default":
         iconPath = {"19":"icon/ICON19_dft.png", "38":"icon/ICON38_dft.png"};
         break;
+      case "default+plugin":
+        iconPath = {"19":"icon/ICON19_dft_plugin.png", "38":"icon/ICON38_dft_plugin.png"};
+        break;
+      case "default+inactive":
+        iconPath = {"19":"icon/ICON19_dft_inactive.png", "38":"icon/ICON38_dft_inactive.png"};
+        break;
+      case "default+inactive+plugin":
+        iconPath = {"19":"icon/ICON19_dft_inactive_plugin.png", "38":"icon/ICON38_dft_inactive_plugin.png"};
+        break;
       case "default+active":
         iconPath = {"19":"icon/ICON19_dft_active.png", "38":"icon/ICON38_dft_active.png"};
+        break;
+      case "default+active+plugin":
+        iconPath = {"19":"icon/ICON19_dft_active_plugin.png", "38":"icon/ICON38_dft_active_plugin.png"};
+        break;
+      case "none+plugin":
+        iconPath = {"19":"icon/ICON19_plugin.png", "38":"icon/ICON38_plugin.png"};
         break;
       default:
         iconPath = {"19":"icon/ICON19.png", "38":"icon/ICON38.png"};
         break;
       }
-      
+      console.log(iconPath);
       chrome.pageAction.setIcon( {tabId: tabid, path: iconPath} );
     }
     
     function updateIconForDomain(domain) {
-      var siteStatus = getSiteStatus(domain);
+      var domain_ = domain, urlFilter = {}, siteStatus = undefined;
+      if (domain !== "Default") {
+        var siteStatus = getSiteStatus(domain);
+        urlFilter.url = "*://" + domain + "/*";
+      } else {
+        urlFilter.url = "*://*/*";
+      }
       
-      chrome.tabs.query({url:"*://"+domain+"/*"}, function(tabs) {
-        if(!tabs)
+      chrome.tabs.query(urlFilter, function(tabs) {
+        if(!tabs || tabs.length < 1)
           return;
         
         for ( var i = 0; i < tabs.length; ++ i) {
-          setIconSet(tabs[i].id, domain, siteStatus);
+          if (!siteStatus)
+            domain_ = getDomainFromUrl(tabs[i].url);
+          setIconSet(tabs[i].id, domain_, siteStatus);
         }
       });
     }
@@ -585,21 +614,25 @@ if (localStorage["info"])
     function getSiteStatus(domain) {
       var allScripts = storage.loadIndexObj().siteScripts;
       var siteOption = allScripts[domain];
-      var defaultEnabled = allScripts["Default"].active;
-  
+      var defaultEnabled = allScripts["Default"].active;  
+
       if (!siteOption) {
-        siteStatus = "none";
-      } else if (defaultEnabled) {
-        if (siteOption.active) {
-          siteStatus = "default+active";
-        } else {
+        if (defaultEnabled) {
           siteStatus = "default";
+        } else {
+          siteStatus = "none";
         }
-      } else {
-        if (siteOption.active) {
-          siteStatus = "active";
+      } else if (!siteOption.active) {
+        if (defaultEnabled) {
+          siteStatus = "default+inactive";
         } else {
           siteStatus = "inactive";
+        }
+      } else {
+        if (defaultEnabled) {
+          siteStatus = "default+active";
+        } else {
+          siteStatus = "active";
         }
       }
       

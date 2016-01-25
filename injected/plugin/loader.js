@@ -13,7 +13,11 @@
 (function() {
   var debug, settings;
   autoload.addOnInitedListener(function(obj) {
-    loadPlugins(obj.INFO.meta_data.plugins);
+    var pluginLoaded = loadPlugins(obj.INFO.meta_data.plugins);
+    if (pluginLoaded) {
+      autoload.pluginStatus = true;
+      autoload.setIcon();
+    }
   });
 
   function loadPlugins(plugins) {
@@ -35,6 +39,8 @@
       loadPlugin(plugin);
       pluginLoaded = true;
     }
+    
+    return pluginLoaded;
   }
 
   function loadPlugin(plugin) {
