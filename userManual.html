@@ -24,6 +24,129 @@
 	
 	<h4>Options Page</h4>
 	<p>In the options page, you can edit and manage all your user scripts, setting the option values, and backup your current configuration to or restore it from the local file system or a cloud storage system. The cloud storage system supported in this extension is a PHP application with only one .php file which can be easily deployed to your PHP web hosting environment if you have one. Besides, A JSON Viewer is provided for you to view your backup file.</p>
+	
+	
+	<h4>Status Suggested by the Icons</h4>
+	<table class="table-grids" cellspacing="1" cellpadding="5" style="text-align:center;">
+	  <tr>
+	    <td rowspan="2">Icon</td>
+	    <td colspan="2">Site Script</td>
+	    <td>Default Script</td>
+	    <td>Plugin Script</td>
+	    <td rowspan="2">Scripts Executed</td>
+	  </tr>
+	  <tr>
+	    <td>Exists</td>
+	    <td>Executed</td>
+	    <td>Executed</td>
+	    <td>Executed</td>
+	  </tr>
+	  <tr>
+	    <td><img src="icon/ICON38_disabled.png"></img></td>
+	    <td colspan="4">The extension is DISALBED</td>
+	    <td>None</td>
+	  </tr>
+	  
+	  <tr>
+	    <td><img src="icon/ICON38.png"></img></td>
+	    <td>No</td>
+	    <td>No</td>
+	    <td>No</td>
+	    <td>No</td>
+	    <td>None</td>
+	  </tr>
+	  <tr>
+	    <td><img src="icon/ICON38_inactive.png"></img></td>
+	    <td>Yes</td>
+	    <td>No</td>
+	    <td>No</td>
+	    <td>No</td>
+	    <td>None</td>
+	  </tr>
+	  <tr>
+	    <td><img src="icon/ICON38_active.png"></img></td>
+	    <td>Yes</td>
+	    <td>Yes</td>
+	    <td>No</td>
+	    <td>No</td>
+	    <td>Site Script</td>
+	  </tr>
+	  <tr>
+	    <td><img src="icon/ICON38_dft.png"></img></td>
+	    <td>No</td>
+	    <td>No</td>
+	    <td>Yes</td>
+	    <td>No</td>
+	    <td>Default Script</td>
+	  </tr>
+	  <tr>
+	    <td><img src="icon/ICON38_dft_inactive.png"></img></td>
+	    <td>Yes</td>
+	    <td>No</td>
+	    <td>Yes</td>
+	    <td>No</td>
+	    <td>Default Script</td>
+	  </tr>
+	  <tr>
+	    <td><img src="icon/ICON38_dft_active.png"></img></td>
+	    <td>Yes</td>
+	    <td>Yes</td>
+	    <td>Yes</td>
+	    <td>No</td>
+	    <td>Default Script + Site Script</td>
+	  </tr>
+	  
+	  <tr>
+	    <td><img src="icon/ICON38_plugin.png"></img></td>
+	    <td>No</td>
+	    <td>No</td>
+	    <td>No</td>
+	    <td>Yes</td>
+	    <td>Plugin Script</td>
+	  </tr>
+	  <tr>
+	    <td><img src="icon/ICON38_inactive_plugin.png"></img></td>
+	    <td>Yes</td>
+	    <td>No</td>
+	    <td>No</td>
+	    <td>Yes</td>
+	    <td>Plugin Script</td>
+	  </tr>
+	  <tr>
+	    <td><img src="icon/ICON38_active_plugin.png"></img></td>
+	    <td>Yes</td>
+	    <td>Yes</td>
+	    <td>No</td>
+	    <td>Yes</td>
+	    <td>Site Script + Plugin Script</td>
+	  </tr>
+	  <tr>
+	    <td><img src="icon/ICON38_dft_plugin.png"></img></td>
+	    <td>No</td>
+	    <td>No</td>
+	    <td>Yes</td>
+	    <td>Yes</td>
+	    <td>Default Script + Plugin Script</td>
+	  </tr>
+	  <tr>
+	    <td><img src="icon/ICON38_dft_inactive_plugin.png"></img></td>
+	    <td>Yes</td>
+	    <td>No</td>
+	    <td>Yes</td>
+	    <td>Yes</td>
+	    <td>Default Script + Plugin Script</td>
+	  </tr>
+	  <tr>
+	    <td><img src="icon/ICON38_dft_active_plugin.png"></img></td>
+	    <td>Yes</td>
+	    <td>Yes</td>
+	    <td>Yes</td>
+	    <td>Yes</td>
+	    <td>Default Script + Site Script + Plugin Script</td>
+	  </tr>	  
+	</table>
+	
+
 </div>
 
 <h3>User Scripts</h3>
@@ -34,7 +157,7 @@
 	2. Dynamic Content Scripts (or content scripts in short)<br/></p>
 	<p>A Site-Specific Script is loaded for and only for a specific domain, while Dynamic Content Scripts are invoked by other Site-Specific Scripts or when corresponding context menu items are clicked. Scripts in each categories can be edited and managed in corresponding tab in the options page, and Site-Specific Scripts can be created and edited in popup window as well.</p>
 	
-	<h4>Site-Specific Scripts</h4>
+	<h4>1. Site-Specific Scripts</h4>
 	<p>Site-Specific Scripts, or site scripts, are scripts supposed to be executed when webpages on certain websites with specific domain name are loaded. They are also attached with a CSS style code to be injected to the websites. A site script can only be created in the popup window. When you click the popup window icon on the Chrome tool bar and save the script by pressing Ctrl + S (or Cmd + S on Mac OS X), pressing the Save button or Autostart toggle button, a site script for the website is created. It can be edited in the popup window if only the same website is opened in the current tab. It can also be edited and managed in the options page under tab Site-Specific Scripts.</p>
 	<p>For example, when www.bing.com in opened in the current tab, you open the popup window, add some javascript source code, add some CSS code, and then pressing the Autostart toggle button, a site script named "www.bing.com" will be created. The next time you open www.bing.com or refresh www.bing.com, the javascript code will be executed and the CSS code will be injected into the webpage. </p>
 	<p>A common site script generated by the code template is like the following:</p>		
@@ -49,24 +172,72 @@ run(["ready"], function(ready) {
 	</pre>
 	<p></p>
 	
-	<h5>Default Script</h5>
+	<h5>1.1 Default Script</h5>
 	<p>Default script is a kind of special site script. It is almost the same with regular site scripts except that it matches all domain names, i.e. it will be applied on any website.</p>
 	<p>It can be temporarily disabled by setting its autostart attribute to false and enabled by setting its autostart attribute back to true.</p>
 	
-	<h5>Main Script</h5>
+	<h5>1.2 Main Script</h5>
 	<p>Main script is a very special script. Its CSS part has no sense. This is the very first script injected into in a tab (if there are any scripts to be injected), which is designed to do some initialization work, such as sea.js configuration, etc.</p>
 	<p>It is hidden by default, and can be displayed by turning on the "Show Main script" switch in the options tab. It is strongly recommended that this script should be hidden after any modification in case of operation mistakes.</p>
 	
-	<h4>Dynamic Content Scripts</h4>
+	<h4>2. Dynamic Content Scripts</h4>
 	<p>Dynamic content script is a concept borrowed from Chrome which means the scripts are like the original content script concept in Chrome that could be injected in to target webpage, and "dynamic" suggests that they are editable, and not like the original content script concept in Chrome which is built in the extension as files and thus being unchangeable. </p>
-	<p>A dynamic content script, or content script in short hereafter, can be invoked in three ways:<br/>
+	<p>A dynamic content script, or content script in short hereafter, can be invoked in four ways:<br/>
 	1. invoked by context menu click.<br/>
-	2. implicitly invoked by the extension for every website on website loaded.<br/>
-	3. explicitly invoked by other site scripts.</p>
-	<p>A context menu item is automatically generated for each content script which is invoked when the menu item is clicked. The menu items are organized in two levels, the top level and a second level. The context menu item for a content script with an empty "group" attribute is put into the context menu in the top level, and the on</p>
-	<p></p>
-	<p></p>
+	2. explicitly invoked by other scripts (site scripts or content scripts) as a library.<br/>
+	3. implicitly invoked by the extension as a global library for every website on website loaded.<br/>
+	4. implicitly invoked as a plugin script.</p>
+	<p>1. <b>Context menu clicking</b>. A context menu item is automatically generated for each content script which is invoked when the menu item is clicked. When a generated menu item is clicked, its corresponding content script will get executed. The menu items are organized in two levels, the top level and a second level. The context menu item for a content script with an empty "group" attribute is put into the context menu in the top level, and the ones for content scripts with the same non-empty "group" attribute is put into the same top level menu item whose name is just the text of "group" attribute. </p>
+	<p>2. <b>As a library</b>. A content script can also be invoked as a library of other scripts. In this way, codes can be organized in a way of high degree of reuse, which reduces the site scripts as much as possible. </p>
+	<p>There are two ways to a content script as a library of another script. The first is adding the name of to content script to the "Requires dynamic content script" field in site scripts tab or the "Requires" field in content scripts tab. For example, if the "Requires" field of site script "www.google.com" is "jquery", then adding "script1" to it, which makes it "jquery, script1", adds the content script whose name is script1 to the libraries of the site script for domain www.google.com. When the extension is informed to load the site script, all its libraries, the built-in script "jquery" and content script "script1", are loaded and executed first to make sure all its dependencies are fulfilled. </p>
+	<p>The second way is utilizing the Sea.js dependency management tool. The following code gives a typical example of site scripts.
+	<pre>
+run(["jquery", "#script1"], function($, script1Obj) {
+  function SiteScript() { // for website …
+    …
+  }
+  
+  $(SiteScript);
+});				
+	</pre>
+	The "run" function is a built-in function. The first parameter of it is a library list. In this example, a built-in library "jquery" and a content script whose name is "script1" are set the libraries of the site script. Note that the name of a content script as a library should starts with a "#" symbol, which tells the dependency management tool that it is a content script and should be loaded from the content script library. The second parameter is a anonymous function, whose parameters are the exported symbols of the libraries as given by the first parameter. The codes that do your job can be put in this function. The "run" function first loads and executes two scripts, a built-in library script "jquery", and a content script "script1". Then, the anonymous function are invoked and the exported symbols of two libraries are injected as parameters of the function.
+	</p>
 	
+	<p>3. <b>As a global library</b>. A global library is executed when every website is opened. A content script is configured as a global library by adding its name to the include section of the meta data, which can be edited in the MetaData sub-tab in content scripts tab.</p>
+	<pre>
+{  
+  "include": ["script1", "script2"],  
+  "plugins": [
+    {"enabled":false, "index":0, "info":"Sample plugin for *.baidu.com",
+    		"conditions": [ {"url":["\\.baidu\\.com"]} ], 
+     		"action":{"script":"efef", "topFrame":true, "code":""} 
+    },
+    {"enabled":false, "index":1, "info":"Sample plugin for css selector",
+     		"conditions": [ {"selector":"body.wiki-lemma.normal", "delay": 500} ], 
+     		"action":{"script":"Plugins", "topFrame":false, "code":"plugins.test();"} 
+    },
+    {"enabled":true, "index":2, "info":"Adjust Height for Care-Your-Eyes extension",
+     		"conditions": [ {"selector":"#cye-workaround-body", "delay": 500} ], 
+     		"action":{"script":"Plugins", "topFrame":true, "code":"plugins.adjustHeightForEyesProtectExt(0);"} 
+    }
+  ],
+  "active_module": …,
+  "modules":…,
+  …
+}
+	</pre>
+	<p>In a sample meta data above, two content scripts whose names are "script1" and "script2" respectively are configured as global libraries by designating their names in the "include" section of the meta data. They will be invoked in the sequence of appearance in "include" section when every website is opened.</p>
+	<p>4. <b>As a plugin script</b>. A plugin consists of several conditions and an action. When any condition is met, the action is done by executing a script. The fore-mentioned sample meta data defines three plugins. Each plugin has several attributes. <br/>
+	<b>enabled</b>: true/false. A plugin can be temporarily disabled by set this attribute to false.<br/>
+	<b>index</b>: a number specifying the loading sequence among all the plugins.<br/>
+	<b>info</b>: a description string identifying the plugin and will be printed in the console in Dev Tools when the plugin is loaded.<br/>
+	<b>conditions</b>: An array of condition objects. a condition object should be like anyone of the following two example: <br/>
+	{"url":["\\.google\\.com"]}, or {"selector":"body.wiki-lemma.normal", "delay": 500}<br/>
+	The condition expressed in the first example is fulfilled when the url of website matches any regular expression pattern given in the url arrays.<br/>
+	The condition expressed in the second example is fulfilled when there is a DOM element that matches the CSS selector given by the selector attribute, and this check is performed after a time delay, which is indicated by the delay attribute, when a website is opened.<br/>
+	<b>action</b>: an object that has three attributes: 1. script, defining which content script to be executed as a plugin script; 2. topFrame, a boolean value indicating if the script should be executed in the top frame of the website; 3. code, an extra piece of code that is to be executed after the plugin script is executed. <br/>
+	</p>
+	<p></p>
 </div>
 	
 <h3>Loading Sequence of Scripts</h3>
@@ -106,6 +277,72 @@ run(["ready"], function(ready) {
 
 <h3>Meta Data and Code Generation</h3>
 <div>
+  The meta data is an object represented in JSON that describes basic configuration. There are six sections in the meta data, and each of them is an attribute of the JSON object.
+
+  <h4>1. include</h4>
+  <p>The include attribute is a array of string which defines all global libraries. Here is a sample meta data:</p>
+	<pre>
+{  
+  "include": ["script1", "script2"],  
+  "plugins": [
+    {"enabled":false, "index":0, "info":"Sample plugin for *.baidu.com",
+    		"conditions": [ {"url":["\\.baidu\\.com"]} ], 
+     		"action":{"script":"efef", "topFrame":true, "code":""} 
+    },
+    {"enabled":false, "index":1, "info":"Sample plugin for css selector",
+     		"conditions": [ {"selector":"body.wiki-lemma.normal", "delay": 500} ], 
+     		"action":{"script":"Plugins", "topFrame":false, "code":"plugins.test();"} 
+    },
+    {"enabled":true, "index":2, "info":"Adjust Height for Care-Your-Eyes extension",
+     		"conditions": [ {"selector":"#cye-workaround-body", "delay": 500} ], 
+     		"action":{"script":"Plugins", "topFrame":true, "code":"plugins.adjustHeightForEyesProtectExt(0);"} 
+    }
+  ],
+  "active_module": …,
+  "modules":…,
+  …
+}
+	</pre>
+	<p>In the sample meta data above, two content scripts whose names are "script1" and "script2" respectively are configured as global libraries by designating their names in the "include" section of the meta data. They will be invoked in the sequence of appearance in "include" section when every website is opened.</p>
+	
+  <h4>2. plugins</h4>
+	<p>The plugins attribute defines all plugins. A plugin consists of several conditions and an action. When a website is opened in a tab, the conditions of all plugins are tested. If any condition of a plugin is met, the action of the plugin is performed by executing a script. The fore-mentioned sample meta data defines three plugins. Each plugin has several attributes. </p>
+	<p><b>enabled</b>: true/false. A plugin can be temporarily disabled by set this attribute to false.<br/>
+	<b>index</b>: a number specifying the loading sequence among all the plugins.<br/>
+	<b>info</b>: a description string identifying the plugin and will be printed in the console in Dev Tools when the plugin is loaded.<br/>
+	<b>conditions</b>: An array of condition objects. a condition object should be like anyone of the following two example: <br/>
+	{"url":["\\.google\\.com"]}, or {"selector":"body.wiki-lemma.normal", "delay": 500}<br/>
+	The condition expressed in the first example is fulfilled when the url of website matches any regular expression pattern given in the url arrays.<br/>
+	The condition expressed in the second example is fulfilled when there is a DOM element that matches the CSS selector given by the selector attribute, and this check is performed after a time delay, which is indicated by the delay attribute, when a website is opened.<br/>
+	<b>action</b>: an object that has three attributes: 1. script, defining which content script to be executed as a plugin script; 2. topFrame, a boolean value indicating if the script should be executed in the top frame of the website; 3. code, an extra piece of code that is to be executed after the plugin script is executed. <br/>
+	</p>
+  <h4>3. active_module</h4>
+  <p>This attribute indicates which module should be switched to when displaying the popup window. The value of this attribute is the name of a content script or an empty string. If it is set an empty string "", then the popup window will restore to the status when it is closed last time. </p>
+  
+  <h4>4. modules</h4>
+  <p></p>
+  
+  <h4>5. builtinLibs</h4>
+  <p>This attribute is only for development use.</p>
+  
+  <h4>6. seajs.config</h4>
+  <p></p>
+  <pre>
+{
+  …
+  "seajs.config": {
+    "paths": {
+      "mootools": "https://ajax.googleapis.com/ajax/libs/mootools/1.6.0"
+    },
+    "alias": {
+      "jquery": "lib/jquery[AMD]",
+      "selectbox": "selectionBox",
+      "mootools-core": "mootools/mootools[CommonJS]"      
+    }
+  }
+}  
+  </pre>
+  
 	<h4>Utilizing Code Generation Tools</h4>
 	<p>(to be completed)</p>
 	<p>(please just follow the existing meta data and try it several times.)</p>
@@ -157,8 +394,37 @@ run(["jquery", "#Novel"], function($, novel) {
 
 <h3>Built-in Scripts</h3>
 <div>
-	<h4></h4>
-	<p>(to be completed)</p>
+  There are several built-in scripts that can be used as dependencies of site scripts and content scripts throw run function or define function.
+  
+	<h4>jquery</h4>
+	<p>jquery exports symbol "$" and makes it a global variable</p>
+	
+	<h4>jquery-ui</h4>
+	<p>jquery-ui does not export anything.</p>
+	
+	<h4>ready</h4>
+	<p>ready exports a "ready" function and makes it a global function. This function is similar with jQuery.ready.</p>
+	
+	<h4>msgbox</h4>
+	<p>msgbox exports a "log" function and makes it a global function. Its signature is function log(text, raw). This function prints a message in the console and shows it in a message box popped out.</p>
+	
+	<h4>selectbox</h4>
+	<p>selectbox exports a "SelectionBox" class. Here is an sample of using this class</p>
+	<pre>
+run(["selectbox"], function(SelectionBox) {
+  …
+  var edgeSize  = 2;          // 2 pixel wide edge.
+  var edgeColor = "#ff00ff";  // The edge color is #ff00ff, or rgb(255,0,255)
+  var selectionBox = new SelectionBox(edgeSize, edgeColor);
+  
+  var node = document.getElementById("div.className");
+  selectionBox.highlight(node);
+  …
+  selectionBox.hide();
+  
+  …
+});
+	</pre>
 </div>
 
 					

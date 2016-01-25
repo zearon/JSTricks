@@ -545,6 +545,10 @@ if (localStorage["info"])
             // the code attribute is a piece of code (before the loaded script code)
             loadItem.code += code;
             
+          var scriptUrl = "chrome-extension://" + chrome.runtime.id + "/dynamic/" + script.name + ".js";
+          console.log(scriptUrl);
+          loadItem.code += "\n\n//# sourceURL=" + scriptUrl;
+            
           // Inject CSS style
           if (css) {
             // This way, the css can override the styles built in the injected webpage        
