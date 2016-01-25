@@ -45,8 +45,13 @@ function createAutoload() {
         chrome.error("Cannot get object from chrome local storage.");
       
       self.storage = storage;
+      self.enabled = storage.enabled;
       self.INFO = storage.INFO;
       self.debug = storage.INFO.debug;
+      
+      if (!self.enabled) {
+        return;
+      }
   
       if (!window.INFO) { 
         window.INFO = storage.INFO; 
@@ -119,7 +124,10 @@ function createAutoload() {
     }
   }
   
-  function callListeners(self, storage) {
+  function callListeners(self, storage) {    
+    if (!self.enabled) {
+      return;
+    }
     for (var i = 0; i < self.onInitedListeners.length; ++ i) {
       var listener = self.onInitedListeners[i];
       callListner(self, listener);

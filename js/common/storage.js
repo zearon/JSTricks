@@ -682,17 +682,18 @@
   };
   
   /**
-   * Transfer all scripts from a storage area to another.
+   * Rebuild script indexes.
    */
   Storage.fn.rebuildScriptIndexes = function(onok, onerr) {
-    var self = this, indexObj = this.loadIndexObj("empty"), meta = this.getMetadata(true);
+    var self = this, indexObj = this.loadIndexObj("empty"), meta = this.getMetadata(true);;
     
-    this.getAllScripts(["dss", "ss", "cs"], function() {
+    this.getAllScripts(["dss", "ss", "cs"], function(scripts) {
       // on complete
-      self.saveIndexObj(indexObj);      
-    
-      if (onok)
-        onok();      
+      // Remove all information in CSL, chrome.storage.local, and let following steps to rebuild them
+      chrome.storage.local.clear(function() {
+        self.saveIndexObj(indexObj);       
+        self.rebuildCSLStorage(meta, scripts, onok); 
+      });
     }, function(name, type, obj) {
       // when iterate over each script
       updateScriptIndex_internal(indexObj, "add", name, type, getScriptOptForIndex(obj));      
@@ -928,7 +929,38 @@
    *    CSL Storage (chrome.storage.local)     *
    *********************************************/  
    
-  Storage.fn.rebuildCSLStorage = function(scripts) {
+  Storage.fn.rebuildCSLStorage = function(meta, scripts, callback) {
+    // Set content script list that should stored in chrome.storage.local
+    var includes = meta && meta.include ? meta.include : [];
+    var plugins = meta && meta.plugins ? meta.plugins : [];      
+    var activePluginCSNames = plugins.filter(function(plg) { 
+      try {
+        // the first expression ensures plg.action.script exists
+        // and the second expression is the returned value.
+        return plg.action.script, plg.action.topFrame;
+      } catch (ex) { return false; }
+    }).map(function(plg) { return plg.action.script; } );
+  
+    var allCslCSNames = includes.addAllIfNotIn(activePluginCSNames);
+  
+    console.log("In meta data, names of scripts in include and topFrame plugins are:", allCslCSNames);
+  
+    cslSaveScriptList(allCslCSNames, function() {
+      // Save scripts configured in metadata into chrome.storage.local
+      if (scripts) {
+        var objSaved = {};
+        scripts.forEach(function(script) {
+          if (scripts.type === "cs" && allCslCSNames.contains(script.name)) {
+            objSaved[script.id] = script;              
+          }
+        });
+      
+        chrome.storage.local.set(objSaved, callback);
+      }        
+      else if (callback) {
+        callback();
+      }
+    });
   }
    
    
