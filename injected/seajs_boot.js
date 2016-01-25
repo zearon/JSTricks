@@ -347,13 +347,18 @@ ${srcCode};
         	break;
         }
         
+        var prefix = "chrome-extension://" + chrome.runtime.id + "/dynamic/";
+        var scriptName = uri.replace(new RegExp("^(.*?:\\/\\/)?("+chrome.runtime.id+"\\/)?"), prefix);
+        console.log(scriptName);
+        srcCode += "\n\n//# sourceURL=" + scriptName;
+        
         // send code to background page to run
         if (typeof INFO !== "undefined" && INFO.desc == "Javascript Tricks") {
-		  var callbackID = name + ":" + guid();
-		  callbacks[callbackID] = onload;
-	
-		  chrome.runtime.sendMessage({method:"InjectModule", 
-									  data:JSON.stringify({name: uri, code: srcCode, callback: callbackID})});
+          var callbackID = name + ":" + guid();
+          callbacks[callbackID] = onload;
+  
+          chrome.runtime.sendMessage({method:"InjectModule", 
+                        data:JSON.stringify({name: uri, code: srcCode, callback: callbackID})});
         } 
         
         // Add the srcCode as a script node with Data-URI.
