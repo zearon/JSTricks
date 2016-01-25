@@ -358,7 +358,7 @@ if (localStorage["info"])
     function updateIconForDomain(domain) {
       var domain_ = domain, urlFilter = {}, siteStatus = undefined;
       if (domain !== "Default") {
-        var siteStatus = getSiteStatus(domain);
+        siteStatus = getSiteStatus(domain);
         urlFilter.url = "*://" + domain + "/*";
       } else {
         urlFilter.url = "*://*/*";

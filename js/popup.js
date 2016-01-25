@@ -201,9 +201,10 @@ function log() {
 				
 			API_GetTabURL(function(url) {
 				var domain = url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
-				storage.deleteScript(["ss", domain]);
+				storage.deleteScript(["ss", domain], function() {
+          chrome.runtime.sendMessage({method:"UpdateIconForDomain", data: domain });
+				});
 				
-        chrome.runtime.sendMessage({method:"UpdateIconForDomain", data: domain });
 			  
 			  $("#jstcb").removeAttr("checked");
 			  $("#jstcb").button("refresh");
@@ -241,8 +242,9 @@ function log() {
 			tmpp.autostart = document.getElementById("jstcb").checked;
 			tmpp.sfile  = $("#jsincludefile").val();
 			
-			storage.saveScript(tmpp);
-      chrome.runtime.sendMessage({method:"UpdateIconForDomain", data: url });
+			storage.saveScript(tmpp, function() {
+        chrome.runtime.sendMessage({method:"UpdateIconForDomain", data: url });
+			});
 			
 			// Update status to let user know options were saved.
 			var status = document.getElementById("title");
@@ -478,6 +480,7 @@ function log() {
 					}
 				}
 				setSelectionInEditor(editor, true);
+				editor.clearHistory();
 				
 				if (storage.getSetting("popupwindow_displayRequiresField") !== "false") {
 					$("#jsincludefile-wrapper").show();
