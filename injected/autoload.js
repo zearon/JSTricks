@@ -22,6 +22,7 @@ function createAutoload() {
 		this.domain = domain_ ? domain_[1] : undefined;
 		this.siteStatus = null;
 		this.siteStatusCode = 0;
+		this.pluginStatus = false;
   }
 
   Autoload.prototype.addOnInitedListener = function(listener) { 
@@ -150,7 +151,7 @@ function createAutoload() {
     if (!self.storage.enabled) {
       console.log("[Javascript Tricks is disabled.]");
     }
-    else if (self.siteStatusCode > 2) {
+    else if (self.siteStatusCode >= 2) {
       console.log("autoload.js starts loading scripts.");
       sendMessage({method: "JSTinjectScript"});
     }
@@ -169,23 +170,28 @@ function createAutoload() {
       self.siteStatus = "disabled";
       self.siteStatusCode = 0;
     } else if (!siteOption) {
-      self.siteStatus = "none";
-      self.siteStatusCode = 1;
-    } else if (defaultEnabled) {
-      if (siteOption.active) {
-        self.siteStatus = "default+active";
-        self.siteStatusCode = 5;
-      } else {
+      if (defaultEnabled) {
         self.siteStatus = "default";
-        self.siteStatusCode = 3;
+        self.siteStatusCode = 2;
+      } else {
+        self.siteStatus = "none";
+        self.siteStatusCode = 1;
       }
-    } else {
-      if (siteOption.active) {
-        self.siteStatus = "active";
+    } else if (!siteOption.active) {
+      if (defaultEnabled) {
+        self.siteStatus = "default+inactive";
         self.siteStatusCode = 4;
       } else {
         self.siteStatus = "inactive";
-        self.siteStatusCode = 2;
+        self.siteStatusCode = 3;
+      }
+    } else {
+      if (defaultEnabled) {
+        self.siteStatus = "default+active";
+        self.siteStatusCode = 6;
+      } else {
+        self.siteStatus = "active";
+        self.siteStatusCode = 5;
       }
     }
       
@@ -194,11 +200,12 @@ function createAutoload() {
   
   function getIconStatus(self) {
     var siteStatus = getSiteStatus(self);
+    var pluginStatus = self.pluginStatus ? "+plugin" : "";
     
-    if (!self.storage.enabled || siteStatus == "none" )  
+    if (!self.pluginStatus && (!self.storage.enabled || siteStatus == "none") )  
       return "unchanged";
     else
-      return siteStatus;
+      return siteStatus + pluginStatus;
   }
   
   function sendMessage(msg) {
