@@ -51,7 +51,8 @@ html body.theme-_yellow { background:#fefebb; color:black; }
 	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
 	text-shadow:rgba(255,255,255,0.6) 0 1px;	
 	border-top-left-radius: 6px;
-	border-top-right-radius: 6px
+	border-top-right-radius: 6px;
+	color: #555555;
 }
 .theme-_yellow div.tabs > ul li.selected,
 .theme-_yellow #tabs > ul li.selected,
@@ -59,6 +60,7 @@ html body.theme-_yellow { background:#fefebb; color:black; }
 	/*border:1px solid #ffaf0f; */
 	background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b));
 	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
+	color: #212121;
 }
 
 
