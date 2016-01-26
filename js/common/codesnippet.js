@@ -2,28 +2,68 @@ var codesnippit_showPopupInWebpage =
 `run(["jquery", "jquery-ui", "nodeSelector"], function($) {	
 	$("#JST-POPUP-PINNED").parent(".ui-dialog").remove();
 	$("#JST-POPUP-PINNED").remove();
-	$("<iframe id='JST-POPUP-PINNED' src='chrome-extension://"+chrome.runtime.id+"/popup.html' style='width:600px;height:571px;' />")
+	
+	var dialogTitleHeight = 20;
+	var dialogTitleBoxHeight = 20 + 12;  // 12 is the sum of margin and padding on top and bottom
+	var dialogBottomMargin = 20;
+	var height = "{{height}}";
+	if (height === "100%") {
+	  height = document.documentElement.clientHeight - dialogBottomMargin;
+	}
+	
+	$("<iframe id='JST-POPUP-PINNED' src='chrome-extension://"+chrome.runtime.id+"/popup.html' " +
+	  "style='width:600px; " + 
+	  "height:calc(100% - " + dialogTitleBoxHeight + "px - " + dialogBottomMargin + "px);" + 
+	  "padding:0 0 0 0; border: 0 0 0 0;' />")
 	.appendTo("body")
 	.dialog({
 		"title":"JavaScript Tricks (Double click to toggle)", 
-		"width":"602", "height":"653",
-		"position": {"my": "right center", "at": "right center", "of": window}
+		"width":"602", "height": height
+		/*,
+		"position": {"my": "right top", "at": "right top", "of": window}*/
 	});
-	$("#JST-POPUP-PINNED").css("width", "calc(100% - 2px)");	
+	$("#JST-POPUP-PINNED").css("width", "calc(100% - 2px)");
+	
 	
 	$(".ui-dialog-titlebar").dblclick(function() {
 		$(this).attr("title", "Double click to toggle (collapse or extend) dialog box.");
-		$(this).next().toggle();
+		var dialog = $(this).closest(".ui-dialog");
+		var maxHeight= dialog.css("max-height");
+		if (maxHeight === "none") {
+		  dialog.css("max-height", dialogTitleBoxHeight + "px"); 
+		  $(this).next().hide();
+		} else {
+		  dialog.css("max-height", "none");
+		  $(this).next().show();
+		}
 	});
 	
-	$("#JST-POPUP-PINNED").closest(".ui-dialog").css("z-index", "2147483645")
-		.children("iframe").css("padding", "0 0 0 0").css("border", "0 0 0 0");
+	var dialog = $("#JST-POPUP-PINNED").closest(".ui-dialog");
+	dialog.parent().addClass("jstricks");
+	dialog.children(".ui-dialog-titlebar")
+	      .css({
+	          "font-size": "12px",
+	          "height": dialogTitleHeight + "px);"
+	        });
+	dialog.css({
+	          "z-index": "2147483645", 
+	          "position": "fixed", 
+	          "left": "initial", 
+	          "right": "0", 
+	          "top": "0"
+	        })
+	      .children(".ui-dialog-content")
+	      .css({
+	          "height": "calc(100% - " + dialogTitleBoxHeight + "px);"
+	        });
 	
 	$("body").addClass("theme-light");
 	
 	if ({{hideDialog}})
 		$("#JST-POPUP-PINNED").parent().hide();
 	});
+	
+//# sourceURL=injectPopupWindow.js
 `
 
 // Invoked by addNecessaryScriptsToHead() in bg.js

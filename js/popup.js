@@ -6,6 +6,7 @@ var tabID = 0;
 var tabUrl = "";
 var tabSite = "";
 var API_CALLBACKS = {};
+var port = null;
 
 var DEBUG = false;
 if (inExtensionPage && storage.getSetting("DEBUG") === "true")
@@ -18,7 +19,7 @@ var ENABLED = storage.getSetting("enabled") !== 'false';
 // iframe.contentWindow.postMessage({ type: "RestoreEditDialogContextResponse", tabid:NS_tabid, context:NS_editDialogContext }, "*");
 // iframe.contentWindow.postMessage({type:"NS-NodeSelected", tabid:tabid, controlid:NS_controlId, context:NS_editDialogContext}, "*");
 window.addEventListener("message", function(event) {
-  //console.debug("Receive message posted:", event.data);
+  // console.debug("Receive message posted:", event.data);
   // We only accept messages from ourselves
   //if (event.data.tabid != tabID)
   //  return;
@@ -28,6 +29,8 @@ window.addEventListener("message", function(event) {
     restoreEditDialogContext(event.data.context);
   } else if (event.data.type == "NS-NodeSelected") {
     onNodeSelected(event.data.controlid, event.data.value);
+  } else if (event.data.method === "Messages") {
+    onContentPageMessage(event.data);
   }
 }, false);
     
@@ -41,6 +44,8 @@ API_GetSelectedTab(function(tab) {
   }
   tabUrl = tab.url;
   tabSite = tabUrl.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[1];
+  
+  connectToContentPage(tabID);
 });
 
 
@@ -160,7 +165,39 @@ function log() {
   }
 }
 
+/***************************************************************************
+ *                     Communication with content page                     *
+ *                                                                         *
+ ***************************************************************************/
+function connectToContentPage(tabID) {
+  if (inExtensionPage) {
+    // messaging with chrome.runtime.Port.sendMessage and chrome.runtime.Port.onMessage
+    port = chrome.tabs.connect(tabID, {name:"popup window"});
+    port.onMessage.addListener(onContentPageMessage);
+  } else {
+    // messaging with window.postMessage and window.addEventListner("message", function )
+    port = {
+      postMessage: function(msg) {
+        window.top.postMessage(msg, "*");
+      }
+    };
+    // onMessage is in function window.addEventListener at about line 21
+  }
+  
+  port.postMessage({method:"GetAllMessages"});
+}
 
+function onContentPageMessage(msg) {
+  if (msg.method === "Messages") {
+    msg.data.forEach(function(message) {
+      if (message.type === "plugin") {
+        $("#loadedPlugins").append(`<tr><td>${message.time}</td><td>${message.msg}</td></tr>`);
+      } else if(message.type === "log") {
+        $("#logMessages").append(`<tr><td>${message.time}</td><td>${message.msg}</td></tr>`);
+      }
+    });
+  }
+}
 
     function toggleExtension() {
       if (!inExtensionPage)
@@ -434,13 +471,14 @@ function log() {
       if (!inExtensionPage) {
         $("#img-icon").hide();
         $("#title").addClass("indialog");
-        $(".inExtensionPage").hide();
+        $(".onlyInExtensionPage").hide();
         
         API_GetSelectedTab(function(tab) {
           API_SendMessageToTab(tab.id, { method: "RestoreEditDialogContextRequest"});
         });
         
       } else {
+        $("body").addClass("inExtensionPage");
         //$("body").height("570px");
       }
       tabs();
@@ -487,20 +525,10 @@ function log() {
         }
       
         // Height adjusting 
-        var windowHeight = $("body").height();
-        // tabHeight = 500
-//         var tabHeight = windowHeight - $("#editor-script-gen-ui-title").offset().top - 2;
-//         $(".topeditorwrap").css("height", tabHeight);
-//         $(".CodeMirror-scroll, .CodeMirror-gutters").css("height", tabHeight);
-//         
-//         var editor1Height = windowHeight - $("#tabs-1 .CodeMirror-scroll").offset().top - 1;
-//         $("#tabs-1 .CodeMirror-scroll").css("height", editor1Height);
         $(".CodeMirror").each(function(index, ele) {
           var node = $(ele);
-          var height = windowHeight - node.offset().top - 4;
-          node.css("height", height + "px");
-          node.find(".CodeMirror-gutters, .CodeMirror-scroll").css("height", height + "px");
-          node.css("height", height + "px");
+          node.css("height", "100%").find(".CodeMirror-gutters, .CodeMirror-scroll")
+              .css("height", "100%");
         });
         
         if (RUN_BUTTON_CODE) {
@@ -510,11 +538,16 @@ function log() {
       });
       
       // Adjust editor height when switching among different module tabs
-      $("#editor-script-gen-ui-title > ul:first > li").click(function() {
-        var editor1Height = $("body").height() - $("#tabs-1 .CodeMirror").offset().top - 4;
-        $("#tabs-1 .CodeMirror, #tabs-1 .CodeMirror-scroll, #tabs-1 .CodeMirror-gutters").css("height", editor1Height);
-        $("#tabs-1 .CodeMirror").css("height", editor1Height);
-      });  
+      $("#editor-script-gen-ui-title > ul:first > li").click(adjustSiteEditorWrapperHeight); 
+      adjustSiteEditorWrapperHeight();
+      
+      function adjustSiteEditorWrapperHeight() {
+        var editorTop = $("#siteScriptEditorWrapper").offset().top - 32;
+        $("#siteScriptEditorWrapper").css("height", "calc( 100% - " + editorTop + "px)");
+        $("#siteScriptEditorWrapper .CodeMirror").css("height", "100%")
+              .find(".CodeMirror-gutters, .CodeMirror-scroll")
+              .css("height", "100%");
+      }
       
       function getWindowHeight() {
         if (inExtensionPage) {
@@ -618,7 +651,6 @@ function log() {
       
       $("#tabs > div").css({"z-index:":200}).not("#tabs-1").css({"margin-left":-$("#tabs").width(),'z-index':100});
       $("#tabs > ul li:first").addClass("selected");
-      
     }
     
     function changeAutostart() {      
@@ -679,18 +711,7 @@ function log() {
         return;
         
       saveEditDialogContext();
-      
-/* 
-      chrome.tabs.query({"active":true}, function(tab) {
-        if (!tab[0])
-          return;
-          
-        var tabid = tab[0].id;
-        var code = compile_template(codesnippit_showPopupInWebpage, {hideDialog});
-        console.log(code);
-        chrome.tabs.executeScript(tabid, {"code": code});
-      });
- */
+
       chrome.runtime.sendMessage({tabid: tabID, method:"InjectPopupPage", data:{hideDialog}});
       
       window.close();
@@ -766,7 +787,7 @@ function log() {
               var inputID = "code-arg-" + i + "-" + j + "-" + k;
               var type = arg.type ? arg.type : "text";
               if (type == "select") {
-                var element = arg.name + ':<select id="' + inputID + '" class="code-arg-value">';
+                var element = '<span>' + arg.name + '</span>:<select id="' + inputID + '" class="code-arg-value">';
                 for (var m=0; m < arg.options.length; ++ m) {
                   var option = arg.options[m];
                   element += '<option>' + option + '</option>';
@@ -778,7 +799,7 @@ function log() {
                 var size = arg.len ? arg.len : 10;
                 var unitWidth = 350 / 47;
                 var width = Math.floor(size * unitWidth) + "px";
-                var element = arg.name + ':<input id="' + inputID + '" type="text" class="code-arg-value" value="' + arg.defaultValue + '" data-type="' + type + '" style="width:' + width + ';" />';
+                var element = '<span>' + arg.name + '</span>:<input id="' + inputID + '" type="text" class="code-arg-value" value="' + arg.defaultValue + '" data-type="' + type + '" style="width:' + width + ';" />';
                 commandDiv.append(element);
               }
               
@@ -786,10 +807,7 @@ function log() {
                 element = '<input type="button" class="select-domnode-btn" title="Click to choose dom node." style="float:none; display:inline;"/> ';
                 commandDiv.append(element);
               } else if (type == "url") {
-                API_GetTabURL((function(inputIDStr) { return (function(url) {                  
-                    //console.log(tabs);
-                    //var url = tabs[0].url;
-                    //console.log($(inputIDStr));
+                API_GetTabURL((function(inputIDStr) { return (function(url) {
                     $(inputIDStr).val(url);
                   }); 
                   })("#" + inputID)
@@ -807,7 +825,8 @@ function log() {
       $(".add-script-btn").click(addScript);
         
       $(".init-script-btn").click(addRequireFile);
-      $(".select-domnode-btn").click(startSelectingDomNode).mouseenter(hightlightSelectorNode);
+      $(".select-domnode-btn").click(startSelectingDomNode)
+          .prev().prev().attr("title", "Click to highlight the node.").click(hightlightSelectorNode);
       $("#editor-script-gen-ui input:button, #editor-script-gen-ui button").button();
       
       //console.log("active module is", `#genUITab-${metadataSetting.active_module}`);
@@ -863,7 +882,7 @@ function log() {
     }
     
     function hightlightSelectorNode() {
-      var selector = $(this).prev().val();
+      var selector = $(this).next().val();
       var tabid = tabID;
       var msg = {method: "NS-HightlightSelectorNode", tabid:tabID, selector:selector};
       API_SendMessageToTab(tabid, msg);

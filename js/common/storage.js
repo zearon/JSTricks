@@ -849,13 +849,19 @@
       initContextMenuOnInstalled();
       if (callback) callback.apply(this, cbArgs);
     } else {
-      chrome.runtime.getBackgroundPage(function(win) {
-        // defined in bg_contextMenu.js
-        win.initContextMenuOnInstalled();
+      try {
+        chrome.runtime.getBackgroundPage(function(win) {
+          // defined in bg_contextMenu.js
+          win.initContextMenuOnInstalled();
       
-        // call the callback
-        if (callback) callback.apply(this, cbArgs);
-      });   
+          // call the callback
+          if (callback) callback.apply(this, cbArgs);
+        }); 
+      } catch (ex) {
+          chrome.runtime.sendMessage({"method": "UpdateContextMenu"});
+          // call the callback
+          if (callback) callback.apply(this, cbArgs);
+      }
     }
   }
   

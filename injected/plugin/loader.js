@@ -4,9 +4,19 @@
 // {
 //   ...
 //   "plugins": [
-//     {"conditions": [ {"url":["^regexp$"]} ], "action":{"script":"dfdf", "code":""} },
-//     {"conditions": [ {"selector":"#css_selector", "delay": 1000} ], "action":{"script":"efef", "code":""} }
-//   ],
+//     {"enabled":false, "index":0, "info":"Sample plugin for *.baidu.com",
+//     		"conditions": [ {"url":["\\.baidu\\.com"]} ], 
+//      		"action":{"script":"efef", "topFrame":true, "code":""} 
+//     },
+//     {"enabled":false, "index":1, "info":"Sample plugin for css selector",
+//      		"conditions": [ {"selector":"body.wiki-lemma.normal", "delay": 500} ], 
+//      		"action":{"script":"Plugins", "topFrame":false, "code":"plugins.test();"} 
+//     },
+//     {"enabled":true, "index":2, "info":"Adjust Height for Care-Your-Eyes extension",
+//      		"conditions": [ {"selector":"#cye-workaround-body", "delay": 500} ], 
+//      		"action":{"script":"Plugins", "topFrame":true, "code":"plugins.adjustHeightForEyesProtectExt(0);"} 
+//     }
+//  	],
 //   ...
 // }
 
@@ -130,8 +140,10 @@
   }
 
   function doAction(action) {
-    if (action.info)
+    if (action.info) {
       console.log("[Plugin Loader] " + action.info);
+      autoload.notifyMessage({type:"plugin", msg:action.info});
+    }
     var script = action.script, code = action.code; 
     if (debug)
       console.log("[Plugin Loader] Loading content script", action.script, "with code:", code);
@@ -145,7 +157,7 @@
   
   function sendContentScriptLoadingRequest(scriptName, extraCode) {
     var msgData = {name:scriptName};
-    if (!!code) { msgData.extraCode = extraCode; }    
+    if (!!extraCode) { msgData.extraCode = extraCode; }    
     chrome.runtime.sendMessage( {method:"ExecuteContentScript", data:msgData } );
   }
   

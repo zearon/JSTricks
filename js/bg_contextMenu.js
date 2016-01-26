@@ -22,26 +22,18 @@
 
   /* Event listeners */
   function initContextMenuOnInstalled() {
-    scriptMenuIndex = storage.getSetting("contextMenu-index", true);
+    scriptMenuIndex = storage.getSetting("contextMenu-index", true, {});
     csGroupUIprops  = storage.getSetting("csgroup-ui", true, {});
     initContextMenu();
   }
-   window.initContextMenuOnInstalled = initContextMenuOnInstalled;
+  window.initContextMenuOnInstalled = initContextMenuOnInstalled;
   
   function onMessageReceived(request, sender) {
     if (request.method == "UpdateSettings") {
       onOptionValueChanged();
     } else if (request.method == "UpdateContextMenu") {
-      /*var scriptGroups = request.data;
-      console.log("Update Context Menu");
-      console.log(scriptGroups);
-      updateConextMenu(scriptGroups);*/
-      
       // update properties relating to script UI
-      scriptMenuIndex = storage.getSetting("contextMenu-index", true, {});
-      csGroupUIprops  = storage.getSetting("csgroup-ui", true, {});
-      
-      initContextMenu();
+      initContextMenuOnInstalled();
     } 
   }
   

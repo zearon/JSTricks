@@ -232,7 +232,7 @@
 		.hiddenFlag{
 			color:#999;
 		}
-		input[type=button]
+		.jstricks input[type=button]
 		{
 			padding:3px 10px;
 			cursor:pointer;/*
@@ -252,7 +252,7 @@
 			background-color:rgba(227,203,09,1);
 			background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
 		}*/
-		input[type=checkbox]
+		.jstricks input[type=checkbox]
 		{
 			position:relative;
 			top:1px;
@@ -280,7 +280,7 @@
 			text-align:center;
 		}
 		
-		.ui-dialog
+		.jstricks .ui-dialog
 		{
 			z-index:200;
 		}

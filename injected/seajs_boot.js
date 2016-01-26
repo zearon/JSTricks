@@ -107,6 +107,8 @@
     		data.uri = "amd://" + data.uri.replace("[AMD]", "");
     	else if (data.uri.match(/\[CommonJS\]/i))
     		data.uri = "commonjs://" + data.uri.replace("[CommonJS]", "");
+    	else if (data.uri.match(/\[Raw\]/i))
+    		data.uri = "raw://" + data.uri.replace("[Raw]", "");
     }
     
     if (data.uri)
@@ -148,6 +150,9 @@
     } else if (data.requestUri.startsWith("commonjs://")) {
     	data.requestUri = data.requestUri.replace("commonjs://", "");
     	moduleSpec = "CommonJS";
+    } else if (data.requestUri.startsWith("raw://")) {
+    	data.requestUri = data.requestUri.replace("raw://", "");
+    	moduleSpec = "Raw";
     }
     
    	log("4. Requesting module: ", data.uri, "The requeste data is:", data);
@@ -345,11 +350,26 @@ ${srcCode};
 }) (window);
 `;
         	break;
+        case "Raw":
+        	srcCode = 
+/***************************************************
+ *               Raw module wrapper                *
+ ***************************************************/ 
+`${debugstr}
+// A Raw module definition wrapper which provides exports and module symbols.
+	
+${srcCode};
+	
+// End of Raw module definition wrapper
+`;
+        	break;
         }
         
+        // Add annotation comment so that this dynamic script will be given a name in 
+        // Chrome Dev Tools, so that break points can be set on this script.
         var prefix = "chrome-extension://" + chrome.runtime.id + "/dynamic/";
         var scriptName = uri.replace(new RegExp("^(.*?:\\/\\/)?("+chrome.runtime.id+"\\/)?"), prefix);
-        console.log(scriptName);
+        //console.log(scriptName);
         srcCode += "\n\n//# sourceURL=" + scriptName;
         
         // send code to background page to run
@@ -427,18 +447,20 @@ ${srcCode};
       }
   });
   
-  seajs.mod_boot.getDefaultConfig = function () { 
+  seajs.mod_boot.getDefaultConfig = function () {
     return {
       "base": ("chrome-extension://" + chrome.runtime.id + "/injected/"),
       "paths": {
-        "lib": "chrome-extension://" + chrome.runtime.id + "/lib"
+        "lib": "chrome-extension://" + chrome.runtime.id + "/lib",
+        "mootools": "https://ajax.googleapis.com/ajax/libs/mootools/1.6.0"
       },
       "alias": {
         "jquery": "lib/jquery[AMD]",  //"[AMD]jquery.sea.js", "[CommonJS]jquery.sea.js"
         "jquery-ui": "lib/jquery-ui[AMD]",
         "ready": "ready[AMD]",
         "msgbox": "msgbox",
-        "selectbox": "selectionBox"
+        "selectbox": "selectionBox",
+        "mootools": "mootools/mootools[Raw]"
       }
     };
   };

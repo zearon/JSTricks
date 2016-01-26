@@ -23,6 +23,8 @@ function createAutoload() {
 		this.siteStatus = null;
 		this.siteStatusCode = 0;
 		this.pluginStatus = false;
+		
+		this.messages = [];
   }
 
   Autoload.prototype.addOnInitedListener = function(listener) { 
@@ -40,6 +42,37 @@ function createAutoload() {
       return;
       
     self.loaded = true;
+    
+    self.ports = [];
+    // Port between content page and Pinned Popup window
+    var wrappedPort = {
+      postMessage: function(msg) {
+        var iframe = document.getElementById("JST-POPUP-PINNED");
+        if (iframe)
+          iframe.contentWindow.postMessage(msg, "*");
+      }
+    };
+    window.addEventListener("message", function(event) {
+      // console.log("Received Message in autoload", event);
+      wrappedPort.target = event.srcElement;
+      self.respondToMessage(wrappedPort, event.data);
+    }, false);
+    self.ports.push(wrappedPort);
+    
+    // Port between content page and Popup window
+    chrome.runtime.onConnect.addListener(function(port) {
+      console.log("Connected to", port.name);
+      
+      self.ports.push(port);
+      port.onMessage.addListener(function(msg) {
+        self.respondToMessage(port, msg);
+      });
+      port.onDisconnect.addListener(function(port) {
+        // DEBUG: remove the port from the self.ports
+        console.log("Disconnected with", port.name);
+        self.ports = self.ports.removeElement(port);
+      });
+    });
     
     chrome.storage.local.get(["enabled", "INFO", "siteIndex"], function(storage) { 
       if (chrome.runtime.lastError)
@@ -88,6 +121,25 @@ function createAutoload() {
     
     sendMessage({method:"SetIcon", data:iconStatus});
   };
+
+  // msg should be like {type:"log", msg:text}
+  Autoload.prototype.notifyMessage = function (msg) {
+    var now = new Date();
+    msg.timeInt = now.getTime();
+    msg.time = now.Format("hh:mm:ss.S"); //"yyyy-M-d h:m:s.S"
+    this.messages.push(msg);
+    
+    this.ports.forEach(function(port) {
+      // CHECK if port is still connected.
+      // Send message to subscribers
+      port.postMessage({method:"Messages", data:[msg]});
+    });
+  }
+  
+  Autoload.prototype.respondToMessage = function (port, msg) {
+    if (msg.method == "GetAllMessages")
+      port.postMessage({method:"Messages", data:this.messages});
+  }
   
   function prepare(self, storage) { 
     self.setIcon();

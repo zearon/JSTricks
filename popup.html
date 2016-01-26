@@ -5,117 +5,119 @@
  * LICENSE file.
 -->
 <html>
-  <head>	
+  <head>  
 <meta charset="utf-8" />
-	<!-- CodeMirror stylesheets and scripts -->
-	<link rel="stylesheet" href="lib/codemirror/lib/codemirror.css">
-	<link rel="stylesheet" href="lib/codemirror/addon/hint/show-hint.css">
-	<link rel="stylesheet" href="lib/codemirror/addon/fold/foldgutter.css" />
-	<link rel="stylesheet" href="lib/codemirror/addon/lint/lint.css">
-	<link rel="stylesheet" href="css/theme/light.css">
-	<link rel="stylesheet" href="css/theme/_yellow.css">
-	<link rel="stylesheet" href="css/theme/dark.css">	
+  <!-- CodeMirror stylesheets and scripts -->
+  <link rel="stylesheet" href="lib/codemirror/lib/codemirror.css">
+  <link rel="stylesheet" href="lib/codemirror/addon/hint/show-hint.css">
+  <link rel="stylesheet" href="lib/codemirror/addon/fold/foldgutter.css" />
+  <link rel="stylesheet" href="lib/codemirror/addon/lint/lint.css">
+  <link rel="stylesheet" href="css/theme/light.css">
+  <link rel="stylesheet" href="css/theme/_yellow.css">
+  <link rel="stylesheet" href="css/theme/dark.css">  
   <link rel="stylesheet" href="css/jquery-ui.structure.css"> 
   <link rel="stylesheet" href="css/theme/jqueryui/jquery-ui.theme-light.css"> 
   <link rel="stylesheet" href="css/theme/jqueryui/jquery-ui.theme-_yellow.css"> 
   <link rel="stylesheet" href="css/theme/jqueryui/jquery-ui.theme-dark.css"> 
 
-	<script src="lib/codemirror/lib/codemirror.js"></script>
-	<script src="lib/codemirror/addon/selection/active-line.js"></script>
-	<script src="lib/codemirror/addon/edit/matchbrackets.js"></script>
-	<script src="lib/codemirror/addon/comment/continuecomment.js"></script>
-	<script src="lib/codemirror/addon/comment/comment.js"></script>
-	<script src="lib/codemirror/addon/hint/show-hint.js"></script>
-	<script src="lib/codemirror/addon/hint/javascript-hint.js"></script>
-	<script src="lib/codemirror/mode/javascript/javascript.js"></script>
-	<script src="lib/codemirror/addon/hint/css-hint.js"></script>
-	<script src="lib/codemirror/mode/css/css.js"></script>
-	<script src="lib/codemirror/addon/fold/foldcode.js"></script>
-	<script src="lib/codemirror/addon/fold/foldgutter.js"></script>
-	<script src="lib/codemirror/addon/fold/brace-fold.js"></script>
-	<script src="lib/codemirror/addon/fold/comment-fold.js"></script>
-	
-	<script src="lib/jshint/jshint.js"></script>
-	<script src="lib/3rdparty-lint/jsonlint_zaach.js"></script>
-	<script src="lib/3rdparty-lint/csslint.js"></script>
-	<script src="lib/codemirror/addon/lint/lint.js"></script>
-	<script src="lib/codemirror/addon/lint/javascript-lint.js"></script>
-	<script src="lib/codemirror/addon/lint/json-lint.js"></script>
-	<script src="lib/codemirror/addon/lint/css-lint.js"></script>	
-	<!-- End of CodeMirror stylesheets and scripts -->
-	
-	
-	<script  type="text/javascript" src="lib/jquery.js" ></script>
-	<script  type="text/javascript" src="lib/jquery-ui.js" ></script>
-	
-	<script src="js/common/commonext.js" ></script>	
-	<script src="js/common/templating.js" ></script>	
-	<script src="js/common/templates.js" ></script>	
-	<script src="js/common/codesnippet.js" ></script>	
-	<script src="js/common/storage.js" ></script>	
-	<script src="js/common/theme.js" ></script>
-	
-	<script  type="text/javascript" src="js/popup.js" ></script>
-	<link rel=stylesheet href="css/popup.css">
+  <script src="lib/codemirror/lib/codemirror.js"></script>
+  <script src="lib/codemirror/addon/selection/active-line.js"></script>
+  <script src="lib/codemirror/addon/edit/matchbrackets.js"></script>
+  <script src="lib/codemirror/addon/comment/continuecomment.js"></script>
+  <script src="lib/codemirror/addon/comment/comment.js"></script>
+  <script src="lib/codemirror/addon/hint/show-hint.js"></script>
+  <script src="lib/codemirror/addon/hint/javascript-hint.js"></script>
+  <script src="lib/codemirror/mode/javascript/javascript.js"></script>
+  <script src="lib/codemirror/addon/hint/css-hint.js"></script>
+  <script src="lib/codemirror/mode/css/css.js"></script>
+  <script src="lib/codemirror/addon/fold/foldcode.js"></script>
+  <script src="lib/codemirror/addon/fold/foldgutter.js"></script>
+  <script src="lib/codemirror/addon/fold/brace-fold.js"></script>
+  <script src="lib/codemirror/addon/fold/comment-fold.js"></script>
+  
+  <script src="lib/jshint/jshint.js"></script>
+  <script src="lib/3rdparty-lint/jsonlint_zaach.js"></script>
+  <script src="lib/3rdparty-lint/csslint.js"></script>
+  <script src="lib/codemirror/addon/lint/lint.js"></script>
+  <script src="lib/codemirror/addon/lint/javascript-lint.js"></script>
+  <script src="lib/codemirror/addon/lint/json-lint.js"></script>
+  <script src="lib/codemirror/addon/lint/css-lint.js"></script>  
+  <!-- End of CodeMirror stylesheets and scripts -->
+  
+  
+  <script  type="text/javascript" src="lib/jquery.js" ></script>
+  <script  type="text/javascript" src="lib/jquery-ui.js" ></script>
+  
+  <script src="js/common/commonext.js" ></script>  
+  <script src="js/common/templating.js" ></script>  
+  <script src="js/common/templates.js" ></script>  
+  <script src="js/common/codesnippet.js" ></script>  
+  <script src="js/common/storage.js" ></script>  
+  <script src="js/common/theme.js" ></script>
+  
+  <script  type="text/javascript" src="js/popup.js" ></script>
+  <link rel=stylesheet href="css/popup.css">
   </head>
-  <body class="theme-dark">
-	
-	<div id="img-icon" style='float:left'><img src='icon/icon32.png' alt='' style='vertical-align:bottom;margin-bottom:5px;'/></div>
-	<div style="float:right;margin-top:5px;position:absolute; right:0px; z-index:2;">
-		<span id='title' style='z-index:1;'></span>
-		
-		<span class="inExtensionPage">
-			<input id="enableDisableBtn" type='button' title='Enable/Disable Javascript Tricks' >
-			<input id="optionsBtn" type='button' title='Options' >
-			<input id="showInDialogBtn" type='button' title='Show in Dialog' >
-		</span>	
-		<span class="needEnabled">
-			<input id='runSelectedBtn' type='button' title="Apply Selected" >
-			<input id='runBtn' type='button' title="Apply">	
-		</span>
-		<input id='deleteBtn' type='button' title="Delete" >
-		<input id='editInOptionPageBtn' type='button' title="Edit In Option Page">	
-		<input id='laodCacheBtn' type='button' title="Load Cache" style="display:none;">	
-		<input id='saveOptBtn' type='button' title="Save" >
-		<input tabindex="1" type='checkbox' id='jstcb'  /><label for="jstcb" id="forjstcb" style="height:21px;">Autostart</label>
-		
-	</div>
-	
-	<div id="tabs" style="width:600px;font-size:11px">
-		<ul>
-			<li class="tab-level tab-path-0" tab-path="tab-path-0" ><a href="#tabs-1">JavaScript</a></li>
-			<li class="tab-level tab-path-1" tab-path="tab-path-1" ><a href="#tabs-2">CSS</a></li>
-			<li class="tab-level tab-path-2" tab-path="tab-path-2" ><a href="#tabs-3">Demo-code</a></li>
-		</ul>
-		<style>
-		</style>
-		<div id="tabs-1">
-			<div id="editorwrap" class="topeditorwrap" style="clear:both">
-				<div class="tabs">
-					<div id="editor-script-gen-ui-title" >
-						<ul></ul>
-					</div>
-					<div id="editor-script-gen-ui"></div>
-				</div>
-				<hr/>
-				<!-- Not used with sea.js -->
-				<div id="jsincludefile-wrapper" style="display:none; margin-bottom:5px;">
-					Requires: <input id="jsincludefile" size="88" title="The text (seperated by commas) specified in this filed indicates the names of content scripts that should be loaded before this site script is loaded. " />
-				</div>
-				<div style="position:relative;">
-				<div id="js-editor-hint" >"Run Code Generated by Button" mode in ON. Turn it off in options page after completing debugging.</div>
-				<textarea id='scriptText'></textarea>
-				</div>
-			</div>
-		</div>
-		<div id="tabs-2">
-			<div id="editorwrap2" class="topeditorwrap" style="clear:both">
-				<textarea id='scriptTextCss'></textarea>
-			</div>
-		</div>
-		<div id="tabs-3">
-			<div id="editorwrap3" class="topeditorwrap" style="clear:both">
-				<textarea id='demo-code'>
+  <body class="jstricks theme-dark">
+  
+  <div id="img-icon" style='float:left; display:none;'><img src='icon/icon32.png' alt='' style='vertical-align:bottom;margin-bottom:5px;'/></div>
+  <div style="float:right;margin-top:5px;position:absolute; right:0px; z-index:2;">
+    <span id='title' style='z-index:1;'></span>
+    <div class="toolbar">
+      <input tabindex="1" type='checkbox' id='jstcb'  /><label for="jstcb" id="forjstcb" style="height:21px;">Autostart</label>
+      <input id='saveOptBtn' type='button' title="Save" >
+      <input id='editInOptionPageBtn' type='button' title="Edit In Option Page">  
+      <input id='deleteBtn' type='button' title="Delete" >
+      <input id='laodCacheBtn' type='button' title="Load Cache" style="display:none;">  
+      <span class="needEnabled">
+        <input id='runBtn' type='button' title="Apply">  
+        <input id='runSelectedBtn' type='button' title="Apply Selected" >
+      </span>
+    
+      <span class="onlyInExtensionPage">
+        <input id="showInDialogBtn" type='button' title='Show in Dialog' >
+        <input id="optionsBtn" type='button' title='Options' >
+        <input id="enableDisableBtn" type='button' title='Enable/Disable Javascript Tricks' >
+      </span>
+    </div>
+  </div>
+  
+  <div id="tabs" style="width:600px;font-size:11px">
+    <ul>
+      <li class="tab-level tab-path-0" tab-path="tab-path-0" ><a href="#tabs-1">JavaScript</a></li><!--
+   --><li class="tab-level tab-path-1" tab-path="tab-path-1" ><a href="#tabs-2">CSS</a></li><!--
+   --><li class="tab-level tab-path-3" tab-path="tab-path-3" ><a href="#tabs-4">Info</a></li><!--
+   --><li class="tab-level tab-path-2" tab-path="tab-path-2" ><a href="#tabs-3">Demo</a></li>
+    </ul>
+    <style>
+    </style>
+    <div id="tabs-1" class="tabContent">
+      <div id="editorwrap" class="topeditorwrap" style="clear:both">
+        <div class="tabs">
+          <div id="editor-script-gen-ui-title" >
+            <ul></ul>
+          </div>
+          <div id="editor-script-gen-ui"></div>
+        </div>
+        <hr/>
+        <!-- Not used with sea.js -->
+        <div id="jsincludefile-wrapper" style="display:none; margin-bottom:5px;">
+          Requires: <input id="jsincludefile" size="88" title="The text (seperated by commas) specified in this filed indicates the names of content scripts that should be loaded before this site script is loaded. " />
+        </div>
+        <div id="siteScriptEditorWrapper">
+          <div id="js-editor-hint" >"Run Code Generated by Button" mode in ON. Turn it off in options page after completing debugging.</div>
+          <textarea id='scriptText' style="display:none;"></textarea>
+        </div>
+      </div>
+    </div>
+    <div id="tabs-2" class="tabContent">
+      <div id="editorwrap2" class="topeditorwrap" style="clear:both">
+        <textarea id='scriptTextCss'></textarea>
+      </div>
+    </div>
+    <div id="tabs-3" class="tabContent">
+      <div id="editorwrap3" class="topeditorwrap" style="clear:both">
+        <textarea id='demo-code'>
 /* Line 11
  *     run(["jquery", "#Novel"], function($, novel) { ... });
  *   means this piece of script should import module jquery as symbol $ 
@@ -134,15 +136,35 @@ run(["jquery", "#Novel"], function($, novel) {
   
   $(main);
 });
-				</textarea>
-			</div>
-		</div>
-		<span><div style='height:501px;'></div></span>
-	</div>
-	
-	<div id="cover-top" class="for-disabled active" ></div>
-	<div id="cover-center" class="for-disabled active" >
-		<h1>Extension is disabled</h1>
-	</div>
+        </textarea>
+      </div>
+    </div>
+    <div id="tabs-4" class="tabContent">
+      <h2>Loaded Plugins:</h2>
+      <div class="">
+        <table id="loadedPlugins">
+          <tr style="display: none;">
+            <td class="time">Time</td>
+            <td>Plugin</td>
+          </tr>
+        </table>
+      </div>
+      <h2>Logs:</h2>
+      <div class="">
+        <table id="logMessages">
+          <tr style="display: none;">
+            <td class="time">Time</td>
+            <td>Message</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    <span><div style='height:501px;'></div></span>
+  </div>
+  
+  <div id="cover-top" class="for-disabled active" ></div>
+  <div id="cover-center" class="for-disabled active" >
+    <h1>Extension is disabled</h1>
+  </div>
   </body>
 </html>

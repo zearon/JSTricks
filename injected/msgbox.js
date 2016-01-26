@@ -13,6 +13,8 @@ define(["jquery"], function(require, exports, module) {
 	
 	function log(text, raw) {
 	  console.log(text);
+	  if (autoload)
+	    autoload.notifyMessage({type:"log", msg:text});
 	  if (showMessage) 
 		showMessage(text, raw);
 	}
