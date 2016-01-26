@@ -62,42 +62,16 @@ html body.theme-_yellow { background:#fefebb; color:black; }
 }
 
 
+
+
+
+
+
+
+
 /* Styles for popup window */
-.theme-_yellow #saveOptBtn {
-	background: url('img/icons_01.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-.theme-_yellow #laodCacheBtn {
-	background:   url('img/icons_02.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-.theme-_yellow #editInOptionPageBtn {
-	background:   url('img/icons_07.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-.theme-_yellow #runBtn {
-	background:   url('img/icons_03.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-.theme-_yellow #runSelectedBtn {
-	background:   url('img/icons_04.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-.theme-_yellow #deleteBtn {
-	background:   url('img/icons_05.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-.theme-_yellow #showInDialogBtn {
-	background:   url('img/icons_06.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-.theme-_yellow #enableDisableBtn.enable {
-	background:   url('img/enable.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-.theme-_yellow #enableDisableBtn.disable {
-	background:   url('img/disable.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-.theme-_yellow #optionsBtn {
-	background:   url('img/setting.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-.theme-_yellow input[type=button].init-script-btn {
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#D6FCB4), color-stop(50%,#D0FC48), color-stop(51%,#B8F400), color-stop(100%,#DFFB8B));
-}
-.theme-_yellow input[type=button].run-script-btn {
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#D6FCB4), color-stop(50%,#D0FC48), color-stop(51%,#B8F400), color-stop(100%,#DFFB8B));
+.theme-_yellow #optionsBtn .img {
+	background:   url('img/setting.png') no-repeat center;
 }
 
 .theme-_yellow #title {
