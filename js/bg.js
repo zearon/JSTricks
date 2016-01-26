@@ -278,7 +278,9 @@ if (localStorage["info"])
       
       // Invoked by popup window when pin it.
       else if (requestMethod == "InjectPopupPage") {
-        var code = compile_template(codesnippit_showPopupInWebpage, requestData);
+        var context = requestData;
+        context.height = INFO.settings.popupwindow_pinnedWindowHeight;
+        var code = compile_template(codesnippit_showPopupInWebpage, context);
         //debug_log(code);
         chrome.tabs.executeScript(tabid, {"code": code});
       }
@@ -545,8 +547,11 @@ if (localStorage["info"])
             // the code attribute is a piece of code (before the loaded script code)
             loadItem.code += code;
             
+        
+          // Add annotation comment so that this dynamic script will be given a name in 
+          // Chrome Dev Tools, so that break points can be set on this script.
           var scriptUrl = "chrome-extension://" + chrome.runtime.id + "/dynamic/" + script.name + ".js";
-          console.log(scriptUrl);
+          //console.log(scriptUrl);
           loadItem.code += "\n\n//# sourceURL=" + scriptUrl;
             
           // Inject CSS style

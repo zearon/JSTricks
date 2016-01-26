@@ -1,15 +1,19 @@
 html{
 	overflow:hidden;
+	height: 100%;
 }
 body{
 	margin:0;
 	padding:0; 
 	overflow:hidden;
 	width: 600px;
+	height: 100%;
+}
+body.inExtensionPage {
 	height: 600px;
 }
 ul {
-		display: block;
+	display: block;
 	list-style-type: disc;
 	-webkit-margin-before: 0em;
 	-webkit-margin-after: 0em;
@@ -28,6 +32,21 @@ ul {
 #title.indialog {
 	right: 276px;
 }
+.toolbar {
+  clear:both;
+  float:right;
+  font-size: 0;
+}
+.toolbar label.ui-button {
+  vertical-align:top;
+}
+.toobar>span {
+  font-size: 0;
+}
+.toolbar input, .toolbar label span {
+  font-size: 12px;
+}
+
 .CodeMirror
 {			
 	max-width:99%;
@@ -50,8 +69,8 @@ h4{margin:0px;}
 }
 input[type=button]
 {
-	display:block;
-	float:right;
+	/*display:block;
+	float:right;*/
 	cursor:pointer;
 }
 input[type=button]:hover,input[type=button]:focus
@@ -70,7 +89,7 @@ input[type=button]:active
 #editor-script-gen-ui .select-domnode-btn { 
   float:none;
   display: inline;
-	width:16px;
+	width:21px;
 	height: 21px;
 	position: relative;
 	top: -2px; /* -1px on mac os x*/
@@ -92,7 +111,25 @@ input[type=button]:active
 	top:32px;
 	left:0px;
 	width:100%;
-}		
+	height:calc( 100% - 32px );
+}
+.tabContent {
+  overflow-y: hidden;
+}
+#tabs-4 {
+  overflow-y: auto;
+}
+.topeditorwrap {
+	height:100%;
+}
+#siteScriptEditorWrapper {
+  position:relative;
+  overflow-y: hidden;
+  /*height attribute will be overridden by scripts */
+  height:100%;
+}
+
+
 #editor-script-gen-ui {
 	overflow-x:auto;
 	overflow-y:scroll;
@@ -101,7 +138,6 @@ input[type=button]:active
 	padding:0px;
 	margin:1px 0px 0 0;
 	line-height:30px;
-	
 }
 #tabs > ul li
 {
@@ -111,9 +147,10 @@ input[type=button]:active
 	background-color:rgba(227,203,09,1);
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
 	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
-	padding:0px 10px;
+	padding:0px 8px;
 	text-shadow:rgba(255,255,255,0.6) 0 1px;
 	font-size:1.4em;
+	margin-right:1px;
 }
 #tabs > ul li:active
 {
