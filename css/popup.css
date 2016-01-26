@@ -32,6 +32,14 @@ ul {
 #title.indialog {
 	right: 276px;
 }
+.toolbarContainer {
+  float:right;
+  margin-top:2px; 
+  padding:3px;
+  position:absolute; 
+  right:0px; 
+  z-index:2;
+}
 .toolbar {
   clear:both;
   float:right;
