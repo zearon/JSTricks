@@ -45,59 +45,33 @@ html body.theme-light { background:rgb(252,252,252); }
 /* Common styles for both options window and popup window */
 .theme-light div.tabs > ul li,
 .theme-light #tabs > ul li,
-.theme-light li.tab-title {
-	border:1px solid #bbbbbb;
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
-	box-shadow: rgba(255,255,255,0.2) 0 -1px 2px inset,rgba(221,221,221,1) 0 1px 2px inset;
-	text-shadow:rgba(255,255,255,0.6) 0 1px;	
+.theme-light li.tab-title {	
 	border-top-left-radius: 6px;
-	border-top-right-radius: 6px
+	border-top-right-radius: 6px;
+
+  /* copied from jquery-ui.theme-light.css at line 51 */
+	border: 1px solid #d3d3d3;
+	background: #e6e6e6 url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAGQEAAAAAAao4lEAAAAAmJLR0T//xSrMc0AAAAJcEhZcwAAAEgAAABIAEbJaz4AAABISURBVDjLY3iXxzCKRhHV0bNnDM+NGJ7fYXgxk+FlJsOrOIbXIQxvYhjepjK8i2Z4H8DwwZjhIzPDx7UMn+QYPhmOolFEDAIAjUD2JAAuNW8AAAAldEVYdGRhdGU6Y3JlYXRlADIwMTYtMDEtMDNUMDc6MzU6MDQrMDA6MDAAVb7rAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE2LTAxLTAzVDA3OjM1OjA0KzAwOjAwcQgGVwAAAABJRU5ErkJggg==") 50% 50% repeat-x;
+}
+.theme-light div.tabs > ul li:hover,
+.theme-light #tabs > ul li:hover,
+.theme-light li.tab-title:hover {
+  /* copied from jquery-ui.theme-light.css at line 66 */
+	border: 1px solid #999999;
+	background: #dadada url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAGQEAAAAAAao4lEAAAAAmJLR0T//xSrMc0AAAAJcEhZcwAAAEgAAABIAEbJaz4AAABISURBVDjLY3j6n2EUjSKqo1u3GG57MdxxY7gby3BvIsP9PwwPMxgefWB4Us7w9DHDcz+GF/MYXl5ieHWW4XUpw+uJo2gUEYMAvlejJVIWsXwAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTYtMDEtMDNUMDc6MzU6MDQrMDA6MDAAVb7rAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE2LTAxLTAzVDA3OjM1OjA0KzAwOjAwcQgGVwAAAABJRU5ErkJggg==") 50% 50% repeat-x;
 }
 .theme-light div.tabs > ul li.selected,
 .theme-light #tabs > ul li.selected,
 .theme-light li.tab-title.selected {
-	border:1px solid #aaaaaa;
-	background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), /*color-stop(50%,#fce448), color-stop(51%,#f4d300), */color-stop(100%,#fefefe));
-	box-shadow: rgba(0,0,0,0.2) 0 0 1px;
+  /* copied from jquery-ui.theme-light.css at line 88 */
+	border: 1px solid #aaaaaa;
+	background: #ffffff url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAGQAQAAAABHIzd2AAAAAmJLR0QAAd2KE6QAAAAJcEhZcwAAAEgAAABIAEbJaz4AAAARSURBVCjPY2hgGIWjcBTigACVaMgB0zSxaQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNi0wMS0wM1QwNzozNTowMyswMDowMMXygGUAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTYtMDEtMDNUMDc6MzU6MDMrMDA6MDC0rzjZAAAAAElFTkSuQmCC") 50% 50% repeat-x;
 }
 
 
 /* Styles for popup window */
-.theme-light #saveOptBtn {
-	background: url('img/icons_01.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
-}
-.theme-light #laodCacheBtn {
-	background:   url('img/icons_02.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
-}
-.theme-light #editInOptionPageBtn {
-	background:   url('img/icons_07.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
-}
-.theme-light #runBtn {
-	background:   url('img/icons_03.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
-}
-.theme-light #runSelectedBtn {
-	background:   url('img/icons_04.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
-}
-.theme-light #deleteBtn {
-	background:   url('img/icons_05.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
-}
-.theme-light #showInDialogBtn {
-	background:   url('img/icons_06.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
-}
-.theme-light #enableDisableBtn.enable {
-	background:   url('img/enable.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
-}
-.theme-light #enableDisableBtn.disable {
-	background:   url('img/disable.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
-}
-.theme-light #optionsBtn {
-	background:   url('img/setting.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(50%,#eeeeee), color-stop(51%,#e6e6e6), color-stop(100%,#e0e0e0));
-}
-.theme-light input[type=button].init-script-btn {
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#D6FCB4), color-stop(50%,#D0FC48), color-stop(51%,#B8F400), color-stop(100%,#DFFB8B));
-}
-.theme-light input[type=button].run-script-btn {
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#D6FCB4), color-stop(50%,#D0FC48), color-stop(51%,#B8F400), color-stop(100%,#DFFB8B));
+.theme-light #optionsBtn .img {
+	background:   url('img/setting.png') no-repeat center;
 }
 
 .theme-light #title {

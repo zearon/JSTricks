@@ -225,9 +225,11 @@ function onContentPageMessage(msg) {
     
     function setEnableDisableBtnImage() {
       if (storage.getSetting("enabled") === "true") {
-        $("#enableDisableBtn").attr("class", "disable");
+        $("#enableDisableBtn").addClass("disable");
+        $("#enableDisableBtn").removeClass("enable");
       } else {
-        $("#enableDisableBtn").attr("class", "enable");
+        $("#enableDisableBtn").addClass("enable");
+        $("#enableDisableBtn").removeClass("disable");
       }
     }
 
@@ -462,6 +464,8 @@ function onContentPageMessage(msg) {
       //$("#forjstcb").click(changeAutostart);
       $("#enableDisableBtn").click(toggleExtension);
       $("#optionsBtn").click(function() { window.open(chrome.runtime.getURL("options.html"), "OptionPage"); });
+      
+      $(".toolbar button").button();
       
       $("#jstcb").button({icons: {
             primary: "ui-icon-close"
