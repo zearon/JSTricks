@@ -48,6 +48,8 @@ html body.theme-dark { background:#0f0f0f; color:#eeeeee; }
 .theme-dark li.tab-title {	
 	border-top-left-radius: 6px;
 	border-top-right-radius: 6px;
+	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
+	text-shadow:rgba(255,255,255,0) 0 0;	
 
   /* copied from jquery-ui.theme-dark.css at line 51 */
 	border: 1px solid #666666;

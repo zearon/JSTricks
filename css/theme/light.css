@@ -48,8 +48,11 @@ html body.theme-light { background:rgb(252,252,252); }
 .theme-light li.tab-title {	
 	border-top-left-radius: 6px;
 	border-top-right-radius: 6px;
+	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
+	text-shadow:rgba(255,255,255,0.6) 0 1px;	
 
   /* copied from jquery-ui.theme-light.css at line 51 */
+	color: #555555;
 	border: 1px solid #d3d3d3;
 	background: #e6e6e6 url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAGQEAAAAAAao4lEAAAAAmJLR0T//xSrMc0AAAAJcEhZcwAAAEgAAABIAEbJaz4AAABISURBVDjLY3iXxzCKRhHV0bNnDM+NGJ7fYXgxk+FlJsOrOIbXIQxvYhjepjK8i2Z4H8DwwZjhIzPDx7UMn+QYPhmOolFEDAIAjUD2JAAuNW8AAAAldEVYdGRhdGU6Y3JlYXRlADIwMTYtMDEtMDNUMDc6MzU6MDQrMDA6MDAAVb7rAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE2LTAxLTAzVDA3OjM1OjA0KzAwOjAwcQgGVwAAAABJRU5ErkJggg==") 50% 50% repeat-x;
 }
@@ -57,6 +60,7 @@ html body.theme-light { background:rgb(252,252,252); }
 .theme-light #tabs > ul li:hover,
 .theme-light li.tab-title:hover {
   /* copied from jquery-ui.theme-light.css at line 66 */
+	color: #000000;
 	border: 1px solid #999999;
 	background: #dadada url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAGQEAAAAAAao4lEAAAAAmJLR0T//xSrMc0AAAAJcEhZcwAAAEgAAABIAEbJaz4AAABISURBVDjLY3j6n2EUjSKqo1u3GG57MdxxY7gby3BvIsP9PwwPMxgefWB4Us7w9DHDcz+GF/MYXl5ieHWW4XUpw+uJo2gUEYMAvlejJVIWsXwAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTYtMDEtMDNUMDc6MzU6MDQrMDA6MDAAVb7rAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE2LTAxLTAzVDA3OjM1OjA0KzAwOjAwcQgGVwAAAABJRU5ErkJggg==") 50% 50% repeat-x;
 }
@@ -64,6 +68,7 @@ html body.theme-light { background:rgb(252,252,252); }
 .theme-light #tabs > ul li.selected,
 .theme-light li.tab-title.selected {
   /* copied from jquery-ui.theme-light.css at line 88 */
+	color: #212121;
 	border: 1px solid #aaaaaa;
 	background: #ffffff url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAGQAQAAAABHIzd2AAAAAmJLR0QAAd2KE6QAAAAJcEhZcwAAAEgAAABIAEbJaz4AAAARSURBVCjPY2hgGIWjcBTigACVaMgB0zSxaQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNi0wMS0wM1QwNzozNTowMyswMDowMMXygGUAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTYtMDEtMDNUMDc6MzU6MDMrMDA6MDC0rzjZAAAAAElFTkSuQmCC") 50% 50% repeat-x;
 }
