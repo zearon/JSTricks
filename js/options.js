@@ -624,6 +624,8 @@
         var theme = $(this).val();
         setTheme(theme);
       });
+      
+      sandbox_init();
 //       $("#testtest").click(cloudStorageGenCode);
     
 //       $("#jscontentfilterbtn").click(filterSiteScriptByJSContent);
@@ -711,6 +713,7 @@
       $(".navbar > *").scrollTop(0);
       
       $('#jsonFileLoad').click(loadJsonFile);
+      $('#jsonFileUpdate').click(updateJsonObject);
       $('#jsonObjExtract').click(extractJsonObject);
       
       initControlsRelatingToLocalStorage();
@@ -838,8 +841,17 @@
             break;
           case "1":
             // jump to script if item=Novel is specified
-            if (item)
-              $(`div.jstbox.contentScriptKey[name='${item}']`).click();
+            if (item) {
+              var menuitem = $(`div.jstbox.contentScriptKey[name='${item}']`);
+              // expand the group to which this script belongs
+              var group = menuitem.attr("group");
+              var groupmenuitem = $(`div.jstbox.contentScriptGroup[group='${group}']`);
+              if (groupmenuitem.hasClass("closed"))
+                groupmenuitem.click();
+                
+              // Load the content script              
+              menuitem.click();
+            }
             break;
           case "3":
             // jump to section if item=settings-manual is specified
@@ -1339,7 +1351,7 @@
         // Stringify the backup object
         var data = JSON.stringify(backupObj);
         if (storage.getSetting("backup-readable", true, false))
-          data = formatter.formatJson(data);
+          data = formatter.formatJson(data, "  ");
         var link = $('#__UI_dialog__link');
         link.attr('download', "backup-"+(new Date()).Format("yyMMdd-hms")+".json" );
         link.attr('href', "data:text/plain;charset=UTF-8,"+encodeURIComponent(data));
@@ -1395,7 +1407,7 @@
         
         var data = JSON.stringify(backupObj), oldData = data;
         if (storage.getSetting("backup-readable", true, false))
-          data = formatter.formatJson(data);
+          data = formatter.formatJson(data, "  ");
         var link = $('#__UI_dialog__link_init_setting');
         link.attr('href', "data:text/plain;charset=UTF-8,"+encodeURIComponent(data));
         link.attr('data-downloadurl', "text/plain:backup.json:"+"http://html5-demos.appspot.com/static/a.download.html");
@@ -1494,6 +1506,13 @@
         if (node.is("span")) {
           var target = node.attr("target");
           $(`input:radio[name='${target}'][value='${value}']`)[0].checked = true; //.attr("checked", true);
+        } else if (node.is("datalist")) {
+          var list = JSON.parse(value);
+          var values = $.makeArray(node.find("option")).map(function(ele) { return ele.value; });
+          list.forEach(function(val) {
+            if (!values.contains(val))
+              $("<option value=''></option>").val(val).appendTo(node);
+          });
         } else {
           node.val(value);
         }
@@ -1511,6 +1530,24 @@
           return node.val();
         }
       }
+      function addOptionToDataList(node, key, val) {
+        var values = $.makeArray(node.find("option")).map(function(ele) { return ele.value; });
+        if (values.contains(val)) {
+          values = values.removeElement(val);
+          values.unshift(val);
+          
+          val = val.replace(/([ #;&,.+*~\':"!^$[\]()=>|\/@])/g,'\\$1');
+          node.find('option[value="' + val + '"]').detach().prependTo(node);
+        } else {          
+          $("<option value=''></option>").val(val).prependTo(node);
+          values.unshift(val);
+          while (values.length > 20) {
+            var removedVal = values.pop().replace(/([ #;&,.+*~\':"!^$[\]()=>|\/@])/g,'\\$1');
+            node.find('option[value="' + removedVal + '"]').remove();
+          }
+        }
+        localStorage[key] = JSON.stringify(values);
+      }
       var refreshOnSaveAnOption = storage.getSetting("misc_refreshOnSaveAnOption") === "true";
       var refreshOnSaveAllOptions = storage.getSetting("misc_refreshOnSaveAllOptions") === "true";
       
@@ -1525,6 +1562,13 @@
         
         if (localStorage[key])
           setUIValue(node, localStorage[key]);
+          
+        if (node.is("datalist")) {
+          $("input[list='" + this.id + "']").blur(function() {
+            var val = $(this).val();
+            addOptionToDataList(node, key, val);
+          });
+        } 
           
         node.parents(".localstorage_item").first().find(".localstorage_saveitem").button().click(function() {
           localStorage[key] =  getUIValue(node);
@@ -2034,7 +2078,7 @@
     
     function findReplaceDialog_replaceContentScripts() {  
       findReplaceDialog_updateReplaceKey();
-      var name = findReplaceDialog_replaceKey["name"];
+      var nameKey = findReplaceDialog_replaceKey["name"];
       var frdReplaceKey = findReplaceDialog_replaceKey;
       var fileUpdated = 0;
       
@@ -2044,7 +2088,11 @@
         showMessage("Replacement is done for " + fileUpdated + " scripts.");
         clickOnSelectedContentScript();
       }, function(name, type, script) {
-        // On every "cs" scripts found        
+        // On every "cs" scripts found
+        // If the replacement is limited to a single script
+        if (nameKey && nameKey !== name)
+          return;
+          
         var options = {}; // the result will be stored in options
         findReplaceDialog_mapReplacedScript(script, options, frdReplaceKey);
         var scriptReplaced = options.indexes && options.indexes.length > 0;
@@ -2096,7 +2144,7 @@
         // Stringify the backup object
         var data = JSON.stringify(backupObj);
         if (storage.getSetting("backup-readable", true, false))
-          data = formatter.formatJson(data);
+          data = formatter.formatJson(data, "  ");
         var filename = (new Date()).Format("yyyyMMdd-hhmmss");
       
         cloudGetHandler().backupSingleFile(filename, data, function(data) {
@@ -2253,7 +2301,7 @@
       storage.backup(function(backupObj) {
         // Stringify the backup object
         var data = JSON.stringify(backupObj);
-        data = formatter.formatJson(data);
+        data = formatter.formatJson(data, "  ");
         var link = $('#__UI_dialog__link_cloud_setting');
         link.attr('href', "data:text/plain;charset=UTF-8,"+encodeURIComponent(data));
         link.attr('data-downloadurl', "text/plain:backup.json:"+"http://html5-demos.appspot.com/static/a.download.html");
@@ -2335,50 +2383,120 @@
     }
     
     function showConfiguration(text) {
-      var newText = formatter.formatJson(text) +"\n\n\nValue with current key is:\n";
+      var newText = formatter.formatJson(text, "  ");
       editorJsonFile.setValue(newText);
       jsonFileAnchor = newText.length;
       window.__JScriptTricks_JsonViewer = {};
       var obj = JSON.parse(text);
       window.__JScriptTricks_JsonViewer.obj = obj;
       console.log(obj);
+      // set in the sandbox for further evaluation
+      sandbox_setObject("JsonViewerObj", obj);
       
       var container = $("#json-viewer-site-list");
       container.text("");
       for (var v in obj) {
-        container.append(`<input type="button" value="${v}" name="${v}" class="json-viewer-site"/>`);
+        container.append(`<input type="button" value="${v}" name="${v}" class="json-viewer-property"/>`);
       }
+      var assetStorage = obj.assetStorage;
+      if (assetStorage) {
+        container.append("<hr/>Scripts:<br/>");
+        for (v in assetStorage) {
+          container.append(`<input type="button" value="${v}" name="${v}" class="json-viewer-site"/>`);
+        }
+      }
+      
       $("input:button.json-viewer-site").click(showSiteScript);
+      $("input:button.json-viewer-property").click(showJsonProperty);
     }
     
     function loadJsonFile() {
       loadFile("#jsonFilePath", showConfiguration);
     }
     
+    function updateJsonObject() {
+      showConfiguration(editorJsonFile.getValue());
+    }
+    
+    function showJsonProperty() {
+      var obj = window.__JScriptTricks_JsonViewer.obj;
+      var data = obj[this.name];
+      var str;
+      if (UTIL.isArray(data) || UTIL.isObject(data)) {
+        str = JSON.stringify(data);
+        str = formatter.formatJson(str, "  ");
+      } else {
+        str = "" + data;
+      }
+      
+      $('#json-viewer-tabs > ul > li:eq(1) a').click();
+      editorJsonObjectValue.setValue(str);
+    }
+    
     function showSiteScript() {
       var obj = window.__JScriptTricks_JsonViewer.obj;
-      var value = obj[this.name];
-      var lastPos = editorJsonFile.getValue().length;
-      var text = value + "\n\nJavascript assignment statement for this key (as shown in local storage viewer in Chrome) is:\n      ";
-      text += `localStorage['${this.name}'] = decodeURIComponent("${encodeURIComponent(value)}") ;` + "\n";
-      editorJsonFile.replaceRange(text, editorJsonFile.posFromIndex(jsonFileAnchor), editorJsonFile.posFromIndex(lastPos));
+      var data = obj.assetStorage[this.name];
+      var script = data['script'];
       
-      try {
-        var data = JSON.parse(value);
-        var script = data['script'];
-        if (script) {
-          $('#json-viewer-tabs > ul > li:eq(1) a').click();
-          editorJsonObjectValue.setValue(script);
-        }
-      } catch (exception) {}
+      // Scroll to the line that shows this script.
+      var pattern = new RegExp('^\\s*"' + this.name + '":\\s*\\{', "m");
+      var match = pattern.exec(editorJsonFile.getValue());
+      var index = match.index, pos = editorJsonFile.posFromIndex(index);
+      editorJsonFile.setSelection(pos);
+      
+      if (script) {
+        $('#json-viewer-tabs > ul > li:eq(1) a').click();
+        editorJsonObjectValue.setValue(script);
+      }
+    }
+    
+    function extractAttributeInJson(objName, attr, callback) {
+      if (!attr)
+        return;
+      
+      if (!attr.startsWith("[") && !attr.startsWith("."))
+        attr = "." + attr;      
+      
+      // Evaluate the attribute in the sandbox
+      sandbox_evaluateObjectAttr(objName, attr, callback);  
+        
+      /*
+      // ".props[0].a".replace(/\.([\w$_]+)/g, '["$1"]')
+      var propstr = attr.replace(/\.([\w$_]+)/g, '[$1]');
+      var props = propstr.split(/\[|\]/).filter(function(str) { return str; });
+      
+      var val = obj, key = "obj";
+      for (var i = 0; i < props.length; ++ i) {
+        if (val == undefined)
+          throw new Error("Cannot access obj");
+          
+        var prop = props[i];
+        val = val[prop];
+        key += '["' + prop + '"]';
+      }
+      
+      console.log(val);
+      return val;*/
     }
     
     function extractJsonObject() {
       var obj = window.__JScriptTricks_JsonViewer.obj;
       var key = $('#jsonObjPath').val();
-      var data = JSON.parse(obj[key]);
-      var script = data['script'];
-      editorJsonObjectValue.setValue(script);
+      extractAttributeInJson("JsonViewerObj", key, function(result, error) {
+        if (error) {
+          alert("Error:\n" + error);
+          return;
+        }
+                
+        $('#json-viewer-tabs > ul > li:eq(1) a').click();
+        var text;
+        if (UTIL.isArray(result) || UTIL.isObject(result))
+          text = formatter.formatJson(JSON.stringify(result), "  ");
+        else
+          text = "" + result;
+          
+        editorJsonObjectValue.setValue(text);
+      });       
     }
     
     // *******************************************************

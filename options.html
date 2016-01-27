@@ -489,6 +489,17 @@
 									<td colspan="4" class="togglePanel" target=".settings-msgbox" title="Click to toggle display">
 									<h3>Build-in Scripts - Message Box ...</h3></td>
 								<tr>
+								<tr class="localstorage_item"> <!-- Do not hide this option, so class "settings-msgbox hide" is omitted -->
+									<td title="Output stack trace of script that invokes msgbox.log or msgbox.show function in console.">
+									Log invoker script and line in console</td>
+									<td>
+									<span class="localstorage_itemvalue" target="$setting.builtin_msgboxShowStacktrace" defaultvalue="false" >
+										<input type="radio" value="false" name="$setting.builtin_msgboxShowStacktrace" /><span class="option">No</span>
+										<input type="radio" value="true" name="$setting.builtin_msgboxShowStacktrace" /><span class="option">Yes</span>
+									<span></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_msgboxShowStacktrace" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_msgboxShowStacktrace" value="Set to Default" /></td>
+								<tr>
 								<tr class="localstorage_item settings-msgbox hide">
 									<td title='Disaply time in milliseconds of the message box shown by calling log (assigned by require("msgbox")) function in content scripts.'>
 									Display Time (ms)</td>
@@ -786,11 +797,16 @@
 						</div>
 						<div id="settings-json-viewer" class="settingPanel">
 							<h3>JSON Viewer</h3><hr/>
-							<input id="jsonFileLoad" type="button" value="Load" />
+							<input id="jsonFileUpdate" type="button" value="Update JSON Object" />
+							<input id="jsonFileLoad" type="button" value="Load File" />
 							<input id="jsonFilePath" type="file"/>
-							<br/>Show script for:
-							<input id="jsonObjPath" type="text" size="30" value="Default" />
-							<input id="jsonObjExtract" type="button" value="Extract" />
+							<br/>
+							<input id="jsonObjExtract" type="button" value="Extract Attribute" />
+							<input id="jsonObjPath" type="text" list="recentObjPaths" size="80" value="" />
+							<datalist id="recentObjPaths" class="localstorage_itemvalue" target="$setting.temp-recentObjPaths">
+								<option value=".props"></option>
+								<option value=".assetStorage['dss-Default']"></option>
+							</datalist>
 							<hr/>
 							<div id="json-viewer-tabs">
 							  <ul>
@@ -799,12 +815,12 @@
 							  </ul>
 							  <div id="json-viewer-tabs-1">
 							  	<textarea id="json-file"></textarea>
-							  	<div id="json-viewer-site-list" style="overflow:auto"></div>
 							  </div>
 							  <div id="json-viewer-tabs-2">
 							  	<textarea id="json-file-obj"></textarea>
 							  </div>
 							</div>
+							<div id="json-viewer-site-list"></div>
 						</div>
 						<div id="settings-manual" class="settingPanel">
 							<div id="manual-content" class="accordion">

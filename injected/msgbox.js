@@ -1,26 +1,77 @@
 //****************************************************
 //**             Message Box Utilities              **
 //****************************************************
-//seajs.use("jquery", function($) {
-define(["jquery"], function(require, exports, module) {
-	var $ = require("jquery");
-	module.exports = window.log = log;
+run([], function() {
+	var $ = null; //require("jquery");  lazy load jquery in initMessageBox function with require.async
+	// This object only exists in the content scripts.
+	// In the top frame, there is a delegate for msgbox, which is defined in injected.js
+	// and processed in autoload.js
+	var msgbox = window.msgbox = {log:log, show:show};
+	define([], msgbox);
 	
 	var messageTimer = null;
 	var msgDivID = "jstmessage___eircksdfjkdfh";
-	var mode = parseInt(INFO.settings.builtin_msgboxPosition); // 0 for top, 1 for bottom
-	var displayTime = parseInt(INFO.settings.builtin_msgboxDisplayTime);
+	var msgboxInited = false, msgboxStartInit = false;
+	var callbackOnMsgboxInited = [];
+	var mode;// = parseInt(INFO.settings.builtin_msgboxPosition); // 0 for top, 1 for bottom
+	var displayTime;// = parseInt(INFO.settings.builtin_msgboxDisplayTime);
 	
-	function log(text, raw) {
-	  console.log(text);
-	  if (autoload)
-	    autoload.notifyMessage({type:"log", msg:text});
-	  if (showMessage) 
-		showMessage(text, raw);
+	function log(text) {
+	  log_internal(2, UTIL.argsToArr(arguments));
 	}
+	
+	function show(text, raw) {
+		function showMessageInMessageBox() {
+		  showMessage(text, raw);
+		}
+		
+	  log_internal(3, [text]);
+	  
+    if (!msgboxInited) {
+      initMessageBox(showMessageInMessageBox);
+    } else {
+      showMessageInMessageBox();
+    }		
+	}
+	
+	function log_internal(stacktraceLevel, args) {
+	  var stacktrace = new Error().stack.split(/\n\s*\bat\b\s*/);
+	  stacktrace = stacktrace[stacktraceLevel + 1];
+	    
+	  if (autoload)
+	    autoload.notifyMessage({type:"log", msg:args.join(" "), stacktrace:stacktrace});
+	  
+	  if (INFO.settings.builtin_msgboxShowStacktrace === "true")
+	    args.push("\n\tat", stacktrace);
+	  
+	  console.log.apply(console, args);
+	}
+	
+	function initMessageBox(callback) {
+	  callbackOnMsgboxInited.push(callback);
+	  
+	  if (!msgboxStartInit) {
+	    msgboxStartInit = true;
+      run(['jquery'], function(jQuery) {
+        $ = jQuery;
+        mode = parseInt(INFO.settings.builtin_msgboxPosition); // 0 for top, 1 for bottom
+        displayTime = parseInt(INFO.settings.builtin_msgboxDisplayTime);
+	
+        buildMsgBox();
+        msgboxInited = true;
+        
+        // call callbacks
+        callbackOnMsgboxInited.forEach(function(callback) {
+          callback();
+        });
+        callbackOnMsgboxInited = [];
+      });
+	  }
+	}
+	
 	function showMessage(text, raw)
 	{
-		raw = (typeof raw === 'undefined') ? false : raw;
+		raw = (raw == undefined) ? false : raw;
 		text = raw ? text.replace(/</g,'&lt;').replace(/>/g,'&gt;') : text;
 		
 		var $message = $(`#${msgDivID}`);
@@ -133,9 +184,9 @@ define(["jquery"], function(require, exports, module) {
 		});
 	}
 			
-	$(function() {
-		buildMsgBox();
-	});
+// 	$(function() {
+// 		buildMsgBox();
+// 	});
 	
 
 }); 

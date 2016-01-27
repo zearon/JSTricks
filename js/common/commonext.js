@@ -144,6 +144,7 @@
 	}
 	
 	var UTIL = {};	
+	UTIL.argsToArr = argsToArr;
 	UTIL.isArray = isArray;
 	UTIL.isObject = isObject;
 	UTIL.isFunction = isFunction;

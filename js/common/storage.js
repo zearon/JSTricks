@@ -500,6 +500,7 @@
           if (newValue === undefined)
             throw new Error("onfound callback for storage.prototype.findScripts returns a update command, but no value is given.");
           
+          newValue.timestamp = UTIL.timestamp();
           var newID = Storage.genScriptID(newValue.type, newValue.name);
           newValue.id = newID;
           if (newID !== oldID) {
@@ -581,6 +582,10 @@
     } else {
       scripts = script;
     }
+    
+    scripts.forEach(function(script) {
+      script.timestamp = UTIL.timestamp();
+    });
     
     function onComplete() {
       /* Update script indexes in cache */ 
@@ -824,9 +829,9 @@
   
   function getScriptOptForIndex(script) {
     if (script.type === "cs")
-      return {"group":script.group, "title":script.title, "import":script.sfile, "importOnce":script.importOnce, "timestamp":UTIL.timestamp()};
+      return {"group":script.group, "title":script.title, "import":script.sfile, "importOnce":script.importOnce, "timestamp":script.timestamp};
     else
-      return {"active":script.autostart, "import":script.sfile, "timestamp":UTIL.timestamp()};
+      return {"active":script.autostart, "import":script.sfile, "timestamp":script.timestamp};
   }
   
   function saveToChromeStorage(obj) {

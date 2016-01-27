@@ -54,8 +54,14 @@ function createAutoload() {
     };
     window.addEventListener("message", function(event) {
       // console.log("Received Message in autoload", event);
-      wrappedPort.target = event.srcElement;
-      self.respondToMessage(wrappedPort, event.data);
+      if (event.data.method === "CallContentScriptMethod") {
+        // Process function call request sent by delegate object defined in the content script page.
+        // for plugin scripts that run in the top frame. 
+        // The sending request code is in injected.js
+        self.callMethodInDelegatedObject(event.data.obj, event.data.func, event.data.args);
+      } else {
+        self.respondToMessage(wrappedPort, event.data);
+      }
     }, false);
     self.ports.push(wrappedPort);
     
@@ -139,6 +145,12 @@ function createAutoload() {
   Autoload.prototype.respondToMessage = function (port, msg) {
     if (msg.method == "GetAllMessages")
       port.postMessage({method:"Messages", data:this.messages});
+  }
+  
+  Autoload.prototype.callMethodInDelegatedObject = function (objName, funcName, args) {
+    var obj = window[objName];
+    var func = obj[funcName];
+    func.apply(obj, args);
   }
   
   function prepare(self, storage) { 

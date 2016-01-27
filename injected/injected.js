@@ -76,5 +76,31 @@
       console.log("Message received", event, " The data is", event.data);
     }
   }, false);
+  
+  function argsToArr(args, extraArgs) {
+	  var argLen = args.length, arr = [];
+	  for (var i = 0; i < argLen; ++ i) {
+	    arr.push(args[i]);
+	  }
+	  return arr.concat(extraArgs ? extraArgs : []);
+	}
+	
+  // Call function in a object that is a global variable in the content script page.
+  // This request will be processed in autoload.js
+  function callMethodInContentScript(objName, funcName, args) {
+    window.postMessage({ method: "CallContentScriptMethod", obj: objName, 
+      func: funcName, args:args }, "*");
+  }
+  
+  // Provide a delegate object for plugin scripts that runs in the top frame
+  var msgbox = window.msgbox ={
+    log: function(text) {
+      callMethodInContentScript("msgbox", "log", argsToArr(arguments));
+    },
+  
+    show: function(text, escapeHtml) {
+      callMethodInContentScript("msgbox", "show", [text, escapeHtml]);
+    }
+  };
 
 }) ();

@@ -293,3 +293,8 @@ li.tab-title.selected
 	padding: 250px 0;
 	cursor: default;
 }
+
+#loadedPlugins tr td:nth-child(2) {
+  font-size: 14px;
+  font-weight: bold;
+}

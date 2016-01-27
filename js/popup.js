@@ -191,7 +191,15 @@ function onContentPageMessage(msg) {
   if (msg.method === "Messages") {
     msg.data.forEach(function(message) {
       if (message.type === "plugin") {
-        $("#loadedPlugins").append(`<tr><td>${message.time}</td><td>${message.msg}</td></tr>`);
+        var title = `${message.code ? "Extra Code: " + message.code + "<br/>" : ""}
+                     Condition Met: ${JSON.stringify(message.conditionMet)}<br/><br/>
+                     Double click to edit this content script in options page`;
+        var item = $(`<tr><td title='${title}'>
+              ${message.script}</td><td>${message.msg}</td></tr>`).appendTo("#loadedPlugins");
+        item.find("td:nth-child(1)").dblclick(function() {          
+          var url = "chrome-extension://"+chrome.runtime.id+"/options.html?tab=1&item="+message.script;
+          API_OpenWindow(url, "OptionPage");
+        });
       } else if(message.type === "log") {
         $("#logMessages").append(`<tr><td>${message.time}</td><td>${message.msg}</td></tr>`);
       }
@@ -578,8 +586,9 @@ function onContentPageMessage(msg) {
         theme: getCodeMirrorTheme(), //_yellow
         foldGutter: true,
         lint: {"esversion":6, "expr":true, "indent":2, "globals":
-            {"console":false, "chrome":false, "run":false, "seajs":false, "define":false, "ready":false,
-            "INFO":false, "window":false, "navigator":false, "document":false, "alert":false, "confirm":false, 
+            {"console":false, "chrome":false, "run":false, "seajs":false, "define":false, 
+            "ready":false, "msgbox":false, "INFO":false, 
+            "window":false, "navigator":false, "document":false, "alert":false, "confirm":false, 
             "prompt":false, "setTimeout":false, "setInterval":false, "location":false,
             "localStorage":false, "FileReader":false} },
         gutters: ["CodeMirror-lint-markers", "CodeMirror-linenumbers", "CodeMirror-foldgutter"],
@@ -921,7 +930,7 @@ function onContentPageMessage(msg) {
       if (typeof data === "string")
         context = JSON.parse(data);
       
-      log("Restore popup window context:", context/*, "at", new Error().stack*/);
+      //log("Restore popup window context:", context/*, "at", new Error().stack*/);
       var controls = context.controls;
       for ( key in controls) {
         $("#"+key).val(controls[key]);
@@ -939,7 +948,7 @@ function onContentPageMessage(msg) {
       context.controls = {};
       var contextStr = JSON.stringify(context);
       storage.setSetting("temp-popupWindowContext", contextStr);
-      log("Remember popup window context", contextStr/*, "at", new Error().stack*/);
+      // log("Remember popup window context", contextStr/*, "at", new Error().stack*/);
     }
     
     function loadRememberedStatus() {
