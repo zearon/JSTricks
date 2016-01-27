@@ -2,7 +2,7 @@
 html body.theme-dark { background:#0f0f0f; color:#eeeeee; }
 .theme-dark table.table-grids {background-color:#eeeeee;}
 .theme-dark table.table-grids td {background-color:#0f0f0f;}
-.theme-dark a { color: rgb(239, 239, 100) }
+.theme-dark a, body.theme-dark .ui-widget-content a { color: rgb(239, 239, 100) }
 
 /* Styles for options page */
 .theme-dark .ui-state-active > .ui-icon-close { background-position: -64px -144px; /* position of ui-icon-check*/}

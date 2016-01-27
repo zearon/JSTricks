@@ -320,7 +320,8 @@ run(["jquery", "#script1"], function($, script1Obj) {
   <p>This attribute indicates which module should be switched to when displaying the popup window. The value of this attribute is the name of a content script or an empty string. If it is set an empty string "", then the popup window will restore to the status when it is closed last time. </p>
   
   <h4>4. modules</h4>
-  <p></p>
+  <p>(To be completed)</p>
+  <p>(please just follow the existing meta data and try it several times.)</p>
   
   <h4>5. builtinLibs</h4>
   <p>This attribute is only for development use.</p>
@@ -381,8 +382,10 @@ run(["jquery", "#Novel"], function($, novel) {
 
 <h3>Code Auto-Completion and Syntax Check</h3>
 <div>
-	<h4></h4>
+	<h4>Tips for code editor:</h4>
 	<p>Pressing Ctrl+Space can show the auto-completion hints.</p>
+	<p>Pressing Ctrl+B (or Cmd+B on Mac) can select contents in matching brackets when there is a bracket at the cursor's position.</p>
+	<h4>Syntax check:</h4>
 	<p><a href="http://jshint.com/" target="_blank">JSHint</a> is incorporated to do the syntax checking job with a preset of syntax rules. If you want to change them, you can use directives in individual files. Go to <a href="http://jshint.com/docs/" target="_blank">JSHint Doc</a> and skip to <b>Inline configuration</b> section for reference.</p>
 	<p>A typical example is putting the following comments at the beginning of your script. <p>
 	<pre>
@@ -396,19 +399,24 @@ run(["jquery", "#Novel"], function($, novel) {
 <div>
   There are several built-in scripts that can be used as dependencies of site scripts and content scripts throw run function or define function.
   
-	<h4>jquery</h4>
+	<h2>jquery</h2>
 	<p>jquery exports symbol "$" and makes it a global variable</p>
 	
-	<h4>jquery-ui</h4>
+	<h2>jquery-ui</h2>
 	<p>jquery-ui does not export anything.</p>
 	
-	<h4>ready</h4>
+	<h2>ready</h2>
 	<p>ready exports a "ready" function and makes it a global function. This function is similar with jQuery.ready.</p>
 	
-	<h4>msgbox</h4>
-	<p>msgbox exports a "log" function and makes it a global function. Its signature is function log(text, raw). This function prints a message in the console and shows it in a message box popped out.</p>
+	<h2>msgbox</h2>
+	<p>msgbox exports a "msgbox" object and makes it a global variale. There are two functions in it.</p>
+	<p><a href="#">msgbox.log(obj [, obj]*)</a> <br/>
+	This function prints a message in the console. It is similar with console.log except that the logged objects or texts can be viewed in Info tab in the popup window as well. </p>
+	<p><a href="#">msgbox.show(text, escapeHtml)</a> <br/>
+	This function prints a message in the console and shows it in a message box popped out.<br/>
+	escapeHtml (optional): If it is true, then the &lt; and &gt; will be escaped.</p>
 	
-	<h4>selectbox</h4>
+	<h2>selectbox</h2>
 	<p>selectbox exports a "SelectionBox" class. Here is an sample of using this class</p>
 	<pre>
 run(["selectbox"], function(SelectionBox) {

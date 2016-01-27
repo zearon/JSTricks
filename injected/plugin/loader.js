@@ -21,13 +21,9 @@
 // }
 
 (function() {
-  var debug, settings;
+  var debug, settings, pluginLoaded = false;
   autoload.addOnInitedListener(function(obj) {
-    var pluginLoaded = loadPlugins(obj.INFO.meta_data.plugins);
-    if (pluginLoaded) {
-      autoload.pluginStatus = true;
-      autoload.setIcon();
-    }
+    loadPlugins(obj.INFO.meta_data.plugins);
   });
 
   function loadPlugins(plugins) {
@@ -47,10 +43,7 @@
         continue;
       
       loadPlugin(plugin);
-      pluginLoaded = true;
     }
-    
-    return pluginLoaded;
   }
 
   function loadPlugin(plugin) {
@@ -79,6 +72,7 @@
       if (typeof condition.url === "string") {
         met = testUrlCondition(condition.url);
         if (met) {
+          action.conditionMet = condition;
           doAction(action);
           return true;
         } else {
@@ -101,7 +95,10 @@
     }
     
     if (condition.selector) {
-      return testCssSelectorCondition(condition.selector, condition.delay, action);
+      window.onload = function() {
+        testCssSelectorCondition(condition, action);
+      }
+      return false;
     }
     
     console.error("Unknown condition:", condition, "\nCondition should has a property 'url' or 'selector'. ");
@@ -112,19 +109,22 @@
     return regexp.test(location.href);
   }
   
-  function testCssSelectorCondition(selector, delay, action) {
-    delay = delay ? delay : 0;
+  function testCssSelectorCondition(condition, action) {
+    var delay = condition.delay ? condition.delay : 0;
     
     if (delay === 0) {
-      if (hasCssSelectorElement(selector)) {
+      if (hasCssSelectorElement(condition.selector)) {
+        action.conditionMet = condition;
         doAction(action);
         return true;
       }
+      return false;
     }
     
     else {
       setTimeout(function() {
-        if (action.notdone && hasCssSelectorElement(selector)) {
+        if (action.notdone && hasCssSelectorElement(condition.selector)) {
+          action.conditionMet = condition;
           doAction(action);
         }
       }, delay);
@@ -140,11 +140,17 @@
   }
 
   function doAction(action) {
+    var script = action.script, code = action.code;     
+    if (!pluginLoaded) {
+      pluginLoaded = true;
+      autoload.pluginStatus = true;
+      autoload.setIcon();
+    }
     if (action.info) {
       console.log("[Plugin Loader] " + action.info);
-      autoload.notifyMessage({type:"plugin", msg:action.info});
+      autoload.notifyMessage({type:"plugin", msg:action.info, script:script, 
+          code:code, conditionMet:action.conditionMet});
     }
-    var script = action.script, code = action.code; 
     if (debug)
       console.log("[Plugin Loader] Loading content script", action.script, "with code:", code);
       

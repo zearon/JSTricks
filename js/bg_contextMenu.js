@@ -217,6 +217,7 @@
     optionMenuDict = {}; 
     optionMenuDictReverse = {}; 
 
+    createOptionMenu("" + menuID++, "msgbox.log Shows Stacktrace", "builtin_msgboxShowStacktrace");
     createOptionMenu("" + menuID++, "Debug Mode", "DEBUG");
     createOptionMenu("" + menuID++, "Run Code Mode", "DEBUG_runbuttoncode", "1");
     createOptionMenu("" + menuID++, "Disable Run-Code Buttons", "popupwindow_disableRunCodeButton", "1");
