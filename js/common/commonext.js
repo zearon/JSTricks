@@ -40,6 +40,17 @@
     
     return this.replace(pattern, replacement);
   };
+  
+  String.prototype.html2Escape = function() {
+    return this.replace(/[<>&"]/g,function(c){
+      return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];
+    });
+  }
+  
+  String.prototype.escape2Html = function () {
+    var arrEntities = {'lt':'<','gt':'>','nbsp':' ','amp':'&','quot':'"'};
+    return this.replace(/&(lt|gt|nbsp|amp|quot);/ig,function(all,t){return arrEntities[t];});
+  }
 	
 	Array.prototype.contains = function (element, comparator) {
 		return this.some(function(ele) {
