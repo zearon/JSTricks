@@ -12,8 +12,9 @@
 	},
 	"content_scripts": [ {
 		"js": [
-			"injected/dom.js", "injected/sea-debug.js", "injected/seajs_boot.js", "injected/ready.js", 
-			"js/common/commonext.js", "js/common/theme.js", 
+			"injected/dom.js", "js/common/commonext.js", 
+			"injected/sea-debug.js", "injected/seajs_boot.js", 
+			"injected/ready.js", "js/common/theme.js", 
 			"injected/nodeSelector.js", "injected/msgbox.js", 
 			"injected/autoload.js", "injected/plugin/loader.js"],
 		"css": ["css/jquery-ui.structure.css", "css/theme/jqueryui/jquery-ui.theme-light.css"],

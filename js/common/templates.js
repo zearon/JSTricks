@@ -53,7 +53,8 @@ var template_content_script_module_object =
   function {{name}}() {
     this.config = this.getConfig("{{name}}");
   }
-  {{name}}.prototype = libBase;
+  {{name}}.prototype = Object.create(libBase);
+  {{name}}.prototype.constructor = {{name}};
     
   {{name}}.prototype.do_ = function () {
     <SELECTION_START>// YOUR CODE GOES HERE<SELECTION_END>

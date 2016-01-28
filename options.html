@@ -339,7 +339,7 @@
 							<div class="toolbar" style="top:30px;" >	
 								<div style="display:inline-block;float:right;">
 									<select id="dcsgencodebytemplate" title="Choose a template to generate code. <br/>Code comment can be set omitted or not by changing 'Output Comments in Templates' switch in Options tab.">
-										<option value="">Code Template</option>
+										<option value="">Template</option>
 									</select>
 									Index: 
 									<input id="dcsindex" type="text" size="3" style="width:24px;" title="A number representing the display order in context menu" />
@@ -357,7 +357,12 @@
 							<div class="tabs" style="">
 								<ul>
 									<li><a href="#tabs-dcs1">JavaScript</a></li>
-									<li id="tabs-metadata"><a href="#tabs-dcs2">MetaData (Global) </a></li>
+									<li id="tabs-metadata" title="Global, not specific to certain content scripts."><a href="#tabs-dcs2">MetaData</a></li>
+									<div class="forward-backward">
+										<button id="dcsBackwardBtn" title="Previous content script"></button>
+										<button id="dcsForwardBtn" title="Next content script"></button>
+										<button id="dcsRecallScriptBtn" title="Recall last script"></button>
+									</div>
 								</ul>
 								<div id="tabs-dcs1" class="tab">
 									<div id="editorwrap" class="editwrap" >

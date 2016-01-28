@@ -153,6 +153,11 @@ function createAutoload() {
     func.apply(obj, args);
   }
   
+  Autoload.prototype.loadContentScript = function (csName, initCode) {
+    chrome.runtime.sendMessage({method: "ExecuteContentScript", 
+          data: {name:csName, initCode:initCode} });
+  }
+  
   function prepare(self, storage) { 
     self.setIcon();
     

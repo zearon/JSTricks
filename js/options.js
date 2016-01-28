@@ -43,6 +43,11 @@
     
     var contentScriptGroups = {};
     var csGroupUIprops = storage.getSetting("csgroup-ui", true, {});
+    
+    var contentScriptHistory = [];
+    var contentScriptHistoryPos = 0;
+    var contentScriptHistoryLen = 0;
+    var contentScriptLast = null;
 
 
     var optionPageParams = {};
@@ -728,9 +733,15 @@
       $("#importOnce").change(saveContentScript);
       $("#dcsupdatemenu").click(updateContentScriptForContextMenu);
       $("#dcsshownameortitle").click(toggleConentScriptNameDisplay);
+      $("#dcsBackwardBtn").click(showPreviousContentScript);
+      $("#dcsForwardBtn").click(showNextContentScript);
+      $("#dcsRecallScriptBtn").click(recallLastContentScript);
       
       // Use jQuery UI buttons
       $("input:button, button").button();
+      $("#dcsBackwardBtn").button({icons: { primary: "ui-icon-arrowthick-1-w" }, text:false });
+      $("#dcsForwardBtn").button({icons: { primary: "ui-icon-arrowthick-1-e" }, text:false });
+      $("#dcsRecallScriptBtn").button({icons: { primary: "ui-icon-refresh" }, text:false });
       $("#dcsmultiselect").button({icons: { primary: "ui-icon-circle-check" }, text:false });
       $("#dcsadd").button({icons: { primary: "ui-icon-plusthick" }, text:false });
       $("#dcsdelete-allselected").button({icons: { primary: "ui-icon-minusthick" }, text:false });
@@ -2572,6 +2583,30 @@
         $("#contentscript-menu").removeClass("showTitle");
     }
     
+    function showPreviousContentScript() {
+      if (contentScriptHistoryPos < contentScriptHistoryLen - 1) {
+        contentScriptHistoryPos ++;
+      
+        var csName = contentScriptHistory[contentScriptHistoryPos];
+        showContentScript(csName);
+      }
+    }
+    
+    function showNextContentScript() {
+      if (contentScriptHistoryPos > 0) {
+        contentScriptHistoryPos --;
+      
+        var csName = contentScriptHistory[contentScriptHistoryPos];
+        showContentScript(csName);
+      }
+    }
+    
+    function recallLastContentScript() {
+      if (contentScriptLast) {
+        showContentScript(contentScriptLast);
+      }
+    }
+    
     function addContentScript() {      
       if (!contentScriptSaved())
         return;
@@ -3106,8 +3141,16 @@
     
     function loadContentScript() {
       var name = $(this).attr('name');
+      contentScriptHistory.splice(contentScriptHistoryPos, 0, name);
+      contentScriptHistoryLen ++;
+      
+      showContentScript(name);
+    }
+    
+    function showContentScript(name) {
       console.log("loadContentScript: " + name);
       setSelectedCSGroup(null);
+      contentScriptLast = selectedContentScript;
       
       if (!contentScriptSaved())
         return;
