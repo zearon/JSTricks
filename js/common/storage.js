@@ -848,7 +848,7 @@
    * updateContextMenuAndBGSettings(callback, cbArg1, cbArg2, …)
    */
   Storage.fn.updateContextMenuAndBGSettings = function(callback) {
-    var cbArgs = argsToArr(arguments).slice(1);
+    var cbArgs = UTIL.argsToArray(arguments).slice(1);
     // Update indexes and context menues
     if (window.initContextMenuOnInstalled) {
       initContextMenuOnInstalled();

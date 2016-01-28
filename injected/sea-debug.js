@@ -339,7 +339,15 @@ else {
       node.getAttribute("src", 4)
   }
   //loaderPath = getScriptAbsoluteSrc(loaderScript)
-  loaderPath = chrome.runtime.getURL("sea.js");
+  // In content script
+  if (chrome.extension) {
+    loaderPath = chrome.runtime.getURL("sea.js");
+  }
+  // In top frame
+  else {
+    // JSTricks_extUrlPrefix is defined and injected in dom.js
+    loaderPath = JSTricks_extUrlPrefix + "/sea.js";
+  }
   // When `sea.js` is inline, set loaderDir to current working directory
   loaderDir = dirname(loaderPath || cwd)
 }

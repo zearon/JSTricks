@@ -21,10 +21,10 @@
 // }
 
 (function() {
-  var debug, settings, pluginLoaded = false;
+  var debug, settings, pluginLoaded = false; 
   autoload.addOnInitedListener(function(obj) {
     loadPlugins(obj.INFO.meta_data.plugins);
-  });
+  }); 
 
   function loadPlugins(plugins) {
     //console.log("plugins obj in storage", plugins);
@@ -175,7 +175,8 @@
         console.error("Script", scriptName, "can not be found in cache (chrome.storage.local)");
       } else {
         var scriptCode = scriptObj.script;
-        scriptCode += "\n\n//Extra code:\n" + extraCode;
+        scriptCode += "\n\n//Extra code:\n" + extraCode + "\n//# sourceURL=" + 
+                      chrome.runtime.getURL("plugin/" + scriptName + "_plugin.js");
         var dataUri = "data:text/javascript;charset=UTF-8," + encodeURIComponent(scriptCode);
         
         // add this script node. InjectCodeToOriginalSpace is defined in dom.js, which is already injected
@@ -184,4 +185,38 @@
       }
     });
   }
+	
+	/*
+	function injectEnvironment(callback) {	
+    function injectScriptsOneByOne(scripts, index) {
+      var script = scripts[index];
+      if (!script) {
+        if (callback) callback();
+        return;
+      }
+      
+      function callNextScript() {
+        injectScriptsOneByOne(scripts, index + 1);
+      }
+    
+      InjectCodeToOriginalSpace(script, callNextScript);
+    }
+    
+	  // Inject these scripts into the top frame of the target page.
+	  var code = `
+	      window.JSTricks_chromeExtId = "${chrome.runtime.id}";
+	      window.JSTricks_extUrlPrefix = "chrome-extension://${chrome.runtime.id}";
+	  `;
+	  var codeDataUri = "data:text/javascript;charset=UTF-8," + encodeURIComponent(code);
+	  var allScripts = [
+	                      codeDataUri, 
+	                      chrome.runtime.getURL("injected/dom.js"),
+	                      chrome.runtime.getURL("/js/common/commonext.js"),
+	                      chrome.runtime.getURL("/injected/sea-debug.js"),
+	                      chrome.runtime.getURL("/injected/seajs_boot.js")
+	                   ];
+	  injectScriptsOneByOne(allScripts, 0);
+	}*/
+  
+  
 }) ();

@@ -21,9 +21,7 @@
 		"matches": [ "http://*/*", "https://*/*", "file://*/*" ],
 		"run_at": "document_start"
 	} ],
-	"web_accessible_resources": ["lib/jquery.js", "lib/jquery-ui.js", 
-		"injected/ready.js", "injected/msgbox.js", "injected/nodeSelector.js", "injected/selectionBox.js", 
-		"injected/injected.js", "popup.html"],
+	"web_accessible_resources": ["lib/*", "injected/*", "js/*", "popup.html"],
 	"sandbox": { "pages": ["sandbox.html"] },
 	"description": "Add your own JavaScript (powered by JQuery) and/or CSS to any page to trick it!",
 	"icons": {

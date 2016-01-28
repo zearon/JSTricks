@@ -124,7 +124,7 @@
 	  return result;
 	}
 	
-	function argsToArr(args, extraArgs) {
+	function argsToArray(args, extraArgs) {
 	  var argLen = args.length, arr = [];
 	  for (var i = 0; i < argLen; ++ i) {
 	    arr.push(args[i]);
@@ -144,7 +144,7 @@
 	}
 	
 	var UTIL = {};	
-	UTIL.argsToArr = argsToArr;
+	UTIL.argsToArray = argsToArray;
 	UTIL.isArray = isArray;
 	UTIL.isObject = isObject;
 	UTIL.isFunction = isFunction;
@@ -168,7 +168,7 @@
 	  }
 	  
 	  return obj;
-	}
+	};
 	
 	UTIL.compareVersion = function(v1, v2) {
 	  var parts1 = v1.split("."), parts2 = v2.split(".");
@@ -185,4 +185,8 @@
 	  } while (i < len && diff === 0);
 	  
 	  return diff;
+	};
+	
+	UTIL.about = function() {
+	  console.log("UTIL contains several utility funcitons.");
 	};

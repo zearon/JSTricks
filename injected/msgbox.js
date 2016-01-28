@@ -17,7 +17,7 @@ run([], function() {
 	var displayTime;// = parseInt(INFO.settings.builtin_msgboxDisplayTime);
 	
 	function log(text) {
-	  log_internal(2, UTIL.argsToArr(arguments));
+	  log_internal(2, UTIL.argsToArray(arguments));
 	}
 	
 	function show(text, raw) {
@@ -32,6 +32,9 @@ run([], function() {
     } else {
       showMessageInMessageBox();
     }		
+	}
+	
+	function log_stacktrace(script, stacktrace, args) {
 	}
 	
 	function log_internal(stacktraceLevel, args) {

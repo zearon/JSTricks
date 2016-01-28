@@ -2583,7 +2583,10 @@
         $("#contentscript-menu").removeClass("showTitle");
     }
     
-    function showPreviousContentScript() {
+    function showPreviousContentScript() {      
+      if (!contentScriptSaved())
+        return;
+        
       if (contentScriptHistoryPos < contentScriptHistoryLen - 1) {
         contentScriptHistoryPos ++;
       
@@ -2592,7 +2595,10 @@
       }
     }
     
-    function showNextContentScript() {
+    function showNextContentScript() {    
+      if (!contentScriptSaved())
+        return;
+        
       if (contentScriptHistoryPos > 0) {
         contentScriptHistoryPos --;
       
@@ -2601,7 +2607,10 @@
       }
     }
     
-    function recallLastContentScript() {
+    function recallLastContentScript() {    
+      if (!contentScriptSaved())
+        return;
+        
       if (contentScriptLast) {
         showContentScript(contentScriptLast);
       }
@@ -3139,7 +3148,10 @@
       return storage.loadIndexObj().contentScripts[name];
     }
     
-    function loadContentScript() {
+    function loadContentScript() {   
+      if (!contentScriptSaved())
+        return;
+        
       var name = $(this).attr('name');
       contentScriptHistory.splice(contentScriptHistoryPos, 0, name);
       contentScriptHistoryLen ++;
@@ -3151,9 +3163,6 @@
       console.log("loadContentScript: " + name);
       setSelectedCSGroup(null);
       contentScriptLast = selectedContentScript;
-      
-      if (!contentScriptSaved())
-        return;
       
       selectedContentScript = name;
       
