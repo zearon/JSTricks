@@ -579,7 +579,7 @@
       if(!set)
         $("#jsscriptfile option")[0].selected = true;
       
-      $(".jstbox").removeClass("selected");
+      $(".jstbox.siteScriptKey").removeClass("selected");
       
       $(obj).addClass("selected");
       
@@ -3155,10 +3155,10 @@
       if (!contentScriptSaved())
         return;
       
-      $("#contentscript-menu > .jstbox").removeClass("selected");
-      $(this).addClass("selected");
-      
       selectedContentScript = name;
+      
+      $(".jstbox.contentScriptKey").removeClass("selected");
+      $(`.jstbox.contentScriptKey[name='${name}']`).addClass("selected");
       
       storage.getScript(name, "cs", function(script, name, type) {
         // On loaded
