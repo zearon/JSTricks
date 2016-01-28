@@ -6,6 +6,7 @@
     });
   });
 
+    var mac_os = navigator.userAgent.indexOf("Mac OS") > -1;
     
     var mapSiteScriptFunc = dummyMapFunc;
     var mapContentScriptFunc = dummyMapFunc;
@@ -832,7 +833,10 @@
       
       //hide some menu
       $(document).keydown(function(event){
-          
+        var modifier = event.ctrlKey;
+        if (mac_os) {
+          modifier = event.metaKey;
+        }
         if(event.altKey && modifier && String.fromCharCode( event.which ).toLowerCase() === 'h')
         {
           $(".jstbox.hiddenFlag").each(function(ind,el){$(el).delay(ind*100).slideToggle();});
@@ -1071,6 +1075,8 @@
       if (mac_os) {
         $('body').addClass("osx");
         $(":button[value='Save [Ctrl+S]']").val("Save [⌘S]");
+        $(".findReplaceDialogBtn").attr("title", "Shortcut: ⌘⇧F");
+        $(".findReplaceDialogBtn").val("Find and Replace [⌘⇧F]");
       }
 
       $("*").focus(function(event) {
@@ -1098,7 +1104,7 @@
             save();
             event.preventDefault();
             return;
-          } else if (keyDown === 'f') {
+          } else if (keyDown === 'f' && event.shiftKey) {
             findReplaceFunc();
             event.preventDefault();
             return;
