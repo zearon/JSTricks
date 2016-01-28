@@ -278,6 +278,49 @@
     function isContentScriptName(v) {
       return v.startsWith("$cs-");
     }
+    
+    // Compare domain names
+    function compareDomainName(domain1, domain2) {
+      function extractSLD(domain) {
+        // extract second-level domain as an two-element-array
+        if (domain == undefined) domain = "";
+        var match = domain.match(/([^\.]+)/g);
+        var domainParts = match.map(function(str) { return str ? str : ""; });
+        if (domainParts.length < 2) domainParts.push("");
+        var tld = domainParts.pop();
+        var sld = domainParts.pop();
+        domainParts.push(tld);
+        domainParts.push(sld);
+      
+        return domainParts;
+      }
+      function compareDomainParts(domainParts1, domainParts2) {
+        var i = 0, sum = 0, num = 0, len1 = domainParts1.length, len2 = domainParts2.length, 
+            len = len1;
+        if (len1 > len2) {
+          var offset = len1 - len2;          
+          len = len1;
+          while (offset -- > 0) { domainParts2.unshift(""); }
+        } else if (len1 < len2) {
+          var offset = len2 - len1;
+          len = len2;
+          while (offset -- > 0) { domainParts1.unshift(""); }
+        }
+        for (i = 0; i < len; ++ i) {
+          num = domainParts1[i].localeCompare(domainParts2[i]); // num is -1, 0, or 1
+          num = num << i;
+          sum += num;
+        }
+        return Math.sign(sum);
+      }
+      
+      var parts1 = extractSLD(domain1), parts2 = extractSLD(domain2);
+      return compareDomainParts(parts1, parts2);
+    }
+    // Compare scripts by their domain names
+    function compareSiteScriptsBySLD(s1, s2) {      
+      return compareDomainName(s1.name, s2.name);
+    }
     function loadSiteScripts(filterOptions, contentType, nameFilter, callback) {      
       $("#menu").empty();
 
@@ -285,7 +328,7 @@
       var keys = objectToArray(siteScripts, true);
       var inited = keys.length > 0;
       keys = keys.filter(function(site) { return site !== "Main" && site !== "Default"; });
-      keys.sort();
+      keys.sort(compareDomainName);
       keys.unshift("Main", "Default");
       //console.log(keys);
       
