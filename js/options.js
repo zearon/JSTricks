@@ -961,6 +961,7 @@
         keymap["Ctrl-Alt-F"] = commandF;
         CodeMirror.keyMap["default"] = keymap;
       }
+      var commentKey = mac_os ? "Cmd-Alt-C" : "Ctrl-Alt-C";
       
       var jsLintOption = {
           async: true,
@@ -998,9 +999,11 @@
           "F1":function(){
             openJQueryHelp();
           },
-          "Ctrl-Space": "autocomplete"
+          "Ctrl-Space": "autocomplete",
         }
       };
+      options.extraKeys[commentKey] = "toggleComment";
+      
       if (extraOptions) {
         for (var key in extraOptions) {
           options[key] = extraOptions[key];

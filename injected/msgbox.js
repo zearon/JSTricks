@@ -6,7 +6,7 @@ run([], function() {
 	// This object only exists in the content scripts.
 	// In the top frame, there is a delegate for msgbox, which is defined in injected.js
 	// and processed in autoload.js
-	var msgbox = window.msgbox = {log:log, show:show};
+	var msgbox = window.msgbox = {log:log, show:show, showRaw:showRaw};
 	define([], msgbox);
 	
 	var messageTimer = null;
@@ -16,22 +16,16 @@ run([], function() {
 	var mode;// = parseInt(INFO.settings.builtin_msgboxPosition); // 0 for top, 1 for bottom
 	var displayTime;// = parseInt(INFO.settings.builtin_msgboxDisplayTime);
 	
-	function log(text) {
+	function log() {
 	  log_internal(2, UTIL.argsToArray(arguments));
 	}
 	
-	function show(text, raw) {
-		function showMessageInMessageBox() {
-		  showMessage(text, raw);
-		}
-		
-	  log_internal(3, [text]);
-	  
-    if (!msgboxInited) {
-      initMessageBox(showMessageInMessageBox);
-    } else {
-      showMessageInMessageBox();
-    }		
+	function show() {
+	  show_internal(UTIL.argsToArray(arguments), true);
+	}
+	
+	function showRaw() {
+	  show_internal(UTIL.argsToArray(arguments), false);
 	}
 	
 	function log_stacktrace(script, stacktrace, args) {
@@ -48,6 +42,20 @@ run([], function() {
 	    args.push("\n\tat", stacktrace);
 	  
 	  console.log.apply(console, args);
+	}
+	
+	function show_internal(args, raw) {
+		function showMessageInMessageBox() {
+		  showMessage(args, raw);
+		}
+		
+	  log_internal(3, args);
+	  
+    if (!msgboxInited) {
+      initMessageBox(showMessageInMessageBox);
+    } else {
+      showMessageInMessageBox();
+    }		
 	}
 	
 	function initMessageBox(callback) {
@@ -72,10 +80,11 @@ run([], function() {
 	  }
 	}
 	
-	function showMessage(text, raw)
+	function showMessage(args, escapeHtml)
 	{
-		raw = (raw == undefined) ? false : raw;
-		text = raw ? text.replace(/</g,'&lt;').replace(/>/g,'&gt;') : text;
+		escapeHtml = (escapeHtml == undefined) ? false : escapeHtml;
+		var text = args.join(" ");
+		text = escapeHtml ? text.html2Escape() : text;
 		
 		var $message = $(`#${msgDivID}`);
 		clearTimeout(messageTimer);
