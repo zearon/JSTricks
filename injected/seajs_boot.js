@@ -60,14 +60,12 @@
 */ 
 
   function callback_log() {
-    var args = UTIL.argsToArr(arguments);
+    var args = UTIL.argsToArray(arguments);
     args.unshift("Exported symbols in these modules:");
     console.log.apply(console, args);
   }
   
   // Export as global symbols
-  window.require = seajs.require;
-  window.run = 
   seajs.run = function(dependencies, callback) {
   	if (!callback)
   		callback = callback_log;
@@ -91,10 +89,15 @@
   	}
   }
   
-  window.runtest =
   seajs.runtest = function(dependencies, callback) {
     seajs.clearCache(dependencies);    
     seajs.run(dependencies, callback);
+  }
+  
+  if (chrome.extension) {
+    window.require = seajs.require;
+    window.run = seajs.run;
+    window.runtest = seajs.runtest;
   }
   
   
@@ -208,7 +211,22 @@
                                 data:JSON.stringify({name: name, callback: callbackID})});
   }
   
-  function requestURI(uri, onload, moduleSpec) {    
+  function onScriptInjected(request) {
+    var error = !!(request.error);
+    var callbackID = request.callback;
+    var callback = callbacks[callbackID];
+    delete callbacks[callbackID];
+    
+    callback(error);
+  }
+  
+  chrome.runtime.onMessage.addListener(function(request, sender) {
+    if (request.method == "InjectModuleResponse") {
+      onScriptInjected(request);
+    }
+  });
+  
+  function requestURI(uri, onload, moduleSpec) {
     function onXHRload(event) {
       var xhr = event.srcElement;
       if (xhr.readyState == 4 && xhr.status == 200) {
@@ -385,8 +403,8 @@ ${srcCode};
         //console.log(scriptName);
         srcCode += "\n\n//# sourceURL=" + scriptName;
         
-        // send code to background page to run
-        if (typeof INFO !== "undefined" && INFO.desc == "Javascript Tricks") {
+        // If it is in a content script, then send the code to background page to run
+        if (chrome.extension) {
           var callbackID = name + ":" + guid();
           callbacks[callbackID] = onload;
   
@@ -394,17 +412,8 @@ ${srcCode};
                         data:JSON.stringify({name: uri, code: srcCode, callback: callbackID})});
         } 
         
-        // Add the srcCode as a script node with Data-URI.
+        // Otherwise, it is in a top frame script, so eval the code directly.
         else {
-          /*var s = document.createElement("script");
-          s.setAttribute("type", "text/javascript");
-          s.setAttribute("src", "data:text/javascript;charset=utf-8," + encodeURIComponent(srcCode));
-          s.onload = function () { 
-          	onload(false); // no error 
-          };
-          
-          (document.head || document.documentElement).appendChild(s);*/
-          
           eval(srcCode);
           onload(false);
         }
@@ -448,17 +457,6 @@ ${srcCode};
   seajs.on("error", function(data) {
 	  log("#. ERROR:", data);
   });  
-  
-  chrome.runtime.onMessage.addListener(function(request, sender) {
-      if (request.method == "InjectModuleResponse") {
-        var error = !!(request.error);
-        var callbackID = request.callback;
-        var callback = callbacks[callbackID];
-        delete callbacks[callbackID];
-        
-        callback(error);
-      }
-  });
   
   seajs.mod_boot.getDefaultConfig = function () {
     return {

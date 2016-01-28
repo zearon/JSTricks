@@ -77,7 +77,7 @@
     }
   }, false);
   
-  function argsToArr(args, extraArgs) {
+  function argsToArray(args, extraArgs) {
 	  var argLen = args.length, arr = [];
 	  for (var i = 0; i < argLen; ++ i) {
 	    arr.push(args[i]);
@@ -93,9 +93,9 @@
   }
   
   // Provide a delegate object for plugin scripts that runs in the top frame
-  var msgbox = window.msgbox ={
+  var msgbox = window.JSTricks_msgbox ={
     log: function(text) {
-      callMethodInContentScript("msgbox", "log", argsToArr(arguments));
+      callMethodInContentScript("msgbox", "log", argsToArray(arguments));
     },
   
     show: function(text, escapeHtml) {

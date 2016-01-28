@@ -10,7 +10,7 @@ function log() {
 function debug_log() {
   if (DEBUG) {
     var stacktrace = new Error().stack.replace(/[\s\S]*?debug_log.*\n/, "").replace(/\n[\s\S]*/, "");
-    console.log.apply(console, argsToArr(arguments, [stacktrace]));
+    console.log.apply(console, UTIL.argsToArray(arguments, [stacktrace]));
     //console.log(new Error("stack trace"));
   }
 }
@@ -450,10 +450,11 @@ if (localStorage["info"])
       loadProperty.autostartLibAdded = true;
         
       // Inject injected/injected.js file by inserting a <script> tag in document.
+      // injected.js is now injected in dom.js
       chrome.tabs.executeScript(tabid, {"code": `
         if (!INFO.loaded["$sys/injected/injected.js"]) {
           INFO.loaded["$sys/injected/injected.js"] = true;
-          InjectCodeToOriginalSpace("chrome-extension://" + chrome.runtime.id + "/injected/injected.js");
+          //InjectCodeToOriginalSpace("chrome-extension://" + chrome.runtime.id + "/injected/injected.js");
         }
       `});
       

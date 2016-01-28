@@ -46,4 +46,8 @@
 		//document.documentElement.insertBefore(s, document.documentElement.childNodes[1]);
 		document.documentElement.appendChild(s);
 	};
+	
+	if (chrome.extension)
+	  InjectCodeToOriginalSpace(chrome.runtime.getURL("/injected/injected.js"));
+
 }) ()
