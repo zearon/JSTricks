@@ -122,13 +122,14 @@
 				In script editor: <br/>
 				Auto-completion: Ctrl+Space <br/>
 				Select Matched brackets: Ctrl+B / Cmd+B <br/>
-				Start searching: Ctrl-F / Cmd-F <br/>
+				Undo: Ctrl+Z / Cmd+Z <br/>
+				Redo: Ctrl+Y / Shift+Cmd+Z, Cmd+Y<br/>
+				Jump to line: Alt+G <br/>
+				Start searching: Ctrl+F / Cmd+F <br/>
 				Find next: Ctrl+G / Cmd+G <br/>
 				Find previous: Shift+Ctrl+G / Shift+Cmd+G <br/>
-				Replace: Shift+Ctrl+F / Cmd+Alt+F <br/>
+				Replace: Ctrl+Alt+F / Cmd+Alt+F <br/>
 				Replace all: Shift+Ctrl+R / Shift+Cmd+Alt+F <br/>
-				Persistent search (dialog doesn't autoclose, enter to find next, Shift-Enter to find previous): Alt+F <br/>
-				Jump to line: Alt+G
 				"></div>
 			</span>
 			<div id="tabs-sss" class="tab">
@@ -138,7 +139,7 @@
 					</div>
 					<div class="editorPanel">
 						<div id='editorJs' class="hidableEditorArea" style='visibility:block;'>
-							<div class="toolbar" style="left:0; right:280px;" >
+							<div class="toolbar left" >
 								<!-- <table class="toolbar-left">
 									<tr>
 									<td style="width: 120px;">Content Contains: </td>
@@ -165,13 +166,14 @@
 									<input id="clearcontentfilterbtn" type="button" value="Show All" style="width:107px" />
 								</div -->
 								<div style="margin-bottom: 3px;">
-									<input id="jscb" type='checkbox' /><label for='jscb' id="forjscb" style="height:20px; top:-1px;">Autostart</label>
+									<input id="jscb" type='checkbox' />
+									<label for='jscb' class="autostartBtn" class="saveBtn" id="forjscb" style="height:20px; top:-1px;">Autostart</label>
 									<input id="jshid" type='checkbox' style='display:none'/><label for='jshid' style='display:none'>Hidden</label>
-									<input id="jssave" type='button' value="Save [Ctrl+S]" style="width: 98px;" />
-									<input id="jsdelete" type='button' value="Delete" />		
+									<input id="jssave" class="saveBtn" type='button' value="Save" />
+									<input id="jsdelete" class="deleteBtn" type='button' value="Delete" />		
 								</div>
 								<div style="display:inline-block;">
-									<input class="findReplaceDialogBtn" type="button" value="Find and Replace" title="Shortcut: Ctrl+Shift+F" target="Site Scripts" style="width: 160px;" />
+									<input class="findReplaceDialogBtn" type="button" value="Find and Replace" title="Shortcut: Ctrl+Shift+F" target="Site Scripts" />
 								</div>
 								<div style="display:inline-block; float:right;">
 									<input type="button" value="+" class="textSizeUpBtn" />
@@ -322,17 +324,15 @@
 									<td>
 										<input id="dcsinclude" type="text" style="width:98%;" title="The names of one or more content scripts that should be loaded before this script.<br/>Can be multiple values seperated by commas." />
 									</td>
-									<td style="width:380px; text-align:right;">
-										Index: 
-										<input id="dcsindex" type="text" size="3" style="width:24px;" title="A number representing the display order in context menu" />
+									<td style="width:260px; text-align:right;">
 										<input tabindex="1" type='checkbox' id='importOnce'  />
-										<label for="importOnce" id="forImportOnce" style="height:21px;" 
+										<label for="importOnce" class="importOnceBtn" id="forImportOnce" style="height:21px;" 
 											title="Automatically check if this script is already loaded and load this script only once. If there are problems, try to turn on DEBUG mode or uncheck this option.<br/>
 											Note: This DOES NOT work for scripts injected as script node into DOM tree via such as #Message.injectContentScript method.">
 										Import Once</label>
 	
-										<input id="dcssave" type='button' value="Save [Ctrl+S]" title="Save current script in edit."/>
-										<input id="dcsdelete" type='button' value="Delete" title="Delete current script in edit." />
+										<input id="dcssave" class="saveBtn" type='button' value="Save" title="Save current script in edit."/>
+										<input id="dcsdelete" class="deleteBtn" type='button' value="Delete" title="Delete current script in edit." />
 									</td>
 								</tr></table>
 							</div>
@@ -341,7 +341,8 @@
 									<select id="dcsgencodebytemplate" title="Choose a template to generate code. <br/>Code comment can be set omitted or not by changing 'Output Comments in Templates' switch in Options tab.">
 										<option value="">Code Template</option>
 									</select>
-									
+									Index: 
+									<input id="dcsindex" type="text" size="3" style="width:24px;" title="A number representing the display order in context menu" />
 									<input class="findReplaceDialogBtn" type="button" value="Find and Replace" target="Content Scripts" />
 									<input type="button" value="+" class="textSizeUpBtn" >
 									<span class='textsizeval'>11px</span>

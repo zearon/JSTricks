@@ -364,14 +364,6 @@
 		  right:0;
 		}
 		
-		#tabs-dcs .findReplaceDialogBtn {
-		  width: 185px;
-		}
-		
-		.osx #tabs-dcs .findReplaceDialogBtn {
-		  width: 167px;
-		}
-		
 		#centercontainer
 		{
 			position:absolute;
@@ -458,14 +450,48 @@
 			display:block;
 			z-index: 2000;
 		}
+		
+		.editorPanel .toolbar.left {
+		  left: 0;
+		  right: 250px;
+		}
+		
 		.editorPanel table.toolbar-left {
 			width: 100%;
 			/* border: 1px solid #ccc; */
 			border-collapse: collapse;
 		}
+		
 		.editorPanel table.toolbar-left td {
 			padding: 0 0;
 			border: 0px solid #000000;
+		}
+		
+		#tabs-sss .toolbar.left {
+		}
+		
+		.autostartBtn {
+		  width: 100px;
+		}
+		
+		.importOnceBtn {
+		  width: 120px;
+		}
+		
+		.saveBtn {
+		  width: 60px;
+		}
+		
+		.deleteBtn {
+		  width: 60px;
+		}
+		
+		#tabs-sss .findReplaceDialogBtn {
+		  width: 128px;
+		}
+		
+		#tabs-dcs .findReplaceDialogBtn {
+		  width: 149px;
 		}
 		
 		#tabs-sss div.tabs {
