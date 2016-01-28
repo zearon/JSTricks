@@ -941,6 +941,16 @@
     }*/
     
     function generateEditor(textareaID, mode, extraOptions) {
+      // on PC, there is a key binding: "Shift-Ctrl-F": "replace"
+      // replace it with "Ctrl-Alt-F", since Shift-Ctrl-F is left for opening the 
+      // "Find and Replace" dialog in this page.
+      var keymap = CodeMirror.keyMap["default"], commandF = keymap["Shift-Ctrl-F"];
+      if (commandF != undefined) {
+        delete keymap["Shift-Ctrl-F"];
+        keymap["Ctrl-Alt-F"] = commandF;
+        CodeMirror.keyMap["default"] = keymap;
+      }
+      
       var jsLintOption = {
           async: true,
           /* This option need hack on /lib/codemirror/addon/lint/lint.js */
@@ -1074,9 +1084,11 @@
       var mac_os = navigator.userAgent.indexOf("Mac OS") > -1;
       if (mac_os) {
         $('body').addClass("osx");
-        $(":button[value='Save [Ctrl+S]']").val("Save [⌘S]");
         $(".findReplaceDialogBtn").attr("title", "Shortcut: ⌘⇧F");
-        $(".findReplaceDialogBtn").val("Find and Replace [⌘⇧F]");
+        $(".saveBtn").attr("title", "Shortcut: ⌘S");
+      } else {
+        $(".findReplaceDialogBtn").attr("title", "Shortcut: Ctrl+Shift+F");
+        $(".saveBtn").attr("title", "Shortcut: Ctrl+S");
       }
 
       $("*").focus(function(event) {
@@ -3048,7 +3060,6 @@
     }
     
     function toggleConentScriptGroup() {
-      console.log(this);
       var groupBar = $(this), group = groupBar.attr("group");
       var groupItems = $(`#contentscript-menu .contentScriptKey[group='${group}']`);
       var closed = groupBar.hasClass("closed");
