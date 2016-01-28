@@ -524,6 +524,24 @@
 			height:auto;
 		}
 		
+		.forward-backward {
+		  display: inline-block;
+		  margin-left: 10px;
+		  line-height: 25px;
+		  height: 25px;
+		}
+		
+		.forward-backward button {
+		  position: relative;
+		  top: -2px;
+		  width: 24px;
+		  height: 20px;
+		}
+		
+		#dcsgencodebytemplate {
+		  width: 80px;
+		}
+		
 		.localstorage_itemvalue .option {
 			display: inline-block;
 			width: 20px;

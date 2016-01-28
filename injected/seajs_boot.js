@@ -57,32 +57,45 @@
       "selectbox": "selectionBox"
     }
   });
-*/  
+*/ 
+
+  function callback_log() {
+    var args = UTIL.argsToArr(arguments);
+    args.unshift("Exported symbols in these modules:");
+    console.log.apply(console, args);
+  }
+  
   // Export as global symbols
   window.require = seajs.require;
   window.run = 
-  seajs.run = function(dependencys, callback) {
+  seajs.run = function(dependencies, callback) {
   	if (!callback)
-  		callback = function() {
-  			var arglen = arguments.length;
-  			for (var i = 0; i < arglen; ++ i) 
-  				console.log(arguments[i]);
-  		};
+  		callback = callback_log;
   	
-  	seajs.use(dependencys, callback);
+  	seajs.use(dependencies, callback);
   }
-  /*
-  window.clearCache = 
-  seajs.clearCache = function(ids) {
+  
+  seajs.clearCache = function(ids, rerun) {
   	var idlist = ids;
   	if (typeof ids === "string")
   		idlist = [ids];
   	
   	for (var i = 0; i < idlist.length; ++ i) {
-  		var mod = seajs.Module.get(seajs.Module.resolve(idlist[i]));
-  		mod.status = 0;
+  	  var uri = seajs.Module.resolve(idlist[i]);
+  	  if (rerun) {
+        var mod = seajs.Module.get(uri);
+        mod.status = 0;
+  	  } else {
+  	    delete seajs.cache[uri];
+  	  }
   	}
-  }*/
+  }
+  
+  window.runtest =
+  seajs.runtest = function(dependencies, callback) {
+    seajs.clearCache(dependencies);    
+    seajs.run(dependencies, callback);
+  }
   
   
   
