@@ -47,7 +47,7 @@
     var contentScriptHistory = [];
     var contentScriptHistoryPos = 0;
     var contentScriptHistoryLen = 0;
-    var contentScriptLast = null;
+    var contentScriptHistoryLastPos = 0;
 
 
     var optionPageParams = {};
@@ -331,7 +331,7 @@
       $("#menu").empty();
 
       var values = null, siteScripts = storage.loadIndexObj("ss").siteScripts;
-      var keys = objectToArray(siteScripts, true);
+      var keys = UTIL.objectToArray(siteScripts, true);
       var inited = keys.length > 0;
       keys = keys.filter(function(site) { return site !== "Main" && site !== "Default"; });
       keys.sort(compareDomainName);
@@ -969,7 +969,7 @@
           lineCountDelay: [{lines:5000, delay:1000}, {lines:10000, delay:2000}],
           options: {"esversion":6, "expr":true, "indent":2, "globals":
             {"console":false, "chrome":false, "run":false, "seajs":false, "define":false, "ready":false, 
-            "INFO":false, "window":false, "navigator":false, "document":false, "alert":false, "confirm":false, 
+            "INFO":false, "UTIL":false, "window":false, "navigator":false, "document":false, "alert":false, "confirm":false, 
             "prompt":false, "setTimeout":false, "setInterval":false, "location":false,
             "localStorage":false, "FileReader":false} }
         };
@@ -1220,7 +1220,7 @@
           console.log("saveFunc = saveMetadata");
         } else {
           saveFunc = saveContentScript; 
-          console.log("saveFunc = saveContentScript");
+          console.debug("saveFunc = saveContentScript");
         }
         
         findReplaceFunc =  function() { showFindReplaceDialog(null, "Content Scripts"); };
@@ -1608,7 +1608,7 @@
       function addOptionToDataList(node, key, val) {
         var values = $.makeArray(node.find("option")).map(function(ele) { return ele.value; });
         if (values.contains(val)) {
-          values = values.removeElement(val);
+          values.removeElement(val);
           values.unshift(val);
           
           val = val.replace(/([ #;&,.+*~\':"!^$[\]()=>|\/@])/g,'\\$1');
@@ -2586,39 +2586,6 @@
         $("#contentscript-menu").removeClass("showTitle");
     }
     
-    function showPreviousContentScript() {      
-      if (!contentScriptSaved())
-        return;
-        
-      if (contentScriptHistoryPos < contentScriptHistoryLen - 1) {
-        contentScriptHistoryPos ++;
-      
-        var csName = contentScriptHistory[contentScriptHistoryPos];
-        showContentScript(csName);
-      }
-    }
-    
-    function showNextContentScript() {    
-      if (!contentScriptSaved())
-        return;
-        
-      if (contentScriptHistoryPos > 0) {
-        contentScriptHistoryPos --;
-      
-        var csName = contentScriptHistory[contentScriptHistoryPos];
-        showContentScript(csName);
-      }
-    }
-    
-    function recallLastContentScript() {    
-      if (!contentScriptSaved())
-        return;
-        
-      if (contentScriptLast) {
-        showContentScript(contentScriptLast);
-      }
-    }
-    
     function addContentScript() {      
       if (!contentScriptSaved())
         return;
@@ -2999,7 +2966,7 @@
       var scriptMenuIndex = loadCsScriptMenuIndex();
       var scriptIndex = storage.loadIndexObj().contentScripts;
       console.log("script menu index:", scriptMenuIndex, "script index:", scriptIndex);
-      var sorted = objectToArray(scriptMenuIndex, "pair")
+      var sorted = UTIL.objectToArray(scriptMenuIndex, "pair")
           .map(function(pair) { return {name:pair.key, index:pair.value, group:scriptIndex[pair.key].group}; })
           .sort(getCSSorter(scriptMenuIndex));
       for (var i = 0; i < sorted.length; ++ i) {
@@ -3026,10 +2993,10 @@
         
       var extraClass = [];
       if (metadata) {
-        if (isArray(metadata.include) && metadata.include.contains(name))
+        if (UTIL.isArray(metadata.include) && metadata.include.contains(name))
           extraClass.push("include");
           
-        if (isArray(metadata.plugins)) {
+        if (UTIL.isArray(metadata.plugins)) {
           for (i = 0; i < metadata.plugins.length; ++i) {
             var plugin = metadata.plugins[i];
             var action = plugin.action;
@@ -3151,21 +3118,81 @@
       return storage.loadIndexObj().contentScripts[name];
     }
     
+    function rememberStatusForCSEditior() {
+      var item = contentScriptHistory[contentScriptHistoryPos];
+      if (item) {
+        item.pos = editorDynScript.getScrollInfo();
+      }
+    }
+    
+    function restoreStatusForCSEditor() {
+      var item = contentScriptHistory[contentScriptHistoryPos];
+      if (item && item.pos) {
+        editorDynScript.scrollTo(item.pos.left, item.pos.top);
+      }
+    }
+    
+    function showPreviousContentScript() {      
+      if (!contentScriptSaved())
+        return;
+      
+      if (contentScriptHistoryPos < contentScriptHistoryLen - 1) {
+        rememberStatusForCSEditior();
+        contentScriptHistoryLastPos = contentScriptHistoryPos ++;
+      
+        var item = contentScriptHistory[contentScriptHistoryPos];
+        showContentScript(item.name);
+      }
+    }
+    
+    function showNextContentScript() {    
+      if (!contentScriptSaved())
+        return;
+        
+      if (contentScriptHistoryPos > 0) {
+        rememberStatusForCSEditior();
+        contentScriptHistoryLastPos = contentScriptHistoryPos --;
+      
+        var item = contentScriptHistory[contentScriptHistoryPos];
+        showContentScript(item.name);
+      }
+    }
+    
+    function recallLastContentScript() {    
+      if (!contentScriptSaved())
+        return;
+        
+      if (true) {
+        rememberStatusForCSEditior();
+        
+        // swap current pos and last pos in history list
+        var last = contentScriptHistoryLastPos;
+        contentScriptHistoryLastPos = contentScriptHistoryPos;
+        contentScriptHistoryPos = last;        
+        
+        var item = contentScriptHistory[last];
+        showContentScript(item.name);
+      }
+    }
+    
     function loadContentScript() {   
       if (!contentScriptSaved())
         return;
         
+      rememberStatusForCSEditior();
       var name = $(this).attr('name');
-      contentScriptHistory.splice(contentScriptHistoryPos, 0, name);
+      var item = {name, pos:{left:0, top:0}};
+      contentScriptHistory.splice(contentScriptHistoryPos, 0, item);
+      contentScriptHistoryLastPos = contentScriptHistoryPos + 1;
       contentScriptHistoryLen ++;
       
       showContentScript(name);
     }
     
     function showContentScript(name) {
-      console.log("loadContentScript: " + name);
+      //console.log("loadContentScript: " + name);
       setSelectedCSGroup(null);
-      contentScriptLast = selectedContentScript;
+      //rememberStatusForLastCS(selectedContentScript, editorDynScript);
       
       selectedContentScript = name;
       
@@ -3198,6 +3225,7 @@
       $("#dcsindex").val(getCsScriptIndexInMenu(script.name));
       $("#dcsgencodebytemplate")[0].selectedIndex = 0;
       editorDynScript.setValue(script.script);
+      restoreStatusForCSEditor();
       document.getElementById("importOnce").checked = script.importOnce;
       $("#importOnce").button("refresh");
       
@@ -3269,7 +3297,7 @@
       if (!loadScriptContent) {
         // load script list from index stored in cache
         var scriptsIndex = storage.loadIndexObj().contentScripts;
-        var scripts = objectToArray(scriptsIndex, "pair").map(function(ele) {
+        var scripts = UTIL.objectToArray(scriptsIndex, "pair").map(function(ele) {
           ele.value.name = ele.key;
           return ele.value;
         })
@@ -3294,7 +3322,7 @@
         var index = scriptMenuIndex[script.name];
         if (addMenuFilter) {
           var flag = addMenuFilter;
-          if (isFunction(addMenuFilter))
+          if (UTIL.isFunction(addMenuFilter))
             flag = addMenuFilter(script);
             
           if (flag)
@@ -3371,7 +3399,7 @@
     }
     
     function getNextContentScriptIndex() {
-      var index = 1 + objectToArray(loadCsScriptMenuIndex(), false)
+      var index = 1 + UTIL.objectToArray(loadCsScriptMenuIndex(), false)
         .reduce(function(result, ele, idx, arr) {
           return ele > result ? ele : result;
         }, 0);
