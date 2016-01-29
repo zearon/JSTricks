@@ -620,9 +620,9 @@
    */
   Storage.fn.deleteScript = function (typeNamePair, onok, onerr) {
     var self = this, typeNamePairs;
-    if (!isArray(typeNamePair))
+    if (!UTIL.isArray(typeNamePair))
       throw new Error("The first parameter must be a [type, name] array or an array of it.");
-    if (isArray(typeNamePair[0]))
+    if (UTIL.isArray(typeNamePair[0]))
       typeNamePairs = typeNamePair;
     else
       typeNamePairs = [typeNamePair];
@@ -993,7 +993,7 @@
       newScriptList = [];
     }
     
-    if (!isArray(newScriptList)) {
+    if (!UTIL.isArray(newScriptList)) {
       throw new Error("updateTopFrameScripts(newScriptList, callback): newScriptList must be an array.");
     }
     
@@ -1618,9 +1618,9 @@
    */
   DBStorage.fn.deleteScript = function (typeNamePair, onok, onerr) {
     var self = this, typeNamePairs;
-    if (!isArray(typeNamePair))
+    if (!UTIL.isArray(typeNamePair))
       throw new Error("The first parameter must be a [type, name] array or an array of it.");
-    if (isArray(typeNamePair[0]))
+    if (UTIL.isArray(typeNamePair[0]))
       typeNamePairs = typeNamePair;
     else
       typeNamePairs = [typeNamePair];

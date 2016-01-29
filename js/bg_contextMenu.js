@@ -79,7 +79,7 @@
     var i = 0, index = 0, groupNames = [], keys = [], key;
     var contentScripts = storage.loadIndexObj().contentScripts;
     function groupEquals(x, y) {return x.name === y.name}
-    var scriptList = objectToArray(contentScripts, "keyinvalue:name")
+    var scriptList = UTIL.objectToArray(contentScripts, "keyinvalue:name")
         .filter(function(s) {
           if (s.group === undefined) s.group = "";
           var groupName = s.group;

@@ -76,7 +76,7 @@ function createAutoload() {
       port.onDisconnect.addListener(function(port) {
         // DEBUG: remove the port from the self.ports
         console.log("Disconnected with", port.name);
-        self.ports = self.ports.removeElement(port);
+        self.ports.removeElement(port);
       });
     });
     
@@ -94,7 +94,15 @@ function createAutoload() {
       }
   
       if (!window.INFO) { 
-        window.INFO = storage.INFO; 
+        window.INFO = storage.INFO;
+        // Inject INFO to the top frame
+        var infojson = encodeURIComponent(JSON.stringify(storage.INFO));
+        var infocode = `
+            var INFO_cb8e4309_b9cf_44ad_95d1_b570a913ccd9 = JSON.parse(decodeURIComponent("${infojson}"));
+            //# sourceURL=chrome-extension://${chrome.runtime.id}/dynamic/setInfoInTopFrame.js
+        `;
+        infocode = "data:text/javascript;charset=UTF-8," + encodeURIComponent(infocode);
+        InjectCodeToOriginalSpace(infocode, null, null);
       }
     
       if (self.debug) {

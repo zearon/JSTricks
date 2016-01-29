@@ -175,13 +175,13 @@
         console.error("Script", scriptName, "can not be found in cache (chrome.storage.local)");
       } else {
         var scriptCode = scriptObj.script;
-        scriptCode += "\n\n//Extra code:\n" + extraCode + "\n//# sourceURL=" + 
-                      chrome.runtime.getURL("plugin/" + scriptName + "_plugin.js");
+        var scriptSrc  = chrome.runtime.getURL("/dynamic/plugin/" + scriptName + ".plugin.js");
+        scriptCode += "\n\n//Extra code:\n" + extraCode + "\n//# sourceURL=" + scriptSrc;
         var dataUri = "data:text/javascript;charset=UTF-8," + encodeURIComponent(scriptCode);
         
         // add this script node. InjectCodeToOriginalSpace is defined in dom.js, which is already injected
         // as content script.
-        InjectCodeToOriginalSpace(dataUri);
+        InjectCodeToOriginalSpace(dataUri, null, scriptSrc);
       }
     });
   }

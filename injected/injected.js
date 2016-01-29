@@ -73,7 +73,7 @@
     var responseMsg = { type:"JST-injected-callMethodResponse", func:event.data.func, callback:event.data.callback, returnValue:returnValueStr};
     window.postMessage(responseMsg, __JSTricks_Injected_domain_name____);
     } else {
-      console.log("Message received", event, " The data is", event.data);
+      console.debug("Message received", event, " The data is", event.data);
     }
   }, false);
   
@@ -84,13 +84,6 @@
 	  }
 	  return arr.concat(extraArgs ? extraArgs : []);
 	}
-	
-  // Call function in a object that is a global variable in the content script page.
-  // This request will be processed in autoload.js
-  function callMethodInContentScript(objName, funcName, args) {
-    window.postMessage({ method: "CallContentScriptMethod", obj: objName, 
-      func: funcName, args:args }, "*");
-  }
   
   // Provide a delegate object for plugin scripts that runs in the top frame
   var msgbox = window.JSTricks_msgbox ={

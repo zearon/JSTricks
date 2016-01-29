@@ -83,7 +83,7 @@
   }
   
   function invokeCallback(cb) {
-    if (cb && isFunction(cb)) {
+    if (cb && UTIL.isFunction(cb)) {
       cb();
     }
   }

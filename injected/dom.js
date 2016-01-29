@@ -2,12 +2,15 @@
   if (window.InjectCodeToOriginalSpace)
     return;
   
-	window.InjectCodeToOriginalSpace = function (src, onload) {
+	window.InjectCodeToOriginalSpace = function (src, onload, scriptName) {
 		var s = document.createElement('script');
 		s.setAttribute('src', src);
 		s.setAttribute('type', 'text/javascript');
 		s.onload = function() {
-			console.log("Script is loaded: " + src);
+			if (scriptName !== null) {
+			  var sname = !scriptName ? src : scriptName;
+			  console.log("Script is loaded: " + sname);
+			}
 			if (onload) { onload.apply(this, arguments); }
 		};
 		(document.head||document.documentElement).appendChild(s);
@@ -47,7 +50,11 @@
 		document.documentElement.appendChild(s);
 	};
 	
-	if (chrome.extension)
-	  InjectCodeToOriginalSpace(chrome.runtime.getURL("/injected/injected.js"));
+	if (chrome.extension) {
+	  InjectCodeToOriginalSpace(chrome.runtime.getURL("/js/common/commonext.js"), null, null);
+	  InjectCodeToOriginalSpace(chrome.runtime.getURL("/injected/injected.js"), null, null);
+	  InjectCodeToOriginalSpace(chrome.runtime.getURL("/injected/ready.js"), null, null);
+	  InjectCodeToOriginalSpace(chrome.runtime.getURL("/injected/msgbox.js"), null, null);
+	} 
 
 }) ()

@@ -70,7 +70,6 @@ var codesnippit_showPopupInWebpage =
 var codesnippet_onBootCode = 
 `
 (function() {
-	INFO.desc = "Javascript Tricks";
 	INFO.tabid = {{tabid}};
 	INFO.taburl = "{{url}}";
 	if (INFO.debug) {
@@ -92,7 +91,6 @@ if (!INFO.loaded["{{csName}}"]) {
   }
 
 // START OF CONTENT SCRIPT
-
 {{csCode}}
 
 // END OF CONTENT SCRIPT
@@ -106,7 +104,10 @@ var codesnippet_csWrapper=
 `if (INFO.debug) {
   console.info("Loading Content script {{csName}}...");
 }
-  
+
+
+
+
 {{csCode}}
 
 // Helper object INFO.loaded is set in autoload.js, and injected by bg.js in updateSettings function
