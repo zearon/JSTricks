@@ -15,6 +15,7 @@ var RUN_BUTTON_CODE = storage.getSetting("DEBUG_runbuttoncode") === "true";
 var DISABLE_RUN_BUTTON_CODE = storage.getSetting("popupwindow_disableRunCodeButton") !== "false";
 var ENABLED = storage.getSetting("enabled") !== 'false';
   
+var mac_os = navigator.userAgent.indexOf("Mac OS") > -1;
 
 // iframe.contentWindow.postMessage({ type: "RestoreEditDialogContextResponse", tabid:NS_tabid, context:NS_editDialogContext }, "*");
 // iframe.contentWindow.postMessage({type:"NS-NodeSelected", tabid:tabid, controlid:NS_controlId, context:NS_editDialogContext}, "*");
@@ -49,17 +50,9 @@ API_GetSelectedTab(function(tab) {
 });
 
 
-function guid() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-    return v.toString(16);
-  });
-}
-
-
 // function callback(response)
 function API_SendRequest(method, arg, callback) {
-  var id = guid();
+  var id = UTIL.guid();
   var msg = {MsgType:"chrome-ext-api", id:id, method:method, arg:JSON.stringify(arg)};
   //console.log("Send message to background page:");
   //console.log(msg);
@@ -195,13 +188,60 @@ function onContentPageMessage(msg) {
                      Condition Met: ${JSON.stringify(message.conditionMet)}<br/><br/>
                      Double click to edit this content script in options page`;
         var item = $(`<tr><td title='${title}'>
-              ${message.script}</td><td>${message.msg}</td></tr>`).appendTo("#loadedPlugins");
-        item.find("td:nth-child(1)").dblclick(function() {          
+              [${message.script}]</td><td>${message.msg}</td></tr>`).appendTo("#loadedPlugins");
+              
+        item.find("td:nth-child(1)").dblclick(function() { 
+          // Edit content script in options page
           var url = "chrome-extension://"+chrome.runtime.id+"/options.html?tab=1&item="+message.script;
           API_OpenWindow(url, "OptionPage");
         });
-      } else if(message.type === "log") {
-        $("#logMessages").append(`<tr><td>${message.time}</td><td>${message.msg}</td></tr>`);
+      } 
+      
+      else if(message.type === "log") {
+        var script = message.script, scriptName = script;
+        var stacktrace = message.stacktrace.replace(chrome.runtime.getURL("/"), "/");
+        var match = stacktrace.match(/\((.*):(\d+):(\d+)/);
+
+        if (match) {
+          console.log(source);
+          var source = match[1], line = parseInt(match[2]), col = parseInt(match[3]);
+          var type = null, file = null, tab = 1;
+          source = source.replace(/\.js$/, "");
+          if (source.startsWith("/dynamic/ss/")) {
+            type = "ss";
+            file = source.replace("/dynamic/ss/", "");
+            scriptName = scriptName ? scriptName : "SiteScript";
+            script = script ? script : file;
+            // due to header lines defined in function loadSiteScript in file js/bg.js 
+            line -= 1; 
+            tab = 0;
+          } else if (source.startsWith("/dynamic/cs/")) {
+            type = "cs";
+            file = source.replace("/dynamic/cs/", "");
+            scriptName = scriptName ? scriptName : file;
+            script = script ? script : file;
+            // due to header lines defined in variable codesnippet_csWrapper and codesnippet_csWrapper_noDuplicate in file js/common/codesnippet.js 
+            line -= 7; 
+            tab = 1;
+          } else if (source.startsWith("/dynamic/plugin/")) {
+            type = "cs";
+            file = source.replace("/dynamic/plugin/", "").replace(/\.plugin$/, "");
+            scriptName = scriptName ? scriptName : file;
+            script = script ? script : file;
+            tab = 1;
+          }
+        }
+        
+        var title = `Stacktrace:<br/><span style='font-size:11px;'>${stacktrace}</span><br/><br/>
+                     Double click to edit this script in options page`;
+        var item = $(`<tr><td title="${title}">[${scriptName}]</td><td>${message.msg}</td></tr>`)
+                   .appendTo("#logMessages");
+              
+        item.find("td:nth-child(1)").dblclick(function() { 
+          // Edit script in options page
+          var url = "chrome-extension://"+chrome.runtime.id+"/options.html?tab="+tab+"&item="+script+"&line="+line+"&col="+col;
+          API_OpenWindow(url, "OptionPage");
+        });
       }
     });
   }
@@ -576,6 +616,7 @@ function onContentPageMessage(msg) {
     });//;
     
     function generateEditor(textareaID, mode, extraOptions) {
+      var commentKey = mac_os ? "Cmd-Alt-C" : "Ctrl-Alt-C";
       var options = {
         mode: mode,        
         indentWithTabs: false,
@@ -587,7 +628,7 @@ function onContentPageMessage(msg) {
         foldGutter: true,
         lint: {"esversion":6, "expr":true, "indent":2, "globals":
             {"console":false, "chrome":false, "run":false, "seajs":false, "define":false, 
-            "ready":false, "msgbox":false, "INFO":false, 
+            "ready":false, "msgbox":false, "INFO":false, "UTIL":false,
             "window":false, "navigator":false, "document":false, "alert":false, "confirm":false, 
             "prompt":false, "setTimeout":false, "setInterval":false, "location":false,
             "localStorage":false, "FileReader":false} },
@@ -608,6 +649,8 @@ function onContentPageMessage(msg) {
           "Ctrl-Space": "autocomplete"
         }
       };
+      options.extraKeys[commentKey] = "toggleComment";
+      
       if (extraOptions) {
         for (var key in extraOptions) {
           options[key] = extraOptions[key];

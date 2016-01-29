@@ -27,7 +27,8 @@ function updateSettings(extraAttribute) {
     setting[name] = val;
   }, function() {
     // on complete
-    INFO = { enabled:enabled, loaded:{}, settings: setting, debug: DEBUG, meta_data: storage.getMetadata(true) };
+    INFO = { desc: "Javascript Tricks", enabled:enabled, loaded:{}, 
+             settings: setting, debug: DEBUG, meta_data: storage.getMetadata(true) };
         
     // Save the meta object into chrome.storage.local so that autoload.js can create the 
     // global variable INFO before any scripts are injected.
@@ -172,7 +173,7 @@ if (localStorage["info"])
         }
         
         var lastScript = autoloadFileList[autoloadFileList.length - 1];
-        lastScript.name = lastScript.name + "-" + guid();
+        lastScript.name = lastScript.name + "-" + UTIL.guid();
         
         // Load all included files in chain.
         loadAndInjectScripts(tabid, autoloadFileList);
@@ -194,7 +195,7 @@ if (localStorage["info"])
         injectAndAutoIncludeScript(tabid, url, autoloadFileList, loadProperty);
         
         addContentScriptsToLoadList(autoloadFileList, includes, loadProperty);
-        autoloadFileList.push( {"name":name+"-"+guid(), "code":script, "type":"js"} );
+        autoloadFileList.push( {"name":name+"-"+UTIL.guid(), "code":script, "type":"js"} );
         
         loadAndInjectScripts(tabid, autoloadFileList);
       }
@@ -292,6 +293,8 @@ if (localStorage["info"])
     }
     
     function injectScriptNode(tabid, csName, callbackID, script) {
+      var scriptSrc = chrome.runtime.getURL("/dynamic/cs/" + csName + ".js");
+      script += "\n//# sourceURL=" + scriptSrc;
       var dataUri = "data:text/javascript;charset=UTF-8," + encodeURIComponent(script);
       chrome.tabs.executeScript(tabid, { code:`
         InjectCodeToOriginalSpace("${dataUri}", function() {
@@ -299,7 +302,7 @@ if (localStorage["info"])
           //console.log("Script ${csName} loaded.");
           //console.log("__JSTricks_Messenger_OnScriptLoaded is", window["__JSTricks_Messenger_OnScriptLoaded"]);
           window["__JSTricks_Messenger"].onScriptLoaded("${callbackID}");
-        });
+        }, "${scriptSrc}");
       `} );
     }
     
@@ -541,7 +544,7 @@ if (localStorage["info"])
           
           // Assembly code for load item
           var loadItem = autoloadFileList[index];
-          if (isFunction(loadItem.code))
+          if (UTIL.isFunction(loadItem.code))
             // the code attribute is a code wrapper function
             loadItem.code = loadItem.code(code);
           else
@@ -551,7 +554,7 @@ if (localStorage["info"])
         
           // Add annotation comment so that this dynamic script will be given a name in 
           // Chrome Dev Tools, so that break points can be set on this script.
-          var scriptUrl = "chrome-extension://" + chrome.runtime.id + "/dynamic/" + script.name + ".js";
+          var scriptUrl = "chrome-extension://" + chrome.runtime.id + "/dynamic/" + script.type + "/" + script.name + ".js";
           //console.log(scriptUrl);
           loadItem.code += "\n\n//# sourceURL=" + scriptUrl;
             

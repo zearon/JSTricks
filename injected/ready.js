@@ -127,13 +127,17 @@
     };
 
     /** END OF PUBLIC API **/
-
-	window.domReady = domReady;
-	window.ready = domReady;
-	
-	// Define AMD module
-	if (typeof define !== "undefined")
-	  define("ready", [], function () { return domReady });
+    
+  if (chrome.extension) {
+    window.domReady = domReady;
+    window.ready = domReady;
+  
+    // Define AMD module
+    if (typeof define !== "undefined")
+      define("ready", [], function () { return domReady });
+	} else {
+	  window.ready_f128a08a_c284_4a1b_82ac_db46c31d4fa5 = domReady;
+	}
 
     // return domReady;
 }) ();

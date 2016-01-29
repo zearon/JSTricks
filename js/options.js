@@ -22,6 +22,7 @@
     var editors = [];
     var hlLineJs = null;
     var hlLineCss = null;
+    var moveToPosInEditor = null;
 
     var currentSavedState=null;
     var currentSavedStateCss=null;
@@ -541,8 +542,9 @@
       if(lsd.sfile)
         $("#jsincludefile").val(lsd.sfile);
       else
-        $("#jsincludefile").val("");  
-      
+        $("#jsincludefile").val("");
+        
+      moveToPosForEditor(editorJs, lsd.name);
       
       if (mapOptions.indexes) {
         highlightMatchesInEditor(mapOptions.editor, mapOptions.indexes);
@@ -888,14 +890,17 @@
       loadMetaData();
       
       // Jump to tab if page=sitescripts is specified.
-      var tab = optionPageParams["tab"], item = optionPageParams["item"];
+      var tab = optionPageParams["tab"], item = optionPageParams["item"], 
+          line = optionPageParams["line"], col = optionPageParams["col"];
       if (tab) {
         $(`#toptabs > ul >li:eq(${tab})`).click();
         switch (tab) {
           case "0":
             // jump to site if item=cn.bing.com is specified
-            if (item)
+            if (item) {
+              moveToPosInEditor = {file: item, line: line, ch: (col ? col : 0)};
               $(`div.jstbox[data-site='${item}']`).click();
+            }
             break;
           case "1":
             // jump to script if item=Novel is specified
@@ -907,7 +912,8 @@
               if (groupmenuitem.hasClass("closed"))
                 groupmenuitem.click();
                 
-              // Load the content script              
+              // Load the content script  
+              moveToPosInEditor = {file: item, line: line, ch: (col ? col : 0)};            
               menuitem.click();
             }
             break;
@@ -935,6 +941,24 @@
 //         ,show: { delay: 1000 }
       });
     });//;
+    
+    function moveToPosForEditor(editor, scriptName) {      
+      if (moveToPosInEditor && moveToPosInEditor.file === scriptName) {
+        console.log("Move to", moveToPosInEditor);
+        var lineCount = editor.lineCount();
+        if (moveToPosInEditor.line >= lineCount)
+          return;
+        
+        // convert from 1-based index to 0-based index
+        moveToPosInEditor.line -= 1;
+        moveToPosInEditor.ch -= 1;
+        
+        var line = editor.getLine(moveToPosInEditor.line), lineLen = line.length;
+        moveToPosInEditor.ch = moveToPosInEditor.ch >= lineLen ? 0 : moveToPosInEditor.ch;
+        editor.setSelection(moveToPosInEditor);
+        editor.focus();
+      }
+    }
     /*
     function generateEditor(node, options) {
       options["onFocus"] = function() {
@@ -3224,10 +3248,13 @@
       $("#dcsinclude").val(script.sfile);  
       $("#dcsindex").val(getCsScriptIndexInMenu(script.name));
       $("#dcsgencodebytemplate")[0].selectedIndex = 0;
-      editorDynScript.setValue(script.script);
-      restoreStatusForCSEditor();
       document.getElementById("importOnce").checked = script.importOnce;
       $("#importOnce").button("refresh");
+      
+      editorDynScript.setValue(script.script);
+      restoreStatusForCSEditor();
+      
+      moveToPosForEditor(editorDynScript, script.name);
       
       groupOfSelectedCS = script.group;
       

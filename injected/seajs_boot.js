@@ -59,16 +59,36 @@
   });
 */ 
 
-  function callback_log() {
+  function callback_run() {
     var args = UTIL.argsToArray(arguments);
     args.unshift("Exported symbols in these modules:");
     console.log.apply(console, args);
   }
   
   // Export as global symbols
+  // callback can be a function
   seajs.run = function(dependencies, callback) {
-  	if (!callback)
-  		callback = callback_log;
+  	if (!callback) {
+  		callback = callback_run;
+  	} else if (!UTIL.isFunction(callback)) {
+  	  var names;
+  	  if (UTIL.isArray(callback)) {
+  	    names = callback;
+  	  } else if (typeof callback === "string") {
+  	    names = [callback];
+  	  }
+  	  
+  	  // A default callback to set the exported symbols of each module
+  	  // into a global variable with given names.
+  	  callback = function() {
+  	    var nameLen = names.length, objLen = arguments.length;
+  	    var len = nameLen <= objLen ? nameLen : objLen;
+  	    
+  	    for (var i = 0; i < len; ++ i) {
+  	      window[names[i]] = arguments[i];
+  	    }
+  	  }
+  	}
   	
   	seajs.use(dependencies, callback);
   }
@@ -386,12 +406,7 @@ ${srcCode};
 /***************************************************
  *               Raw module wrapper                *
  ***************************************************/ 
-`${debugstr}
-// A Raw module definition wrapper which provides exports and module symbols.
-	
-${srcCode};
-	
-// End of Raw module definition wrapper
+`${debugstr}${srcCode};
 `;
         	break;
         }
@@ -469,7 +484,7 @@ ${srcCode};
         "jquery": "lib/jquery[AMD]",  //"[AMD]jquery.sea.js", "[CommonJS]jquery.sea.js"
         "jquery-ui": "lib/jquery-ui[AMD]",
         "ready": "ready[AMD]",
-        "msgbox": "msgbox",
+        "msgbox": "msgbox[Raw]",
         "selectbox": "selectionBox",
         "mootools": "mootools/mootools[Raw]"
       }

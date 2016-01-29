@@ -51,7 +51,7 @@ var template_content_script_module_object =
   var libBase = require("#LibBase");
   
   function {{name}}() {
-    this.config = this.getConfig("{{name}}");
+    this.init();
   }
   {{name}}.prototype = Object.create(libBase);
   {{name}}.prototype.constructor = {{name}};

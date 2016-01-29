@@ -1,10 +1,16 @@
+(function() {
+  /*********************************************************
+   *            Extension to Date.prototype                *
+   *********************************************************/
+  var DateExtension = {};
+  
 	// 对Date的扩展，将 Date 转化为指定格式的String 
 	// 月(M)、日(d)、小时(h)、分(m)、秒(s)、季度(q) 可以用 1-2 个占位符， 
 	// 年(y)可以用 1-4 个占位符，毫秒(S)只能用 1 个占位符(是 1-3 位的数字) 
 	// 例子： 
 	// (new Date()).Format("yyyy-MM-dd hh:mm:ss.S") ==> 2006-07-02 08:09:04.423 
 	// (new Date()).Format("yyyy-M-d h:m:s.S")      ==> 2006-7-2 8:9:4.18 
-	Date.prototype.Format = function(fmt)  { //author: meizz 
+	DateExtension.Format = function(fmt)  { //author: meizz 
 	  var o = { 
 		"M+" : this.getMonth()+1,                 //月份 
 		"d+" : this.getDate(),                    //日 
@@ -22,16 +28,22 @@
 	  return fmt; 
 	};
 	
-	String.prototype.replaceAll = function(AFindText, ARepText) {
+	
+  /*********************************************************
+   *            Extension to String.prototype              *
+   *********************************************************/
+	var StringExtension = {};
+	
+	StringExtension.replaceAll = function(AFindText, ARepText) {
 		var raRegExp = new RegExp(this.getTextRegexpPattern(AFindText), "ig");
 		return this.replace(raRegExp, ARepText);
 	};
 	
-	String.prototype.getTextRegexpPattern = function() {
+	StringExtension.getTextRegexpPattern = function() {
 		return this.replace(/([\(\)\[\]\{\}\^\$\+\-\*\?\.\"\'\|\/\\])/g, "\\$1");
 	};
 	
-	String.prototype.addThousands = function (selector) {
+	StringExtension.addThousands = function (selector) {
     var pattern = /(\d+)(\d{3})(\D|$)/g;
     function replacement(str, sub1, sub2, sub3, n) {
       pattern = /(\d+)(\d{3})(\D|$)/g;
@@ -41,39 +53,63 @@
     return this.replace(pattern, replacement);
   };
   
-  String.prototype.html2Escape = function() {
+  StringExtension.html2Escape = function() {
     return this.replace(/[<>&"]/g,function(c){
       return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];
     });
-  }
+  };
   
-  String.prototype.escape2Html = function () {
+  StringExtension.escape2Html = function () {
     var arrEntities = {'lt':'<','gt':'>','nbsp':' ','amp':'&','quot':'"'};
     return this.replace(/&(lt|gt|nbsp|amp|quot);/ig,function(all,t){return arrEntities[t];});
+  };
+  
+	
+  /*********************************************************
+   *            Extension to Array.prototype               *
+   *********************************************************/
+  var ArrayExtension = {};
+  
+  var orig_Array_indexOf = Array.prototype.indexOf;
+  ArrayExtension.indexOf = function (element, equals) {
+    if (!equals) {
+      return orig_Array_indexOf.call(this, element);
+    } else {
+      var index = -1;
+      for (var i = 0; i < this.length; ++ i) {
+        if (equals(this[i], element)) {
+          index = i;
+          break;
+        }
+      }
+      return index;
+    }
   }
-	
-	Array.prototype.contains = function (element, comparator) {
-		return this.some(function(ele) {
-		  if ((comparator)) return comparator(ele, element);
-		  else return ele === element; 
-		});
+  
+	ArrayExtension.contains = function (element, equals) {
+		return ArrayExtension.indexOf.call(this, element, equals) >= 0;
 	};
 	
-	Array.prototype.removeElement = function (element) {
-	  return this.filter(function(ele) { return ele !== element; });
+	ArrayExtension.removeElement = function (element, equals) {
+	  var index = -1, removedElements = [];
+	  while ((index = ArrayExtension.indexOf.call(this, element, equals)) > -1) {
+	    var removed = this.splice(index, 1);
+	    removedElements.push(removed[0]);
+	  }
+	  return removedElements;
 	};
 	
-	Array.prototype.addIfNotIn = function (element) {
-	  if (this.contains(element))
+	ArrayExtension.addIfNotIn = function (element, equals) {
+	  if (ArrayExtension.contains.call(this, element, equals))
 	    return;
 	    
 	  this.push(element);
 	  return this;
 	};
 	
-	Array.prototype.addAllIfNotIn = function (array) {
+	ArrayExtension.addAllIfNotIn = function (array, equals) {
 	  for (var i = 0; i < array.length; ++ i) {
-	    this.addIfNotIn(array[i]);
+	    ArrayExtension.addIfNotIn.call(this, array[i], equals);
 	  }
 	  return this;
 	};
@@ -81,7 +117,7 @@
 	// Get a difference array representing (this - arr)
 	// equals is optional, which is a function returns true if two objects are considered 
 	// the same, and false otherwise.
-	Array.prototype.notin = function (arr, equals) {
+	ArrayExtension.notin = function (arr, equals) {
 	  return this.filter(function(a) { 
 	    return !arr.some(function(b) {
 	      if (equals)
@@ -91,10 +127,10 @@
 	  });
 	};
 	
-	// Get a difference array representing (this - arr)
+	// Get an intersection array representing (this intersects arr)
 	// equals is optional, which is a function returns true if two objects are considered 
 	// the same, and false otherwise.
-	Array.prototype.in = function (arr, equals) {
+	ArrayExtension.in = function (arr, equals) {
 	  return this.filter(function(a) { 
 	    return arr.some(function(b) {
 	      if (equals)
@@ -103,6 +139,11 @@
 	    }); 
 	  });
 	};
+  
+	
+  /*********************************************************
+   *               Other Utility functions                 *
+   *********************************************************/
 	
 	// useKeyAsItem: true / false / "key" / "value" / "pair" / "keyinvalue[:keyname]"
 	//   "keyinvalue" ("keyinvalue:name") use name as keyname of key in value object / 
@@ -154,12 +195,14 @@
 			});
 	}
 	
-	var UTIL = {};	
+	var UTIL = {};
+	UTIL.util = "Utilities by Jeff Gong.";
 	UTIL.argsToArray = argsToArray;
 	UTIL.isArray = isArray;
 	UTIL.isObject = isObject;
 	UTIL.isFunction = isFunction;
 	UTIL.guid = guid;
+	UTIL.objectToArray = objectToArray;
 	
 	UTIL.timestamp = function() {
 	  return (new Date()).Format("yyyyMMdd-hhmmssS");
@@ -198,6 +241,68 @@
 	  return diff;
 	};
 	
+  // Call function in a object that is a global variable in the content script page.
+  // This request will be processed in autoload.js
+  UTIL.callMethodInContentScript = function(objName, funcName, args) {
+    window.postMessage({ method: "CallContentScriptMethod", obj: objName, 
+      func: funcName, args:args }, "*");
+  }
+	
 	UTIL.about = function() {
 	  console.log("UTIL contains several utility funcitons.");
 	};
+	
+	
+	
+	function extendPrototype(clazz, extension) {
+	  for (var extKey in extension) {
+	    clazz.prototype[extKey] = extension[extKey];
+	  }
+	}
+	
+	function addExtensionWrapper(extName, extension) {
+	  if (!UTIL[extName]) UTIL[extName] = {};
+	  
+	  for (var extKey in extension) {
+	    var fn = extension[extKey];
+	    UTIL[extName][extKey] = getExtWrapper(fn);
+	  }
+	}
+	
+	function getExtWrapper(fn) {
+	  return function() {
+	    var args = argsToArray(arguments);
+	    var self = args[0];
+	    var otherArgs = args.slice(1);
+	    
+	    return fn.apply(self, otherArgs);
+	  };
+	}
+	
+	if (chrome.extension) {
+	  // In content script
+	  addExtensionWrapper("Date", DateExtension);
+	  addExtensionWrapper("String", StringExtension);
+	  addExtensionWrapper("Array", ArrayExtension);
+	  
+	  extendPrototype(Date, DateExtension);
+	  extendPrototype(String, StringExtension);
+	  extendPrototype(Array, ArrayExtension);
+	  
+	  window.UTIL = UTIL;
+	} else {
+	  // Not in content script
+	  addExtensionWrapper("Date", DateExtension);
+	  addExtensionWrapper("String", StringExtension);
+	  addExtensionWrapper("Array", ArrayExtension);
+	  
+	  window.JSTricks_UTIL = UTIL;
+	  window.UTIL_dad28be6_ead8_4d79_87bf_6fd217f27d6d = UTIL;
+	}
+	
+	/*
+	Sample code of getting UTIL object as a global variable:
+	var UTIL = chrome.extension ? window.UTIL : 
+	           window.UTIL_dad28be6_ead8_4d79_87bf_6fd217f27d6d;	
+	*/
+}) ();
