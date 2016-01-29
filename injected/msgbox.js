@@ -71,7 +71,6 @@
         showMessage(text);
       }
       
-      getINFO();
       initMessageBox(showMessageInMessageBox);
     };
   
@@ -121,6 +120,8 @@
     }
   
     function initMessageBox(callback) {
+      getINFO();
+      
       if (!msgboxInited) {
         // Not initialized yet 
         callbackOnMsgboxInited.push(callback);
