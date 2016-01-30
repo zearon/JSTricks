@@ -83,7 +83,7 @@
       notifyMessage({type:"log", msg:args.join(" "), script:self.srcScript, stacktrace:stacktrace});
     
       if (self.srcScript)
-        args.unshift("[" + self.srcScript + "]");
+        args = ["[" + self.srcScript + "]"].concat(args);
         
       if (getINFO().settings.builtin_msgboxShowStacktrace === "true")
         args = args.concat(["\n\tat", stacktrace]);
@@ -99,7 +99,9 @@
       }
     }
   
-    function show_internal(self, args, escapeHtml) {
+    function show_internal(self, args, escapeHtml) {    
+      log_internal(self, 3, args);
+      
       escapeHtml = (escapeHtml == undefined) ? false : escapeHtml;
       if (self.srcScript)
         args.unshift("[" + self.srcScript + "]");
@@ -109,8 +111,6 @@
       function showMessageInMessageBox() {        
         showMessage(text);
       }
-    
-      log_internal(self, 3, args);
       
       if (chrome.extension) {
         initMessageBox(showMessageInMessageBox);

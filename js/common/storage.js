@@ -451,6 +451,7 @@
     }
     
     localStorage["meta"] = metadata;
+    localStorage["$setting.meta_timestamp"] = UTIL.timestamp();
   };
 
   /**

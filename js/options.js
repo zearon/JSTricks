@@ -1067,7 +1067,7 @@
       csPosInMetaData = {};
       
       var menuItem = $('.contentScriptKey.jstbox');
-      menuItem.removeClass("include").removeClass("plugin");
+      menuItem.removeClass("include").removeClass("plugin").removeClass("top");
       var i;
       
       if (includes)
@@ -1094,9 +1094,7 @@
             menuItem.addClass("plugin");
             if (topFrame) {
               menuItem.addClass("top");
-            } else {
-              menuItem.removeClass("top");
-            }
+            } 
 
             newScriptListsInCSL.addIfNotIn(pluginScript);
             if (!csPosInMetaData[pluginScript] )

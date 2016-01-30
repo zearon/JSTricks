@@ -134,10 +134,10 @@ h4{margin:0px;}
 	height:calc( 100% - 32px );
 }
 .tabContent {
-  overflow-y: hidden;
-}
-#tabs-4 {
   overflow-y: auto;
+}
+#tabs-1, #tabs-2, #tabs-3 {
+  overflow-y: hidden;
 }
 .topeditorwrap {
 	height:100%;
@@ -297,4 +297,19 @@ li.tab-title.selected
 #loadedPlugins tr td:nth-child(2) {
   font-size: 14px;
   font-weight: bold;
+}
+
+.pluginIcon {
+  width: 16px;
+  height: 16px;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+.enabled .pluginIcon {
+  background-image: url("theme/img/autostart.png");
+}
+
+.disabled .pluginIcon {
+  background-image: url("theme/img/red.png");
 }
