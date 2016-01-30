@@ -53,6 +53,7 @@
   <script src="js/common/templates.js" ></script>  
   <script src="js/common/codesnippet.js" ></script>  
   <script src="js/common/storage.js" ></script>  
+  <script src="js/common/jsonanalyser.js" ></script>
   <script src="js/common/theme.js" ></script>
   
   <script  type="text/javascript" src="js/popup.js" ></script>
@@ -87,10 +88,12 @@
       <li class="tab-level tab-path-0" tab-path="tab-path-0" ><a href="#tabs-1">JavaScript</a></li><!--
    --><li class="tab-level tab-path-1" tab-path="tab-path-1" ><a href="#tabs-2">CSS</a></li><!--
    --><li class="tab-level tab-path-3" tab-path="tab-path-3" ><a href="#tabs-4">Info</a></li><!--
-   --><li class="tab-level tab-path-2" tab-path="tab-path-2" ><a href="#tabs-3">Demo</a></li>
+   --><li class="tab-level tab-path-2" style="display:none;" tab-path="tab-path-2" ><a href="#tabs-3">Demo</a></li><!--
+   --><li class="tab-level tab-path-4" tab-path="tab-path-4" ><a href="#tabs-5">Plugins</a></li>
     </ul>
     <style>
     </style>
+    
     <div id="tabs-1" class="tabContent">
       <div id="editorwrap" class="topeditorwrap" style="clear:both">
         <div class="tabs">
@@ -110,6 +113,7 @@
         </div>
       </div>
     </div>
+    
     <div id="tabs-2" class="tabContent">
       <div id="editorwrap2" class="topeditorwrap" style="clear:both">
         <textarea id='scriptTextCss'></textarea>
@@ -139,6 +143,7 @@ run(["jquery", "#Novel"], function($, novel) {
         </textarea>
       </div>
     </div>
+    
     <div id="tabs-4" class="tabContent">
       <h2>Loaded Plugins:</h2>
       <div class="">
@@ -159,6 +164,13 @@ run(["jquery", "#Novel"], function($, novel) {
         </table>
       </div>
     </div>
+    
+    <div id="tabs-5" class="tabContent">
+      <h2>All Plugins:</h2>      
+      <table id="allplugins">
+      </table>
+    </div>
+    
     <span><div style='height:501px;'></div></span>
   </div>
   

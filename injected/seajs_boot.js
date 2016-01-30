@@ -478,6 +478,7 @@ ${srcCode};
       "base": ("chrome-extension://" + chrome.runtime.id + "/injected/"),
       "paths": {
         "lib": "chrome-extension://" + chrome.runtime.id + "/lib",
+        "js": "chrome-extension://" + chrome.runtime.id + "/js",
         "mootools": "https://ajax.googleapis.com/ajax/libs/mootools/1.6.0"
       },
       "alias": {

@@ -787,12 +787,19 @@ function onContentPageMessage(msg) {
     
     
     
-    var metadataSettingStr;
-    var sections = null;
+    var metadataSettingStr, metadataSetting, metadataTimestamp;
+    var sections = null, plugins = null;
     function createCustomizeUI() {
-      var metadataSetting = storage.getMetadata(true);
+      metadataSetting = storage.getMetadata(true);
+      metadataTimestamp = storage.getSetting("meta_timestamp");
       if (!metadataSetting)
         return;
+      
+      createModulesTab(metadataSetting);
+      createPluginsTab(metadataSetting);
+    }
+    
+    function createModulesTab(metadataSetting) {
       sections = metadataSetting["modules"];
       for (var i=0; i < sections.length; ++ i) {
         var section = sections[i];
@@ -891,7 +898,7 @@ function onContentPageMessage(msg) {
       //$(`#genUITab-${metadataSetting.active_module}`).show();
       
       initScriptsUITabs(metadataSetting.active_module);
-    }  
+    }
         
     function initScriptsUITabs(activeModule) {
       $('.tabs').each(function(ind, el) {
@@ -913,6 +920,70 @@ function onContentPageMessage(msg) {
         $(`li.tab-title[module='${activeModule}']`).click();
       } else {
         loadRememberedStatus();
+      }
+    }
+    
+    function createPluginsTab(metadataSetting) {
+      plugins = metadataSetting["plugins"];
+      var pluginsCopy = plugins.concat();
+      var i = 0;
+      for (i = 0; i < pluginsCopy.length; ++ i) {
+        var plugin = pluginsCopy[i];
+        plugin.pos = i;
+      }
+      
+      pluginsCopy.sort(function(a, b) {
+        var enableda = a.enabled ? 0 : 1, enabledb = b.enabled ? 0 : 1;
+        var indexa = a.index ? a.index : 0, indexb = b.index ? b.index : 0;
+        var posa = a.pos, posb = b.pos;
+        return Math.sign( (Math.sign(enableda - enabledb) << 2) + 
+                          (Math.sign(indexa-indexb) << 1) + (Math.sign(posa - posb)) );
+      });
+      
+      var container = $("#allplugins");
+      for (i = 0; i < pluginsCopy.length; ++ i) {
+        var plugin = pluginsCopy[i];
+        var enabled = plugin.enabled, info = plugin.info;
+        var clazz = enabled ? "enabled" : "disabled";
+        var item = $(`<tr class="${clazz}" pos="${plugin.pos}" display-index="${plugin.index}">
+                        <td><div class="pluginIcon" title="Click to toggle plugin"></div></td>
+                        <td class="pluinInfo">${i + 1} - ${info}</td>
+                      </tr>`)
+                    .appendTo(container)
+                    .find(".pluginIcon").click(togglePlugin);
+                    
+        delete plugin.pos;
+      }
+    }
+    
+    function togglePlugin() {
+      var metadataTimestampNow = storage.getSetting("meta_timestamp");
+      if (metadataTimestamp !== metadataTimestampNow) {
+        if (confirm("The meta data has been modified. Reload this page now?")) {
+          location.reload();
+        }
+        return;
+      }
+    
+      var trnode = $(this).closest("tr");
+      var index = parseInt(trnode.attr("pos"));
+      if (trnode.hasClass("enabled")) {
+        // disable plugin
+        trnode.removeClass("enabled");
+        trnode.addClass("disabled");
+        setPluginEnabled(index, false);
+      } else {
+        // enable plugin
+        trnode.removeClass("disabled");
+        trnode.addClass("enabled");
+        setPluginEnabled(index, true);
+      }
+      
+      function setPluginEnabled(index, enabled) {
+        //plugins[index].enabled = enabled;
+        
+        
+        // chrome.runtime.sendMessage({method:"UpdateSettings"});
       }
     }
     

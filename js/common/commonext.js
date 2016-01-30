@@ -247,10 +247,7 @@
     window.postMessage({ method: "CallContentScriptMethod", obj: objName, 
       func: funcName, args:args }, "*");
   }
-	
-	UTIL.about = function() {
-	  console.log("UTIL contains several utility funcitons.");
-	};
+
 	
 	
 	
