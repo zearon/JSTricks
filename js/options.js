@@ -1138,6 +1138,13 @@
         //console.log(focusedMenuItem);
       });
       
+      $("#jsonObjPath").on('keydown', function(event) {
+        // Enter is pressed;
+        if (event.which == 13) {
+          $("#jsonObjExtract").click();
+        }
+      });
+      
       $('body').on('keydown',function (event){
         var key = event.which;
         var modifier = event.ctrlKey;
@@ -2526,6 +2533,13 @@
         str = "" + data;
       }
       
+      // Scroll to the line that shows this script.
+      pos = JsonAnalyzer.find(editorJsonFile.getValue(), '["'+this.name+'"]');
+      if (pos) {
+        pos.posTo0BasedIndex();
+        editorJsonFile.setSelection(pos.fromPos, pos.toPos);
+      }
+      
       $('#json-viewer-tabs > ul > li:eq(1) a').click();
       editorJsonObjectValue.setValue(str);
     }
@@ -2536,10 +2550,17 @@
       var script = data['script'];
       
       // Scroll to the line that shows this script.
+      pos = JsonAnalyzer.find(editorJsonFile.getValue(), '.assetStorage["'+this.name+'"]');
+      if (pos) {
+        pos.posTo0BasedIndex();
+        editorJsonFile.setSelection(pos.fromPos, pos.toPos);
+      }
+      
+      /*
       var pattern = new RegExp('^\\s*"' + this.name + '":\\s*\\{', "m");
       var match = pattern.exec(editorJsonFile.getValue());
       var index = match.index, pos = editorJsonFile.posFromIndex(index);
-      editorJsonFile.setSelection(pos);
+      editorJsonFile.setSelection(pos);*/
       
       if (script) {
         $('#json-viewer-tabs > ul > li:eq(1) a').click();
@@ -2556,24 +2577,6 @@
       
       // Evaluate the attribute in the sandbox
       sandbox_evaluateObjectAttr(objName, attr, callback);  
-        
-      /*
-      // ".props[0].a".replace(/\.([\w$_]+)/g, '["$1"]')
-      var propstr = attr.replace(/\.([\w$_]+)/g, '[$1]');
-      var props = propstr.split(/\[|\]/).filter(function(str) { return str; });
-      
-      var val = obj, key = "obj";
-      for (var i = 0; i < props.length; ++ i) {
-        if (val == undefined)
-          throw new Error("Cannot access obj");
-          
-        var prop = props[i];
-        val = val[prop];
-        key += '["' + prop + '"]';
-      }
-      
-      console.log(val);
-      return val;*/
     }
     
     function extractJsonObject() {
@@ -2593,7 +2596,15 @@
           text = "" + result;
           
         editorJsonObjectValue.setValue(text);
-      });       
+      });  
+      
+      // Scroll to the line that shows this script.
+      pos = JsonAnalyzer.find(editorJsonFile.getValue(), key);
+      if (pos) {
+        console.log(pos);
+        pos.posTo0BasedIndex();
+        editorJsonFile.setSelection(pos.fromPos, pos.toPos);
+      }
     }
     
     // *******************************************************
