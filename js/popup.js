@@ -790,7 +790,8 @@ function onContentPageMessage(msg) {
     var metadataSettingStr, metadataSetting, metadataTimestamp;
     var sections = null, plugins = null;
     function createCustomizeUI() {
-      metadataSetting = storage.getMetadata(true);
+      metadataSettingStr = storage.getMetadata(false);
+      metadataSetting = JSON.parse(metadataSettingStr);
       metadataTimestamp = storage.getSetting("meta_timestamp");
       if (!metadataSetting)
         return;
@@ -981,9 +982,11 @@ function onContentPageMessage(msg) {
       
       function setPluginEnabled(index, enabled) {
         //plugins[index].enabled = enabled;
-        
-        
-        // chrome.runtime.sendMessage({method:"UpdateSettings"});
+        var newMeta = JsonAnalyzer.setProperty(metadataSettingStr, 
+                                  ".plugins["+index+"].enabled", enabled);
+        storage.setMetadata(newMeta);
+        metadataTimestamp = storage.getSetting("meta_timestamp");
+        //chrome.runtime.sendMessage({method:"UpdateSettings"});
       }
     }
     
