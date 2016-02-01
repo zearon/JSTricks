@@ -58,7 +58,8 @@ define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, expo
 	
 	var timer = null;
 	var currentSelector = null;
-	var lastSelectedNodes = null;	
+	var lastSelectedNodes = null;
+	var hoveredNode = null;
 	
 	// Export handleMessages function
 	exports.handleMessages = function(request, sender) {
@@ -143,29 +144,23 @@ define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, expo
 		$("#" + NS_titleNode).show();
 		$("#JST-POPUP-PINNED").parent().hide();
 		
-		$("*").bind("mouseenter", NS_MouseIn);
-		$("*").bind("mouseleave", NS_MouseOut);
-		$("*").bind("click", NS_MouseClick);
+    document.addEventListener("mousemove", NS_MouseMove, true);
+    document.addEventListener("mousedown", NS_MouseClick, true);
+    document.addEventListener("click", NS_MouseClick, true);
 	}
 	
-	function NS_MouseIn() {
-		//console.log("Entering node");
-		
-		var node = $(this);
-		NS_processNode(node);
-	}
-	
-	function NS_MouseOut() {
-		//console.log("Leaving node");
-		
-		var node = $(this).parent();
-		NS_processNode(node);	
+	function NS_MouseMove(e) {
+	  if (e.target !== hoveredNode) {
+	    hoveredNode = e.target;
+	    NS_processNode($(hoveredNode));	
+	  }
 	}
 	
 	function NS_MouseClick(event) {
 		//console.log("Node selected");
 		
 		event.preventDefault();
+    event.stopPropagation();
 		
 		//NS_switch = false;
 		var nodestr = currentSelector.full; //$("#" + NS_titleNode).text();
@@ -180,9 +175,9 @@ define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, expo
 		$("*").removeClass(NS_styleName);
 		$("#" + NS_titleNode).text("");
 		
-		$("*").unbind("mouseenter", NS_MouseIn);
-		$("*").unbind("mouseleave", NS_MouseOut);
-		$("*").unbind("click", NS_MouseClick);
+    document.removeEventListener("mousemove", NS_MouseMove, true);
+    document.removeEventListener("mousedown", NS_MouseClick, true);
+    document.removeEventListener("click", NS_MouseClick, true);
 	}
 	
 	function NS_processNode(node) {
