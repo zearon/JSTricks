@@ -998,7 +998,7 @@
             "localStorage":false, "FileReader":false} }
         };
       var lintOption = mode.indexOf("javascript") > 0 ? jsLintOption : {};
-      var rightColumn = mode.indexOf("javascript") > 0 ? {width:150} : false;
+      var rightColumn = mode.indexOf("javascript") > 0 ? {width:storage.getSetting("cmeditor_rightcolumnWidth", true)} : false;
       var outline = mode.indexOf("javascript") > 0 ? {anonymousFunction: false} : false;
       
       var options = {
