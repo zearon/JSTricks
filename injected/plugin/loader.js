@@ -86,6 +86,7 @@
           var url = condition.url[i];
           met = testUrlCondition(url);
           if (met) { 
+            action.conditionMet = condition;
             doAction(action);
             return true; 
           }

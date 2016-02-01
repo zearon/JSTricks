@@ -429,6 +429,10 @@
 			border-top:white 1px solid;
 		}
 		
+		#tabs-gs .editorPanel {
+			margin-left: 150px;
+		}
+		
 		#editorJs, #editorScripts {
 		  padding-top: 3px;
 		}

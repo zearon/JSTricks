@@ -837,7 +837,7 @@
       editorCss = generateEditor("taeditcss", "text/css");     
       editorDynScript = generateEditor("dyscriptedit", "text/javascript"); 
       editorMeta = generateEditor("taeditmeta", "application/json");     
-      editorJsonFile = generateEditor("json-file", "application/json"); 
+      editorJsonFile = generateEditor("json-file", "application/json");
       editorJsonObjectValue = generateEditor("json-file-obj", "text/javascript"); 
       
       //line highlight
@@ -943,7 +943,7 @@
     });//;
     
     function moveToPosForEditor(editor, scriptName) {      
-      if (moveToPosInEditor && moveToPosInEditor.file === scriptName) {
+      if (moveToPosInEditor && moveToPosInEditor.line >= 0 && moveToPosInEditor.file === scriptName) {
         console.log("Move to", moveToPosInEditor);
         var lineCount = editor.lineCount();
         if (moveToPosInEditor.line >= lineCount)
@@ -998,11 +998,16 @@
             "localStorage":false, "FileReader":false} }
         };
       var lintOption = mode.indexOf("javascript") > 0 ? jsLintOption : {};
+      var rightColumn = mode.indexOf("javascript") > 0 ? {width:150} : false;
+      var outline = mode.indexOf("javascript") > 0 ? {anonymousFunction: false} : false;
+      
       var options = {
         mode: mode,          
         indentWithTabs: false,
         tabSize: 2,
         lineNumbers:true,
+        rightColumn: rightColumn,
+        outline: outline,
         styleActiveLine: true,
         matchBrackets :true,
         styleSelectedText: true,
@@ -1035,9 +1040,12 @@
       }
       
       var editor = CodeMirror.fromTextArea(document.getElementById(textareaID), options); 
+      var node = $("<div>12321</div>")[0];
       editor.on("focus", function() {
           focusNotOnMenuList = true;        
         });
+        
+        
       editors.push(editor);
       return editor;
     }
@@ -2535,10 +2543,7 @@
       
       // Scroll to the line that shows this script.
       pos = JsonAnalyzer.find(editorJsonFile.getValue(), '["'+this.name+'"]');
-      if (pos) {
-        pos.posTo0BasedIndex();
-        editorJsonFile.setSelection(pos.fromPos, pos.toPos);
-      }
+      setSelectionInEditor(editorJsonFile, pos);
       
       $('#json-viewer-tabs > ul > li:eq(1) a').click();
       editorJsonObjectValue.setValue(str);
@@ -2551,10 +2556,7 @@
       
       // Scroll to the line that shows this script.
       pos = JsonAnalyzer.find(editorJsonFile.getValue(), '.assetStorage["'+this.name+'"]');
-      if (pos) {
-        pos.posTo0BasedIndex();
-        editorJsonFile.setSelection(pos.fromPos, pos.toPos);
-      }
+      setSelectionInEditor(editorJsonFile, pos);
       
       /*
       var pattern = new RegExp('^\\s*"' + this.name + '":\\s*\\{', "m");
@@ -2600,10 +2602,15 @@
       
       // Scroll to the line that shows this script.
       pos = JsonAnalyzer.find(editorJsonFile.getValue(), key);
+      setSelectionInEditor(editorJsonFile, pos);
+    }
+    
+    function setSelectionInEditor(editor, pos) {
       if (pos) {
         console.log(pos);
         pos.posTo0BasedIndex();
-        editorJsonFile.setSelection(pos.fromPos, pos.toPos);
+        editor.setSelection(pos.fromPos, pos.toPos, {scroll: false});        
+        editor.scrollIntoView({from:pos.fromPos, to:{line:pos.fromPos.line+20, ch:0} });
       }
     }
     
