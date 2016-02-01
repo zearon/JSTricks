@@ -99,6 +99,10 @@
 	  return removedElements;
 	};
 	
+	ArrayExtension.clear = function () {
+	  this.splice(0, this.length);
+	}
+	
 	ArrayExtension.addIfNotIn = function (element, equals) {
 	  if (ArrayExtension.contains.call(this, element, equals))
 	    return;

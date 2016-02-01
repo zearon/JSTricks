@@ -546,12 +546,8 @@
         
       moveToPosForEditor(editorJs, lsd.name);
       
-      if (mapOptions.indexes) {
-        highlightMatchesInEditor(mapOptions.editor, mapOptions.indexes);
-      }
-      if (mapOptions.indexes2) {
-        highlightMatchesInEditor(mapOptions.editor2, mapOptions.indexes2);
-      }
+      highlightMatchesInEditor(mapOptions.editor, mapOptions.indexes);
+      highlightMatchesInEditor(mapOptions.editor2, mapOptions.indexes2);
         
         
       selectedTitle = lsd.name;
@@ -2037,16 +2033,21 @@
         for (i = 0; i < cmeditor.searchMarkers.length; ++ i) {
           cmeditor.searchMarkers[i].clear();
         }
+        // clear the array
+        cmeditor.searchMarkers.clear();
+      } else {
+        cmeditor.searchMarkers = [];
       }
-      cmeditor.searchMarkers = [];
       
       // highlight matches
-      for (i = 0; i < indexes.length; ++ i) {
-        var from = cmeditor.posFromIndex(indexes[i].from);
-        var to = cmeditor.posFromIndex(indexes[i].to);
-        pos.push({from:from, to:to});
-        var marker = cmeditor.markText(from, to, {className: "highlighted-background"});
-        cmeditor.searchMarkers.push(marker);
+      if (indexes) {
+        for (i = 0; i < indexes.length; ++ i) {
+          var from = cmeditor.posFromIndex(indexes[i].from);
+          var to = cmeditor.posFromIndex(indexes[i].to);
+          pos.push({from:from, to:to});
+          var marker = cmeditor.markText(from, to, {className: "highlighted-background"});
+          cmeditor.searchMarkers.push(marker);
+        }
       }
       
       // set markers for highlights on scroll bar
@@ -2054,8 +2055,10 @@
         try {  cmeditor.annsclbar.clear(); } catch(ex) {}
         cmeditor.annsclbar = null;
       }
-      cmeditor.annsclbar = cmeditor.annotateScrollbar("highlighted-scrollbar");
-      cmeditor.annsclbar.update(pos);
+      if (pos.length) {
+        cmeditor.annsclbar = cmeditor.annotateScrollbar("highlighted-scrollbar");
+        cmeditor.annsclbar.update(pos);
+      }
     }
     
     // Pattern is assigned in findReplaceDialog_updateReplaceKey
@@ -3277,9 +3280,7 @@
       currentSavedStateDCS = script.script;
       editorDynScript.clearHistory();
       
-      if (mapOptions.indexes) {
-        highlightMatchesInEditor(mapOptions.editor, mapOptions.indexes);
-      }
+      highlightMatchesInEditor(mapOptions.editor, mapOptions.indexes);
       
       // Switch from Meta data editor to script editor.
       $("#tabs-dcs .tabs > ul li:eq(0)").click();
