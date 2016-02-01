@@ -110,7 +110,7 @@
 			<span id="backupToolbar" class="hide">
 				<input id="testtest" type="button" value="Test" class="hide" style="display:none" />
 				Theme:
-				<select id="theme" class="localstorage_itemvalue" target="$setting.theme" defaultvalue="_yellow" title="Theme. Automatic means automatically change between a day theme and a night theme.">
+				<select id="theme" class="localstorage_itemvalue" target="$setting.theme" defaultvalue="automatic" title="Theme. Automatic means automatically change between a day theme and a night theme.">
 					<option value="light">Light</option>
 					<option value="_yellow">Yellow</option>
 					<option value="dark">Dark</option>
@@ -533,6 +533,17 @@
 									<td><input type="text" class="localstorage_itemvalue" target="$setting.cmeditor_rightcolumnWidth" defaultvalue="150" value="150" size="9" /></td>
 									<td><input type="button" class="localstorage_saveitem" target="$setting.cmeditor_rightcolumnWidth" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.cmeditor_rightcolumnWidth" value="Set to Default" /></td>
+								<tr>
+								<tr class="localstorage_item">
+									<td title="Show anonymous functions in the function list view.">
+									Function List View - Show Anonymous Functions</td>
+									<td>
+									<span class="localstorage_itemvalue" target="$setting.outline_showAnonymousFunctions" defaultvalue="false" >
+										<input type="radio" value="false" name="$setting.outline_showAnonymousFunctions" /><span class="option">No</span>
+										<input type="radio" value="true" name="$setting.outline_showAnonymousFunctions" /><span class="option">Yes</span>
+									<span></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.outline_showAnonymousFunctions" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.outline_showAnonymousFunctions" value="Set to Default" /></td>
 								<tr>
 								
 								<tr>
