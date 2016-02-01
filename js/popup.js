@@ -200,7 +200,7 @@ function onContentPageMessage(msg) {
       else if(message.type === "log") {
         var script = message.script, scriptName = script;
         var stacktrace = message.stacktrace.replace(chrome.runtime.getURL("/"), "/");
-        var match = stacktrace.match(/\((.*):(\d+):(\d+)/);
+        var match = stacktrace.match(/(\/dynamic\/.*):(\d+):(\d+)/);
 
         if (match) {
           console.log(source);
