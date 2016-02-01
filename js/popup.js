@@ -868,7 +868,7 @@ function onContentPageMessage(msg) {
               }
               
               if (type == "domnode") {
-                element = '<input type="button" class="select-domnode-btn" title="Click to choose dom node." style="float:none; display:inline;"/> ';
+                element = '<input type="button" class="select-domnode-btn" title="Click to choose a dom node.<br/>Click the argument name to highlight the matching dom node." style="float:none; display:inline;"/> ';
                 commandDiv.append(element);
               } else if (type == "url") {
                 API_GetTabURL((function(inputIDStr) { return (function(url) {

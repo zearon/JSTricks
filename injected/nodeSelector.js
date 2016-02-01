@@ -101,7 +101,7 @@ define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, expo
 		
 		var nodes = $(selector);
 		if (nodes.length) {			
-			msgbox("" + nodes.length + " nodes are selected.");
+			msgbox.show("" + nodes.length + " nodes are selected.");
 			console.log("Selected " + nodes.length + " nodes are: ", nodes);
 			
 			nodes.addClass(NS_styleName);
@@ -129,7 +129,7 @@ define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, expo
 			lastSelectedNodes = nodes;
 		} else {
 			lastSelectedNodes = null;
-			msgbox("The selector does not match any node.");
+			msgbox.show("The selector does not match any node.");
 		}
 	}
 	
