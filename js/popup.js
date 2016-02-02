@@ -215,6 +215,9 @@ function onContentPageMessage(msg) {
             // due to header lines defined in function loadSiteScript in file js/bg.js 
             line -= 1; 
             tab = 0;
+            stacktrace = stacktrace.replace(/:(\d+):(\d+)/, function(str, line, col) {
+              return ":" + (parseInt(line) - 1) + ":" + col;
+            });
           } else if (source.startsWith("/dynamic/cs/")) {
             type = "cs";
             file = source.replace("/dynamic/cs/", "");
@@ -223,6 +226,9 @@ function onContentPageMessage(msg) {
             // due to header lines defined in variable codesnippet_csWrapper and codesnippet_csWrapper_noDuplicate in file js/common/codesnippet.js 
             line -= 7; 
             tab = 1;
+            stacktrace = stacktrace.replace(/:(\d+):(\d+)/, function(str, line, col) {
+              return ":" + (parseInt(line) - 7) + ":" + col;
+            });
           } else if (source.startsWith("/dynamic/plugin/")) {
             type = "cs";
             file = source.replace("/dynamic/plugin/", "").replace(/\.plugin$/, "");
@@ -851,7 +857,8 @@ function onContentPageMessage(msg) {
               var inputID = "code-arg-" + i + "-" + j + "-" + k;
               var type = arg.type ? arg.type : "text";
               if (type == "select") {
-                var element = '<span>' + arg.name + '</span>:<select id="' + inputID + '" class="code-arg-value">';
+                var widthCss = getWidthCSS(arg.len);
+                var element = '<span>' + arg.name + '</span>:<select id="' + inputID + '" class="code-arg-value" style="' + widthCss + '">';
                 for (var m=0; m < arg.options.length; ++ m) {
                   var option = arg.options[m];
                   element += '<option>' + option + '</option>';
@@ -860,10 +867,8 @@ function onContentPageMessage(msg) {
                 commandDiv.append(element);
 
               } else {
-                var size = arg.len ? arg.len : 10;
-                var unitWidth = 350 / 47;
-                var width = Math.floor(size * unitWidth) + "px";
-                var element = '<span>' + arg.name + '</span>:<input id="' + inputID + '" type="text" class="code-arg-value" value="' + arg.defaultValue + '" data-type="' + type + '" style="width:' + width + ';" />';
+                var widthCss = getWidthCSS(arg.len ? arg.len : 10);
+                var element = '<span>' + arg.name + '</span>:<input id="' + inputID + '" type="text" class="code-arg-value" value="' + arg.defaultValue + '" data-type="' + type + '" style="' + widthCss + ';" />';
                 commandDiv.append(element);
               }
               
@@ -899,6 +904,16 @@ function onContentPageMessage(msg) {
       //$(`#genUITab-${metadataSetting.active_module}`).show();
       
       initScriptsUITabs(metadataSetting.active_module);
+    }
+    
+    function getWidthCSS(charLen) {
+      if (!charLen)
+        return "";
+        
+      var size = charLen ? charLen : 10;
+      var unitWidth = 350 / 47;
+      var width = "width:" + Math.floor(size * unitWidth) + "px";
+      return width;
     }
         
     function initScriptsUITabs(activeModule) {
@@ -986,7 +1001,7 @@ function onContentPageMessage(msg) {
                                   ".plugins["+index+"].enabled", enabled);
         storage.setMetadata(newMeta);
         metadataTimestamp = storage.getSetting("meta_timestamp");
-        chrome.runtime.sendMessage({method:"UpdateSettings"});
+        chrome.runtime.sendMessage({method:"UpdateSettings", which:"meta", from:"popup"});
       }
     }
     

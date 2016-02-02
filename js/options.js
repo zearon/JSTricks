@@ -767,7 +767,7 @@
       
       $('#jsonFileLoad').click(loadJsonFile);
       $('#jsonFileUpdate').click(updateJsonObject);
-      $('#jsonFileFormat').click(formatJsonFile);
+      $('#jsonLoadLocalStorage').click(loadJsonFromLocalStorage);
       $('#jsonObjExtract').click(extractJsonObject);
       
       initControlsRelatingToLocalStorage();
@@ -777,6 +777,10 @@
       $("#dcsmultiselect").click(function() {
         setMultiSelectionEnabled(this); 
       });
+      
+      // Hide all devmode UIs
+      if (!storage.getSetting("DEVMODE", true, false))
+        $(".devmode").hide();
       
       // Find all nodes with class "togglePanel" , and add an event handler to toggle 
       // those nodes with css selector matching the .togglePanel node's target attribute value.
@@ -2121,8 +2125,7 @@
       var targetType  = replaceKeys["targetType"];
       var pattern   = replaceKeys["pattern"];
       var replacement = replaceKeys["replacement"];
-      var replacementPattern = replaceKeys
-      var setAutostart = replaceKeys
+      var setAutostart = replaceKeys["setAutostart"];
       
       var replaceScript = targetType.indexOf("js") > -1;
       var replaceCss = targetType.indexOf("css") > -1;
@@ -2510,15 +2513,21 @@
       sandbox_setObject("JsonViewerObj", obj);
       
       var container = $("#json-viewer-site-list");
-      container.text("");
-      for (var v in obj) {
-        container.append(`<input type="button" value="${v}" name="${v}" class="json-viewer-property"/>`);
-      }
-      var assetStorage = obj.assetStorage;
-      if (assetStorage) {
-        container.append("<hr/>Scripts:<br/>");
-        for (v in assetStorage) {
-          container.append(`<input type="button" value="${v}" name="${v}" class="json-viewer-site"/>`);
+      container.empty();
+      if (UTIL.isObject(obj)) {
+        for (var v in obj) {
+          container.append(`<input type="button" value="${v}" name="${v}" class="json-viewer-property"/>`);
+        }
+        var assetStorage = obj.assetStorage;
+        if (assetStorage) {
+          container.append("<hr/>Scripts:<br/>");
+          for (v in assetStorage) {
+            container.append(`<input type="button" value="${v}" name="${v}" class="json-viewer-site"/>`);
+          }
+        }
+      } else if (UTIL.isArray(obj)) {
+        for (var i = 0; i < obj.length; ++ i) {
+          container.append(`<input type="button" value="[${i}]" name="${i}" class="json-viewer-property"/>`);
         }
       }
       
@@ -2534,15 +2543,13 @@
       showConfiguration(editorJsonFile.getValue());
     }
     
-    function formatJsonFile() {
-      var text = formatter.formatJson(editorJsonFile.getValue(), "  ");
-      editorJsonFile.setValue(text);
+    function loadJsonFromLocalStorage() {
+      showConfiguration(JSON.stringify(localStorage));
     }
     
     function showJsonProperty() {
       var obj = window.__JScriptTricks_JsonViewer.obj;
-      var data = obj[this.name];
-      var str;
+      var data = obj[this.name], str, path;
       if (UTIL.isArray(data) || UTIL.isObject(data)) {
         str = JSON.stringify(data);
         str = formatter.formatJson(str, "  ");
@@ -2550,11 +2557,17 @@
         str = "" + data;
       }
       
+      if (UTIL.isObject(obj)) {
+        path = '["'+this.name+'"]';
+      } else {
+        path = '['+this.name+']';
+      }
+      
       // Scroll to the line that shows this script.
-      pos = JsonAnalyzer.find(editorJsonFile.getValue(), '["'+this.name+'"]');
+      pos = JsonAnalyzer.find(editorJsonFile.getValue(), path);
       setSelectionInEditor(editorJsonFile, pos);
       
-      $('#json-viewer-tabs > ul > li:eq(1) a').click();
+      showPropValueTab();
       editorJsonObjectValue.setValue(str);
     }
     
@@ -2574,7 +2587,7 @@
       editorJsonFile.setSelection(pos);*/
       
       if (script) {
-        $('#json-viewer-tabs > ul > li:eq(1) a').click();
+        showPropValueTab();
         editorJsonObjectValue.setValue(script);
       }
     }
@@ -2593,18 +2606,23 @@
     function extractJsonObject() {
       var obj = window.__JScriptTricks_JsonViewer.obj;
       var key = $('#jsonObjPath').val();
+      var formatted = key.endsWith(":formatted");
+      key = key.replace(/:formatted$/, "");
       extractAttributeInJson("JsonViewerObj", key, function(result, error) {
         if (error) {
           alert("Error:\n" + error);
           return;
         }
                 
-        $('#json-viewer-tabs > ul > li:eq(1) a').click();
+        showPropValueTab();
         var text;
         if (UTIL.isArray(result) || UTIL.isObject(result))
           text = formatter.formatJson(JSON.stringify(result), "  ");
         else
           text = "" + result;
+        
+        if (formatted)
+          text = formatter.formatJson(text, "  ");
           
         editorJsonObjectValue.setValue(text);
       });  
@@ -2618,8 +2636,18 @@
       if (pos) {
         console.log(pos);
         pos.posTo0BasedIndex();
-        editor.setSelection(pos.fromPos, pos.toPos, {scroll: false});        
-        editor.scrollIntoView({from:pos.fromPos, to:{line:pos.fromPos.line+20, ch:0} });
+        editor.setSelection(pos.fromPos, pos.toPos, {scroll: false}); 
+        
+        var line2 = pos.fromPos.line+20, lineCount = editor.lineCount();
+        line2 = line2 >= lineCount ? lineCount - 1 : line2;
+        editor.scrollIntoView({from:pos.fromPos, to:{line:line2, ch:0} });
+      }
+    }
+    
+    function showPropValueTab() {
+      var switchtab = document.getElementById("json-viewer-switch-tab").checked;
+      if (switchtab) {
+        $('#json-viewer-tabs > ul > li:eq(1) a').click();
       }
     }
     
@@ -3450,7 +3478,8 @@
     function getNextContentScriptIndex() {
       var index = 1 + UTIL.objectToArray(loadCsScriptMenuIndex(), false)
         .reduce(function(result, ele, idx, arr) {
-          return ele > result ? ele : result;
+          var eleVal = parseInt(ele);
+          return eleVal > result ? eleVal : result;
         }, 0);
       
       return index;

@@ -60,6 +60,7 @@ if (localStorage["info"])
     chrome.webNavigation.onTabReplaced.addListener(function(detail) {
       console.log(`TAB-REPLACEMENT: Tab ${detail.replacedTabId} is replaced by tab ${detail.tabId}`);
       
+      chrome.tabs.executeScript(detail.tabId, {code:"autoload.initPrerenderedPage();"});
       processTab(detail.tabId, "JSTinjectScript");
     });
       
@@ -89,7 +90,7 @@ if (localStorage["info"])
     function processTab(tabid, requestMethod, requestData) {
       // if tabid is undefined
       if (!tabid) {
-        processRequest(undefined, undefined, requestMethod, requestData);
+        processRequest_handle_errors(undefined, undefined, requestMethod, requestData);
       } else {
         chrome.tabs.get(tabid, function(tab) {
           if (chrome.runtime.lastError) {
@@ -98,10 +99,33 @@ if (localStorage["info"])
             console.log(`--- [Invisible Tab] ${tabid} does not exist`);
           } else {
             // debug_log(`[JScript Tricks] processing tab ${tab.id} title:${tab.title}, url:${tab.url}`);
-            processRequest(tab.id, tab.url, requestMethod, requestData);
+            processRequest_handle_errors(tab.id, tab.url, requestMethod, requestData);
           }
         });
       }
+    }
+    
+    function processRequest_handle_errors(tabid, url, requestMethod, requestData) {
+      try {
+        processRequest(tabid, url, requestMethod, requestData);
+      } catch (ex) {
+        if (ex.throwToTab && tabid != undefined) {
+          var args = requestData != undefined ? JSON.stringify(requestData) : "(null)";
+          var msg = "An error occured when executing '" + requestMethod + "' with parameters " + 
+                    args + ":\n" + ex.message; 
+          var code = 'console.error(decodeURIComponent("' + encodeURIComponent(msg) + '"));'; 
+          chrome.tabs.executeScript(tabid, {code:code});
+        }
+        
+        throw ex;
+      }
+    }
+    
+    function throwErrorToTab() {
+      var msg = UTIL.argsToArray(arguments).join(" ");
+      var err = new Error(msg);
+      err.throwToTab = true;
+      throw err;
     }
     
     function processRequest(tabid, url, requestMethod, requestData) {  
@@ -487,6 +511,10 @@ if (localStorage["info"])
       } else {
         csName = csName.replace(/^#/, "");
         var contentScript = loadProperty.index.contentScripts[csName];
+        if (!contentScript) {
+          var msg = "Content script '" + csName + "' does not exist."
+          throwErrorToTab(msg);
+        }
 
         // If the content script itself has dependencies, add them to the load list.
         addContentScriptsToLoadList(loadList, loadProperty.index.cachedDeps[csName], loadProperty);

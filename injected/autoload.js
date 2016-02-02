@@ -16,6 +16,7 @@ function createAutoload() {
     this.INFO = null;
     this.debug = null;
     this.onInitedListeners = [];
+    this.onInitPrerenderedPage = [];
     
     var url = location.href;
     var domain_ = url ? url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/) : "";
@@ -34,6 +35,12 @@ function createAutoload() {
     if (self.storage) {
       callListner(self, listener);
     }
+  };
+
+  Autoload.prototype.addOnInitPrerenderedPage = function(listener) { 
+    var self = this;
+         
+    self.onInitPrerenderedPage.push(listener);
   };
 
   Autoload.prototype.run = function() {
@@ -131,10 +138,18 @@ function createAutoload() {
     }
     
     if (iconStatus === "unchanged")
-      return;
+      return;    
     
+    INFO.iconStatus = iconStatus;
     sendMessage({method:"SetIcon", data:iconStatus});
   };
+  
+  Autoload.prototype.initPrerenderedPage = function () {
+    sendMessage({method:"SetIcon", data:INFO.iconStatus});
+    msgbox.log("reset icon", INFO.iconStatus);
+    
+    callListeners(this, this.onInitPrerenderedPage, this.storage)
+  }
 
   // msg should be like {type:"log", msg:text}
   Autoload.prototype.notifyMessage = function (msg) {
@@ -172,7 +187,7 @@ function createAutoload() {
     setupSeajs(self);
     startLoading(self);
     
-    callListeners(self, storage);
+    callListeners(self, self.onInitedListeners, storage);
   }
   
   function setupSeajs(self) {    
@@ -202,12 +217,12 @@ function createAutoload() {
     }
   }
   
-  function callListeners(self, storage) {    
+  function callListeners(self, listeners, storage) {    
     if (!self.enabled) {
       return;
     }
-    for (var i = 0; i < self.onInitedListeners.length; ++ i) {
-      var listener = self.onInitedListeners[i];
+    for (var i = 0; i < listeners.length; ++ i) {
+      var listener = listeners[i];
       callListner(self, listener);
     }
   }

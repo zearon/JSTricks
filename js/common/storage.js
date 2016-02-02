@@ -715,22 +715,24 @@
    */
   Storage.fn.loadIndexObj = function(option) {
     if (option === "empty")
-      return { cachedDeps:{}, siteScripts:{}, contentScripts:{} };
+      return { cachedDeps:{}, reversedDeps:{}, siteScripts:{}, contentScripts:{} };
       
     if (option === "ss")
-      return { cachedDeps:{}, siteScripts:this.getSetting("temp-index-script-site", true), contentScripts:{} };
+      return { cachedDeps:{}, reversedDeps:{}, siteScripts:this.getSetting("temp-index-script-site", true), contentScripts:{} };
       
     if (option === "cs")
-      return { cachedDeps:{}, siteScripts:{}, contentScripts:this.getSetting("temp-index-script-content", true) };
+      return { cachedDeps:{}, reversedDeps:{}, siteScripts:{}, contentScripts:this.getSetting("temp-index-script-content", true) };
       
     // Load the index from cache
-    var siteScript = this.getSetting("temp-index-script-site", true);
-    var contentScripts = this.getSetting("temp-index-script-content", true);
-    var cachedDeps =  this.getSetting("temp-index-script-deps", true);
+    var siteScript = this.getSetting("temp-index-script-site", true, {});
+    var contentScripts = this.getSetting("temp-index-script-content", true, {});
+    var cachedDeps =  this.getSetting("temp-index-script-deps", true, {});
+    var reversedDeps =  this.getSetting("temp-index-script-deps-reversed", true, {});
     return { 
-        siteScripts: (siteScript ? siteScript : {}),
-        contentScripts: (contentScripts ? contentScripts : {}),
-        cachedDeps: (cachedDeps ? cachedDeps : {})
+        siteScripts: siteScript,
+        contentScripts: contentScripts,
+        cachedDeps: cachedDeps,
+        reversedDeps: reversedDeps
       }; 
   };
 
@@ -749,6 +751,9 @@
     if (indexObj.cachedDeps) {
       this.setSetting("temp-index-script-deps", indexObj.cachedDeps, true);
       chrome.storage.local.set({cacehdDeps:indexObj.cachedDeps});
+    }
+    if (indexObj.reversedDeps) {
+      this.setSetting("temp-index-script-deps-reversed", indexObj.reversedDeps, true);
     }
   };
   
@@ -787,7 +792,7 @@
   
   // Operate in an array but not do load and save operations
   function updateScriptIndex_internal(indexObj, action, name, type, opts) {
-    var indexedScripts = null, scriptOpts, import_, deps;
+    var indexedScripts = null, scriptOpts, import_, deps, i;
     
     if (type == "cs")
       indexedScripts = indexObj.contentScripts;
@@ -800,6 +805,7 @@
     switch(action) {
       case "delete":
         delete indexedScripts[name];
+        delete indexObj.cachedDeps[name];
         break;
       case "add":
         indexedScripts[name] = opts;  // jshint ignore:line
@@ -808,14 +814,39 @@
         scriptOpts = indexedScripts[name];
         if (scriptOpts) {
           // Update scriptOpts with opts
-          indexObj.cachedDeps[name] = []; // default value
+          // indexObj.cachedDeps[name] = []; // default value
           
           for (var key in opts) {
             if (key === "import") {
-              if ((import_ = opts[key])) {
+              if ((import_ = opts[key]) != undefined) {
                 // update dependencies.
+                // Remove this file from the imported-by list of its previous imported scripts.
+                deps = indexObj.cachedDeps[name];
+                for (i = 0; deps && i < deps.length; ++ i) {
+                  var dep = deps[i];
+                  var reversedDep = indexObj.reversedDeps[dep];
+                  if (reversedDep) {
+                    reversedDep.removeElement(name);
+                    if (reversedDep.length < 1) {
+                      delete indexObj.reversedDeps[dep];
+                    }
+                  }
+                }
+                
+                // Update the imported list of this script.
                 deps = import_.split(/\s*,\s*/).filter(function(str) { return str.trim() !== "";} );
                 indexObj.cachedDeps[name] = deps;
+                
+                // Add this file to the imported-by list of its current imported scripts.
+                for (i = 0; i < deps.length; ++ i) {
+                  var dep = deps[i];
+                  //if (!indexObj.contentScripts[dep]) continue; // this dep script does not exist.
+                  
+                  var reversedDep = indexObj.reversedDeps[dep];
+                  if (!reversedDep) reversedDep = indexObj.reversedDeps[dep] = [];
+                  reversedDep.addIfNotIn(name);
+                }
+
               }
               delete opts["import"];
             } else {
@@ -829,10 +860,12 @@
   }
   
   function getScriptOptForIndex(script) {
-    if (script.type === "cs")
-      return {"group":script.group, "title":script.title, "import":script.sfile, "importOnce":script.importOnce, "timestamp":script.timestamp};
-    else
+    if (script.type === "cs") {
+      var _import = script.sfile ? script.sfile : "";
+      return {"group":script.group, "title":script.title, "import":_import, "importOnce":script.importOnce, "timestamp":script.timestamp};
+    } else {
       return {"active":script.autostart, "import":script.sfile, "timestamp":script.timestamp};
+    }
   }
   
   function saveToChromeStorage(obj) {
@@ -879,7 +912,7 @@
   };
   
   /**
-   * Get an name list of scripts on which given script is dependent.
+   * Get an name list of scripts on which the given script is dependent.
    * This value is fetched from cached index stored in localStorage, and 
    * thus is synchronous.
    * The third parameter is optional. If omitted, the value is loaded from the cache.
