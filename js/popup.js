@@ -986,7 +986,7 @@ function onContentPageMessage(msg) {
                                   ".plugins["+index+"].enabled", enabled);
         storage.setMetadata(newMeta);
         metadataTimestamp = storage.getSetting("meta_timestamp");
-        //chrome.runtime.sendMessage({method:"UpdateSettings"});
+        chrome.runtime.sendMessage({method:"UpdateSettings"});
       }
     }
     
