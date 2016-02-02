@@ -563,6 +563,10 @@
 			width: 150px;
 		}
 		
+		.settingKey {
+		  padding-left: 5px;
+		}
+		
 		#json-viewer-tabs {
 			position:absolute;
 			left: 0px;

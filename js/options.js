@@ -767,6 +767,7 @@
       
       $('#jsonFileLoad').click(loadJsonFile);
       $('#jsonFileUpdate').click(updateJsonObject);
+      $('#jsonFileFormat').click(formatJsonFile);
       $('#jsonObjExtract').click(extractJsonObject);
       
       initControlsRelatingToLocalStorage();
@@ -2533,6 +2534,11 @@
       showConfiguration(editorJsonFile.getValue());
     }
     
+    function formatJsonFile() {
+      var text = formatter.formatJson(editorJsonFile.getValue(), "  ");
+      editorJsonFile.setValue(text);
+    }
+    
     function showJsonProperty() {
       var obj = window.__JScriptTricks_JsonViewer.obj;
       var data = obj[this.name];
@@ -2785,23 +2791,22 @@
         
       var script = editorDynScript.getValue();
       var name = selectedContentScript;
-      storage.deleteScript(["ss", name]);
-      deleteCsScriptIndexInMenu(name);
       
+      deleteCsScriptIndexInMenu(name);  
       //var commentRegExp = "(\\/\\*([\\s\\S]*?)\\*\\/|([^:]|^)\\/\\/(.*)$)";
       script = script.replace(new RegExp("(define\\s*\\(\\s*['`\"]#)"+name+"(['`\"])"), '$1'+newName+'$2');
       script = script.replace(new RegExp("((\\brun\\s*\\(\\s*\\[[^\\]]*)['`\"]#)"+name+"(['`\"][^\\]]*\\]\\s*,)", "g"), '$1'+newName+'$3');
-      
+    
       editorDynScript.setValue(script);
-      
       
       $(`#contentscript-menu > .jstbox[name='${selectedContentScript}']`).attr("name", newName)
         .find(".jsttitle .name").text(newName);
-      selectedContentScript = newName;
-      
-      saveContentScript();
-      
-      updateContentScriptForContextMenu();
+      selectedContentScript = newName;      
+        
+      storage.deleteScript(["cs", name], function afterDeleted() {
+        saveContentScript();
+        updateContentScriptForContextMenu();      
+      });
     }
     
     function deleteContentScript() {
