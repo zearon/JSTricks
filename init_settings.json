@@ -1,25 +1,24 @@
 {
-  "timestamp": "20160201-225450940",
-  "metadata": "{\n  \"include\": [],\n  \n  \"plugins\": [\n    {\"enabled\":true, \"index\":0, \"info\":\"Adjust Height for Care-Your-Eyes extension\",\n     \t\t\"conditions\": [ {\"selector\":\"html.cye-enabled\", \"delay\": 500} ], \n     \t\t\"action\":{\"script\":\"Plugins\", \"topFrame\":true, \"code\":\"JSTricks_plugins.adjustHeightForCYE(0);\"} \n    },\n    {\"enabled\":true, \"index\":1, \"info\":\"Sample plugin for *.baidu.com\",\n    \t\t\"conditions\": [ {\"url\":[\"\\\\.baidu\\\\.com\"]} ], \n     \t\t\"action\":{\"script\":\"efef\", \"topFrame\":false, \"code\":\"\"} \n    },\n    {\"enabled\":false, \"index\":2, \"info\":\"Sample plugin for css selector\",\n     \t\t\"conditions\": [ {\"selector\":\"body.wiki-lemma.normal\", \"delay\": 500} ], \n     \t\t\"action\":{\"script\":\"Plugins\", \"topFrame\":false, \"code\":\"plugins.test();\"} \n    }\n \t],\n    \n  \"active_module\": \"\",\n  \n  \"modules\":[\n    {\"title\": \"Common\", \"moduleName\": \"#Common\", \"objName\": \"common\", \"addRequires\": false, \"commands\":[\n      {\"title\": \"Require jQuery\", \"loadModule\":\"true\", \"moduleName\":\"jquery\", \"objName\":\"$\", \"addRequires\": false,\n       \"tooltip\":\"Add a dependency to jQuery as needed and import it as a symbol $ in the script.\"\n      },\n      \n      {\"title\": \"Book Mode\", \n       \"code\": \"//Book Mode\\n common.prefetch('a:contains(\\\\'下一\\\\'):eq(0)');\\n common.prefetch('a:contains(\\\\'目录\\\\'):eq(0)');\\n if(common.urlMatches('/html/*/*/index.html$', 'Wildcard', 'pathname')) {\\n $('body #at').addClass('tob');\\n common.addCssStyle('.tob a:visited { color: red; }');\\n }\\n\"\n      },\n      \n      {\"title\": \"Replace Double <br>\", \n       \"code\": \"  common.replaceText('#contents', /<br>\\\\s*<br>/g, '<br>');\\n\"\n      },\n      \n      {\"title\": \"Enable Rightclick\", \"funcname\": \"enableRightClick\", \"args\": [\n      ]},\n      \n      {\"title\": \"URL Matches\", \"funcname\": \"urlMatches\", \"statement\":\"if\", \"args\": [\n        {\"name\": \"Pattern\", \"len\":59, \"type\":\"url\"},\n        {\"name\": \" type\", \"type\":\"select\", \"options\":[\"Wildcard\", \"Regexp\", \"Raw Regexp\"]},\n        {\"name\": \" part\", \"type\":\"select\", \"options\":[\"pathname\", \"href\", \"host\", \"hostname\", \"port\", \"protocol\"]}\n      ]},\n      \n      {\"title\": \"Replace Text\", \"funcname\": \"replaceText\", \"args\": [\n        {\"name\": \"Target\", \"len\":15, \"defaultValue\":\"#contents\", \"type\":\"domnode\"},\n        {\"name\": \"Regex\", \"len\":8, \"defaultValue\":\"/regex/g\", \"type\":\"raw\"},\n        {\"name\": \"Replacement\", \"len\":8, \"defaultValue\":\"\"},\n        {\"name\": \"Method\", \"len\":1, \"defaultValue\":\"1\", \"type\":\"raw\"}\n      ]},\n      \n      {\"title\": \"Prefetch Link\", \"funcname\": \"prefetch\",  \"args\": [\n        {\"name\": \"Target\", \"len\":55, \"defaultValue\":\"a:contains(''):eq(0)\", \"type\":\"domnode\"}\n      ]},\n      \n      {\"title\": \"Add Thousand seperators\", \"funcname\": \"addThousands\", \"args\": [\n        {\"name\": \"Target\", \"len\":46, \"defaultValue\":\"td\", \"type\":\"domnode\"}\n      ]},\n      \n      {\"title\": \"Unbind Event\", \"funcname\": \"unbindEvent\", \"args\": [\n        {\"name\": \"Target\", \"len\":40, \"defaultValue\":\"#contents\", \"type\":\"domnode\"},\n        {\"name\": \"Event\", \"len\":10, \"defaultValue\":\"click\"}\n      ]},\n      \n      {\"title\": \"Mark table columns\", \"funcname\": \"markTableColumn\", \"args\": [\n        {\"name\": \"Table\", \"len\":30, \"defaultValue\":\"table\", \"type\":\"domnode\"},\n        {\"name\": \"columns from index\", \"len\":2, \"defaultValue\":\"0\", \"type\":\"raw\"},\n        {\"name\": \"to\", \"len\":2, \"defaultValue\":\"0\", \"type\":\"raw\"},\n        {\"name\": \"class name\", \"len\":16, \"defaultValue\":\"\"}\n      ]}\n    ]},\n    \n    \n    {\"title\": \"Other Plugins\", \"moduleName\": \"#Plugins\", \"objName\": \"plugins\", \"addRequires\": true, \"commands\":[      \n      {\"title\": \"Adjust height\", \"funcname\": \"adjustHeightForEyesProtectExt\", \n       \"tooltip\":\"<a target='_blank' href='https://chrome.google.com/webstore/detail/care-your-eyes/fidmpnedniahpnkeomejhnepmbdamlhl'><b>Care-your-eyes</b></a> extension causes the height of some webpages becomes too big. This function fixes this problem.\", \n       \"args\": [\n      ]}\n    ]},\n    \n    \n    {\"title\": \"Dev\", \"moduleName\": \"#Dev\", \"objName\": \"dev\", \"addRequires\": false, \"commands\":[      \n      \n      {\"title\": \"Inject jQuery\", \"run\":\"true\", \"moduleName\":\"#DEBUG\", \"objName\":\"debug\",\n       \"tooltip\":\"Inject a script node in document head for jQuery.\",\n       \"code\": \"debug.addScriptNode('https://code.jquery.com/jquery-1.11.3.min.js');\\n\"\n      },\n      \n      {\"title\": \"Set Text of CodeMirror Editor\", \"funcname\": \"setCodeMirrorText\", \n       \"tooltip\":\"Set the text of a CodeMirror editor.\", \n       \"args\": [\n        {\"name\": \"Editor Selector\", \"len\":9, \"defaultValue\":\".CodeMirror\"},\n        {\"name\": \"Index\", \"len\":2, \"defaultValue\":\"0\", \"type\":\"raw\"},\n        {\"name\": \"Text\", \"defaultValue\":\"Sample Code\", \"len\":20}\n      ]}\n    ]},\n    \n    \n    {\"title\": \"DEBUG\", \"moduleName\": \"#DEBUG\", \"objName\": \"debug\", \"addRequires\": false, \"commands\":[\n      \n      {\"title\": \"Require jQuery\", \"loadModule\":\"true\", \"moduleName\":\"jquery\", \"objName\":\"$\", \"addRequires\": false,\n       \"tooltip\":\"Add a dependency to jQuery as needed and import it as a symbol $ in the script.\"\n      },\n      \n      {\"title\": \"Require jQuery UI\", \"loadModule\":\"true\", \"moduleName\":\"jquery-ui\", \"objName\":\"jui\", \"addRequires\": false,\n       \"tooltip\":\"Add a dependency to jQuery UI as needed and import it as a symbol jui in the script.\"\n      },\n      \n      {\"title\": \"Require Message Box\", \"loadModule\":\"true\", \"moduleName\":\"msgbox\", \"objName\":\"log\", \"addRequires\": false,\n       \"tooltip\":\"Add a dependency to jQuery as needed and import it as a symbol $ in the script.\"\n      },\n      \n      {\"title\": \"Require Selection Box\", \"loadModule\":\"true\", \"moduleName\":\"selectbox\", \"objName\":\"SelectionBox\", \"addRequires\": false,\n       \"tooltip\":\"Add a dependency to jQuery as needed and import it as a symbol $ in the script.\"\n      },\n      \n      {\"title\": \"Show Popup Window\", \"run\":\"true\", \"funcname\": \"showPopup\", \"args\": [\n      ]},\n      \n      {\"title\": \"Reload BG-Page\", \"run\":\"true\", \"funcname\": \"reloadBackroundPage\", \"args\": [\n      ]},\n      \n      {\"title\": \"Print Cached Modules\", \"run\":\"true\", \"funcname\": \"showSeaJsCache\", \n       \"tooltip\":\"Print all cached module in module manager Sea.js in console.\",\n       \"args\": [\n      ]},\n      \n      {\"title\": \"Print Messenger\", \"run\":\"true\", \"funcname\": \"viewMessenger\", \"args\": [\n      ]},\n      \n      {\"title\": \"Reinject File\", \"funcname\": \"reinjectFile\", \"args\": [\n        {\"name\": \"File\", \"len\":40, \"defaultValue\":\"usrlib/nodeSelector.js\"}\n      ]},\n      \n      {\"title\": \"Inject Content Script as Script Node\", \"funcname\": \"injectContentScriptAsScriptNode\", \"args\": [\n        {\"name\": \"Content Script Name\", \"len\":30, \"defaultValue\":\"Test\"}\n      ]}\n    ]}\n  ],\n  \n  \n  \n  \n\n\n\n\n\n\n\n\n\n  \"builtinLibs\": [\n  \t\"CodeMirror\",\"Coder\",\"Common\",\"ContextMenuDemo\",\"DEBUG\",\"Dev\",\"HightlightSelector\",\n    \"InjectAsScriptNode_Demo\",\"InjectAsScriptNode_Injected\",\"LibBase\",\"Messenger\",\"OpenLinks\",\n    \"Plugins\",\"QRCodeDecode\",\"QRCodeEncode\",\"dfdf\",\"efef\",\"localStorage\"\n  ],\n    \n  \"seajs.config\": {\n    \"paths\": {\n      \"mootools\": \"https://ajax.googleapis.com/ajax/libs/mootools/1.6.0\"\n    },\n    \"alias\": {\n      \"jquery\": \"lib/jquery[AMD]\",\n      \"jquery-ui\": \"lib/jquery-ui[AMD]\",\n      \"ready\": \"ready[AMD]\",\n      \"msgbox\": \"msgbox\",\n      \"selectbox\": \"selectionBox\",\n      \"mootools\": \"mootools/mootools[Raw]\"\n    }\n  }\n\n}",
+  "timestamp": "20160202-234632753",
+  "metadata": "{\n  \"include\": [],\n  \n  \"plugins\": [\n    {\"enabled\":true, \"index\":0, \"info\":\"Adjust Height for Care-Your-Eyes extension\",\n     \t\t\"conditions\": [ {\"selector\":\"html.cye-enabled\", \"delay\": 500} ], \n     \t\t\"action\":{\"script\":\"Plugins\", \"topFrame\":true, \"code\":\"JSTricks_plugins.adjustHeightForCYE(0);\"} \n    },\n    {\"enabled\":true, \"index\":1, \"info\":\"Sample plugin for *.baidu.com\",\n    \t\t\"conditions\": [ {\"url\":[\"\\\\.baidu\\\\.com\"]} ], \n     \t\t\"action\":{\"script\":\"PluginDemo\", \"topFrame\":false, \"code\":\"\"} \n    },\n    {\"enabled\":false, \"index\":2, \"info\":\"Sample plugin for css selector\",\n     \t\t\"conditions\": [ {\"selector\":\"body.wiki-lemma.normal\", \"delay\": 500} ], \n     \t\t\"action\":{\"script\":\"Plugins\", \"topFrame\":false, \"code\":\"plugins.test();\"} \n    }\n \t],\n    \n  \"active_module\": \"\",\n  \n  \"modules\":[\n    {\"title\": \"Common\", \"moduleName\": \"#Common\", \"objName\": \"common\", \"addRequires\": false, \"commands\":[\n      {\"title\": \"Require jQuery\", \"loadModule\":\"true\", \"moduleName\":\"jquery\", \"objName\":\"$\", \"addRequires\": false,\n       \"tooltip\":\"Add a dependency to jQuery as needed and import it as a symbol $ in the script.\"\n      },\n      \n      {\"title\": \"Book Mode\", \n       \"code\": \"//Book Mode\\n common.prefetch('a:contains(\\\\'下一\\\\'):eq(0)');\\n if(common.urlMatches('/html/*/*/index.html$', 'Wildcard', 'pathname')) {\\n $('body').addClass('tob');\\n common.addCssStyle('.tob a:visited { color: red; }');\\n }\\n\"\n      },\n      \n      {\"title\": \"Replace Double <br>\", \n       \"code\": \"  common.replaceText('#contents', /<br>\\\\s*<br>/g, '<br>');\\n\"\n      },\n      \n      {\"title\": \"Enable Rightclick\", \"funcname\": \"enableRightClick\", \"args\": [\n      ]},\n      \n      {\"title\": \"URL Matches\", \"funcname\": \"urlMatches\", \"statement\":\"if\", \"args\": [\n        {\"name\": \"Pattern\", \"len\":59, \"type\":\"url\"},\n        {\"name\": \" type\", \"type\":\"select\", \"options\":[\"Wildcard\", \"Regexp\", \"Raw Regexp\"]},\n        {\"name\": \" part\", \"type\":\"select\", \"options\":[\"pathname\", \"href\", \"host\", \"hostname\", \"port\", \"protocol\"]}\n      ]},\n      \n      {\"title\": \"Replace Text\", \"funcname\": \"replaceText\", \"args\": [\n        {\"name\": \"Target\", \"len\":15, \"defaultValue\":\"#contents\", \"type\":\"domnode\"},\n        {\"name\": \"Regex\", \"len\":8, \"defaultValue\":\"/regex/g\", \"type\":\"raw\"},\n        {\"name\": \"Replacement\", \"len\":8, \"defaultValue\":\"\"},\n        {\"name\": \"Method\", \"len\":1, \"defaultValue\":\"1\", \"type\":\"raw\"}\n      ]},\n      \n      {\"title\": \"Prefetch Link\", \"funcname\": \"prefetch\",  \"args\": [\n        {\"name\": \"Target\", \"len\":56, \"defaultValue\":\"a:contains(''):eq(0)\", \"type\":\"domnode\"}\n      ]},\n      \n      {\"title\": \"Manipulate Node\", \"funcname\": \"manipulateNode\",  \"args\": [\n        {\"name\": \"Target\", \"len\":44, \"defaultValue\":\"a:contains(''):eq(0)\", \"type\":\"domnode\"},\n        {\"name\": \"\", \"len\":8, \"type\":\"select\", \"options\":[\"hide\", \"remove\"]}\n      ]},\n      \n      {\"title\": \"Add Thousand seperators\", \"funcname\": \"addThousands\", \"args\": [\n        {\"name\": \"Target\", \"len\":46, \"defaultValue\":\"td\", \"type\":\"domnode\"}\n      ]},\n      \n      {\"title\": \"Unbind Event\", \"funcname\": \"unbindEvent\", \"args\": [\n        {\"name\": \"Target\", \"len\":40, \"defaultValue\":\"#contents\", \"type\":\"domnode\"},\n        {\"name\": \"Event\", \"len\":10, \"defaultValue\":\"click\"}\n      ]},\n      \n      {\"title\": \"Mark table columns\", \"funcname\": \"markTableColumn\", \"args\": [\n        {\"name\": \"Table\", \"len\":30, \"defaultValue\":\"table\", \"type\":\"domnode\"},\n        {\"name\": \"columns from index\", \"len\":2, \"defaultValue\":\"0\", \"type\":\"raw\"},\n        {\"name\": \"to\", \"len\":2, \"defaultValue\":\"0\", \"type\":\"raw\"},\n        {\"name\": \"class name\", \"len\":16, \"defaultValue\":\"\"}\n      ]}\n    ]},\n    \n    \n    {\"title\": \"Other Plugins\", \"moduleName\": \"#Plugins\", \"objName\": \"plugins\", \"addRequires\": true, \"commands\":[      \n      {\"title\": \"Adjust height\", \"funcname\": \"adjustHeightForEyesProtectExt\", \n       \"tooltip\":\"<a target='_blank' href='https://chrome.google.com/webstore/detail/care-your-eyes/fidmpnedniahpnkeomejhnepmbdamlhl'><b>Care-your-eyes</b></a> extension causes the height of some webpages becomes too big. This function fixes this problem.\", \n       \"args\": [\n      ]}\n    ]},\n    \n    \n    {\"title\": \"Dev\", \"moduleName\": \"#Dev\", \"objName\": \"dev\", \"addRequires\": false, \"commands\":[      \n      \n      {\"title\": \"Inject jQuery\", \"run\":\"true\", \"moduleName\":\"#DEBUG\", \"objName\":\"debug\",\n       \"tooltip\":\"Inject a script node in document head for jQuery.\",\n       \"code\": \"debug.addScriptNode('https://code.jquery.com/jquery-1.11.3.min.js');\\n\"\n      },\n      \n      {\"title\": \"Set Text of CodeMirror Editor\", \"funcname\": \"setCodeMirrorText\", \n       \"tooltip\":\"Set the text of a CodeMirror editor.\", \n       \"args\": [\n        {\"name\": \"Editor Selector\", \"len\":9, \"defaultValue\":\".CodeMirror\"},\n        {\"name\": \"Index\", \"len\":2, \"defaultValue\":\"0\", \"type\":\"raw\"},\n        {\"name\": \"Text\", \"defaultValue\":\"Sample Code\", \"len\":20}\n      ]}\n    ]},\n    \n    \n    {\"title\": \"DEBUG\", \"moduleName\": \"#DEBUG\", \"objName\": \"debug\", \"addRequires\": false, \"commands\":[\n      \n      {\"title\": \"Require jQuery\", \"loadModule\":\"true\", \"moduleName\":\"jquery\", \"objName\":\"$\", \"addRequires\": false,\n       \"tooltip\":\"Add a dependency to jQuery as needed and import it as a symbol $ in the script.\"\n      },\n      \n      {\"title\": \"Require jQuery UI\", \"loadModule\":\"true\", \"moduleName\":\"jquery-ui\", \"objName\":\"jui\", \"addRequires\": false,\n       \"tooltip\":\"Add a dependency to jQuery UI as needed and import it as a symbol jui in the script.\"\n      },\n      \n      {\"title\": \"Require Message Box\", \"loadModule\":\"true\", \"moduleName\":\"msgbox\", \"objName\":\"log\", \"addRequires\": false,\n       \"tooltip\":\"Add a dependency to jQuery as needed and import it as a symbol $ in the script.\"\n      },\n      \n      {\"title\": \"Require Selection Box\", \"loadModule\":\"true\", \"moduleName\":\"selectbox\", \"objName\":\"SelectionBox\", \"addRequires\": false,\n       \"tooltip\":\"Add a dependency to jQuery as needed and import it as a symbol $ in the script.\"\n      },\n      \n      {\"title\": \"Show Popup Window\", \"run\":\"true\", \"funcname\": \"showPopup\", \"args\": [\n      ]},\n      \n      {\"title\": \"Reload BG-Page\", \"run\":\"true\", \"funcname\": \"reloadBackroundPage\", \"args\": [\n      ]},\n      \n      {\"title\": \"Print Cached Modules\", \"run\":\"true\", \"funcname\": \"showSeaJsCache\", \n       \"tooltip\":\"Print all cached module in module manager Sea.js in console.\",\n       \"args\": [\n      ]},\n      \n      {\"title\": \"Print Messenger\", \"run\":\"true\", \"funcname\": \"viewMessenger\", \"args\": [\n      ]},\n      \n      {\"title\": \"Reinject File\", \"funcname\": \"reinjectFile\", \"args\": [\n        {\"name\": \"File\", \"len\":40, \"defaultValue\":\"usrlib/nodeSelector.js\"}\n      ]},\n      \n      {\"title\": \"Inject Content Script as Script Node\", \"funcname\": \"injectContentScriptAsScriptNode\", \"args\": [\n        {\"name\": \"Content Script Name\", \"len\":30, \"defaultValue\":\"Test\"}\n      ]}\n    ]}\n  ],\n  \n  \n  \n  \n\n\n\n\n\n\n\n\n\n  \"builtinLibs\": [\n  \t\"CodeMirror\",\"Coder\",\"Common\",\"ContextMenuDemo\",\"DEBUG\",\"Dev\",\"HightlightSelector\",\n    \"InjectAsScriptNode_Demo\",\"InjectAsScriptNode_Injected\",\"LibBase\",\"Messenger\",\"OpenLinks\",\n    \"Plugins\",\"QRCodeDecode\",\"QRCodeEncode\",\"dfdf\",\"PluginDemo\",\"localStorage\"\n  ],\n    \n  \"seajs.config\": {\n    \"paths\": {\n      \"mootools\": \"https://ajax.googleapis.com/ajax/libs/mootools/1.6.0\"\n    },\n    \"alias\": {\n      \"jquery\": \"lib/jquery[AMD]\",\n      \"jquery-ui\": \"lib/jquery-ui[AMD]\",\n      \"ready\": \"ready[AMD]\",\n      \"msgbox\": \"msgbox\",\n      \"selectbox\": \"selectionBox\",\n      \"mootools\": \"mootools/mootools[Raw]\"\n    }\n  }\n\n}",
   "assets": {
-    "cs-Coder": "20160111-131849446",
-    "cs-Common": "20160129-15274415",
-    "cs-ContextMenuDemo": "20160111-131849446",
-    "cs-DEBUG": "20160129-15274416",
-    "cs-Dev": "20160129-154334299",
-    "cs-HightlightSelector": "20160127-205736241",
-    "cs-InjectAsScriptNode_Demo": "20160111-131849448",
-    "cs-InjectAsScriptNode_Injected": "20160111-131849448",
-    "cs-LibBase": "20160129-152531455",
-    "cs-Messenger": "20160127-205736241",
-    "cs-OpenLinks": "20160127-205736242",
-    "cs-Plugins": "20160129-200647917",
-    "cs-QRCodeDecode": "20160111-131849450",
-    "cs-QRCodeEncode": "20160111-131849451",
-    "cs-dfdf": "20160127-205736242",
-    "cs-efef": "20160127-205736242",
-    "cs-localStorage": "20160111-131849451",
-    "dss-Main": "20160111-131849452"
+    "cs-Coder": "20160202-224000201",
+    "cs-Common": "20160202-2342452",
+    "cs-ContextMenuDemo": "20160202-224000201",
+    "cs-DEBUG": "20160202-224000201",
+    "cs-Dev": "20160202-224000202",
+    "cs-HightlightSelector": "20160202-234546486",
+    "cs-InjectAsScriptNode_Demo": "20160202-224000202",
+    "cs-InjectAsScriptNode_Injected": "20160202-224000202",
+    "cs-LibBase": "20160202-234208138",
+    "cs-Messenger": "20160202-224000202",
+    "cs-OpenLinks": "20160202-224000203",
+    "cs-PluginDemo": "20160202-224000203",
+    "cs-Plugins": "20160202-234011429",
+    "cs-QRCodeDecode": "20160202-224000203",
+    "cs-QRCodeEncode": "20160202-224000203",
+    "cs-localStorage": "20160202-224000204",
+    "dss-Main": "20160202-224000204"
   },
   "assetStorage": {
     "cs-Coder": {
@@ -30,20 +29,20 @@
       "id": "cs-Coder",
       "type": "cs",
       "name": "Coder",
-      "timestamp": "20160111-131849446",
+      "timestamp": "20160202-224000201",
       "importOnce": false,
       "autostart": false
     },
     "cs-Common": {
       "name": "Common",
       "type": "cs",
-      "index": "15",
+      "index": "22",
       "group": "Module",
       "title": "Common",
       "sfile": "",
-      "script": "define(\"#Common\", [\"jquery\", \"#LibBase\", \"#Messenger\"], function(require, exports, module) {\n  var $ = require(\"jquery\");\n  var libBase = require(\"#LibBase\");\n  var msg = require(\"#Messenger\");\n  \n  function Common() {\n    this.init();\n  }\n  Common.prototype = Object.create(libBase);\n  Common.prototype.constructor = Common;\n    \n  // Prototypes for Common\n  Common.prototype.prefetch = function (target) {\n    //var next = $('a:contains(\"下一\"):eq(0)')[0];\n    var next = $(target)[0];\n    if (next) {\n      var link = next.href;\n      var href = $(next).attr('href');\n      var prefetch1 = '<link rel=\"prefetch\" href=\"' + link + '\" />'; // For Firefox browser\n      var prefetch2 = '<link rel=\"prerender\" href=\"' + link + '\" />'; // For Google Chrome browser\n      $('body').append(prefetch1);\n      $('body').append(prefetch2);\n      var node = $(\"a[href='\"+href+\"']\");\n      var style = node.attr(\"style\");\n      if (style === 'undefined')\n        style = \"\";\n      if ($(next).children().length > 0) {\n        style += \"background-color: rgba(247,223,29,1);\";\n      } else {\n        style += `color: blue; \n                color: blue;\n                border: 1px solid rgba(124,122,12,1);\n                /* cursor: pointer; */\n                background-color: rgba(247,223,29,1);\n                background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b));\n                box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;\n                /* padding: 3px 10px; */\n                text-shadow: rgba(255,255,255,0.6) 0 1px;`;\n    }\n      \n      node.attr(\"style\", style);\n      this.showMsg(\"Prefetch nodes for \" + target + \" have been inserted.\");\n    } else {\n      this.showMsg(\"Target '\" + target + \"' does not matche any node.\");\n    }\n  };\n  \n  Common.prototype.defaultPrefetch = function(target1, target2) {\n    this.prefetch(target1);\n    this.prefetch(target2);\n  };\n  \n  // part is one of [\"pathname\", \"href\", \"host\", \"hostname\", \"port\", \"protocol\"];\n  Common.prototype.urlMatches = function(url, type, part) {\n    var urlPatternStr = url;\n    if (type == \"Wildcard\") {\n      urlPatternStr = urlPatternStr.replace(/\\./g, \"\\\\.\").replace(/\\?/g, \"\\\\?\").replace(/\\+/g, \"\\\\+\").replace(/\\=/g, \"\\\\=\").replace(/\\&/g, \"\\\\&\").replace(/\\*/g, \".*\");\n    } else if (type == \"Regexp\") {\n      urlPatternStr = urlPatternStr.replace(/\\./g, \"\\\\.\").replace(/\\=/g, \"\\\\=\").replace(/\\&/g, \"\\\\&\");\n    } else if (type == \"Raw Regexp\") {\n    }\n    var urlPattern = new RegExp(urlPatternStr);\n    var urlPart = part ? location[part] : location.pathname;\n    var result = urlPattern.test(urlPart);\n    var status = result ? \"<font color='red'>PASSED</font>\" : \"FAILED\";\n    this.showMsg(`${type} test ${status} for '${urlPatternStr}'`);\n    return result;\n  };\n  \n  Common.prototype.replaceText = function (target, pattern, replacement, method) {\n    var node = $(target);\n    var text = node.html();\n    if (!text)\n      return;\n    \n    text = text.replace(pattern, replacement);\n    \n    if (!method || method == 1) {\n      node.html(text);\n    } else if (method == 2) {\n      var parentNode = node.parent();\n      //node.replaceWith(\"<div>\" + text + \"</div>\");\n      node.detach();\n      $(\"<div>\" + text + \"</div>\").appendTo(parentNode);\n    }\n    var msg = \"Text replacement for \" + target + \" [\"+pattern+\" --> \"+replacement+\"] is done.\";\n    this.showMsg(msg, true);\n  };\n  \n  Common.prototype.addThousands = function (selector) {\n    var pattern = /(\\d+)(\\d{3})(\\D|$)/g;\n    var replacement = function(str, sub1, sub2, sub3, n) {\n      pattern = /(\\d+)(\\d{3})(\\D|$)/g;\n      return sub1.replace(pattern, replacement) + ',' + sub2 + sub3;\n    };\n    var replaceNum = function(index, ele) {\n      var text = ele.innerText;\n      ele.innerText = text.replace(pattern, replacement);\n    };\n    \n    $(selector).each(replaceNum);\n    \n    this.showMsg(\"Thousands seperators for \" + selector + \" have been added.\");\n  };\n  \n  Common.prototype.addCssStyle = function(styles) {\n    var data = [{code:`AppendStyleNodeToDom_____(decodeURIComponent(\"${encodeURIComponent(styles)}\"));`}];\n    var msg = {method:\"ExecuteJsCodeOrFile\", data:data};\n    chrome.runtime.sendMessage(msg);\n  };\n  \n  Common.prototype.markTableColumn = function(table, \n                                    columnIndexStart, columnIndexTo, className) {\n    var index1 = columnIndexStart - 1;\n    var index2 = columnIndexTo + 1;\n    $(table + \" tr\").find(`td:eq(${columnIndexStart})`).addClass(className);\n    $(table + \" tr\").find(`td:lt(${index2}):gt(${index1})`).addClass(className);\n    \n    this.showMsg(`[Novel] Mark columns [${columnIndexStart}-${columnIndexTo}] as \"${className}\" for table ${table}. `);\n  };\n  \n  Common.prototype.unbindEvent = function (target, e) {\n      $(target).unbind(e);\n  };\n  \n  Common.prototype.enableRightClick = function() {\n    // call __JSTricks_Injected_ method defined in injected/injected.js\n    //window.postMessage({ type: \"JST-injected-callMethod\", func: \"enableRightClick\" }, \"*\");\n    msg.invokeFunction(\"__JSTricks_Injected_enableRightClick\");\n    \n    this.showMsg(`Rightclick is enabled.`);\n  };\n  \n  // end of Common prototypes\n  \n  return new Common();\n});\n",
+      "script": "define(\"#Common\", [\"jquery\", \"#LibBase\", \"#Messenger\"], function(require, exports, module) {\n  var $ = require(\"jquery\");\n  var libBase = require(\"#LibBase\");\n  var msg = require(\"#Messenger\");\n  \n  function Common() {\n    this.init();\n  }\n  Common.prototype = Object.create(libBase);\n  Common.prototype.constructor = Common;\n    \n  // Prototypes for Common\n  Common.prototype.prefetch = function (target) {\n    //var next = $('a:contains(\"下一\"):eq(0)')[0];\n    var next = $(target)[0];\n    if (next) {\n      var link = next.href;\n      var href = $(next).attr('href');\n      var prefetch1 = '<link rel=\"prefetch\" href=\"' + link + '\" />'; // For Firefox browser\n      var prefetch2 = '<link rel=\"prerender\" href=\"' + link + '\" />'; // For Google Chrome browser\n      $('body').append(prefetch1);\n      $('body').append(prefetch2);\n      var node = $(\"a[href='\"+href+\"']\");\n      var style = node.attr(\"style\");\n      if (style === 'undefined')\n        style = \"\";\n      if ($(next).children().length > 0) {\n        style += \"background-color: rgba(247,223,29,1);\";\n      } else {\n        style += `color: blue; \n                color: blue;\n                border: 1px solid rgba(124,122,12,1);\n                /* cursor: pointer; */\n                background-color: rgba(247,223,29,1);\n                background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b));\n                box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;\n                /* padding: 3px 10px; */\n                text-shadow: rgba(255,255,255,0.6) 0 1px;`;\n    }\n      \n      node.attr(\"style\", style);\n      this.showMsg(\"Prefetch nodes for \" + target + \" have been inserted.\");\n    } else {\n      this.showMsg(\"Target '\" + target + \"' does not matche any node.\");\n    }\n  };\n  \n  Common.prototype.defaultPrefetch = function(target1, target2) {\n    this.prefetch(target1);\n    this.prefetch(target2);\n  };\n  \n  // part is one of [\"pathname\", \"href\", \"host\", \"hostname\", \"port\", \"protocol\"];\n  Common.prototype.urlMatches = function(url, type, part) {\n    var urlPatternStr = url;\n    if (type == \"Wildcard\") {\n      urlPatternStr = urlPatternStr.replace(/\\./g, \"\\\\.\").replace(/\\?/g, \"\\\\?\").replace(/\\+/g, \"\\\\+\").replace(/\\=/g, \"\\\\=\").replace(/\\&/g, \"\\\\&\").replace(/\\*/g, \".*\");\n    } else if (type == \"Regexp\") {\n      urlPatternStr = urlPatternStr.replace(/\\./g, \"\\\\.\").replace(/\\=/g, \"\\\\=\").replace(/\\&/g, \"\\\\&\");\n    } else if (type == \"Raw Regexp\") {\n    }\n    var urlPattern = new RegExp(urlPatternStr);\n    var urlPart = part ? location[part] : location.pathname;\n    var result = urlPattern.test(urlPart);\n    var status = result ? \"<font color='red'>PASSED</font>\" : \"FAILED\";\n    this.showMsg(`${type} test ${status} for '${urlPatternStr}'`);\n    return result;\n  };\n  \n  Common.prototype.manipulateNode = function (target, operation) {\n    var node = $(target);\n    if (operation === \"remove\") {\n      node.remove();\n    } else if (operation === \"hide\") {\n      node.hide();\n    }\n    this.triggerCustomEvent(\"Height_Updated\", \"\");\n    this.showMsg(operation, target, \"OK\");\n  };\n  \n  Common.prototype.replaceText = function (target, pattern, replacement, method) {\n    var node = $(target);\n    var text = node.html();\n    if (!text)\n      return;\n    \n    text = text.replace(pattern, replacement);\n    \n    if (!method || method == 1) {\n      node.html(text);\n    } else if (method == 2) {\n      var parentNode = node.parent();\n      //node.replaceWith(\"<div>\" + text + \"</div>\");\n      node.detach();\n      $(\"<div>\" + text + \"</div>\").appendTo(parentNode);\n    }\n    var msg = \"Text replacement for \" + target + \" [\"+pattern+\" --> \"+replacement+\"] is done.\";\n    this.showMsg(msg, true);\n  };\n  \n  Common.prototype.addThousands = function (selector) {\n    var pattern = /(\\d+)(\\d{3})(\\D|$)/g;\n    var replacement = function(str, sub1, sub2, sub3, n) {\n      pattern = /(\\d+)(\\d{3})(\\D|$)/g;\n      return sub1.replace(pattern, replacement) + ',' + sub2 + sub3;\n    };\n    var replaceNum = function(index, ele) {\n      var text = ele.innerText;\n      ele.innerText = text.replace(pattern, replacement);\n    };\n    \n    $(selector).each(replaceNum);\n    \n    this.showMsg(\"Thousands seperators for \" + selector + \" have been added.\");\n  };\n  \n  Common.prototype.addCssStyle = function(styles) {\n    var data = [{code:`AppendStyleNodeToDom_____(decodeURIComponent(\"${encodeURIComponent(styles)}\"));`}];\n    var msg = {method:\"ExecuteJsCodeOrFile\", data:data};\n    chrome.runtime.sendMessage(msg);\n  };\n  \n  Common.prototype.markTableColumn = function(table, \n                                    columnIndexStart, columnIndexTo, className) {\n    var index1 = columnIndexStart - 1;\n    var index2 = columnIndexTo + 1;\n    $(table + \" tr\").find(`td:eq(${columnIndexStart})`).addClass(className);\n    $(table + \" tr\").find(`td:lt(${index2}):gt(${index1})`).addClass(className);\n    \n    this.showMsg(`[Novel] Mark columns [${columnIndexStart}-${columnIndexTo}] as \"${className}\" for table ${table}. `);\n  };\n  \n  Common.prototype.unbindEvent = function (target, e) {\n      $(target).unbind(e);\n  };\n  \n  Common.prototype.enableRightClick = function() {\n    // call __JSTricks_Injected_ method defined in injected/injected.js\n    //window.postMessage({ type: \"JST-injected-callMethod\", func: \"enableRightClick\" }, \"*\");\n    msg.invokeFunction(\"__JSTricks_Injected_enableRightClick\");\n    \n    this.showMsg(`Rightclick is enabled.`);\n  };\n  \n  // end of Common prototypes\n  \n  return new Common();\n});\n",
       "importOnce": false,
-      "timestamp": "20160129-15274415",
+      "timestamp": "20160202-2342452",
       "id": "cs-Common"
     },
     "cs-ContextMenuDemo": {
@@ -54,7 +53,7 @@
       "id": "cs-ContextMenuDemo",
       "type": "cs",
       "name": "ContextMenuDemo",
-      "timestamp": "20160111-131849446",
+      "timestamp": "20160202-224000201",
       "importOnce": false,
       "autostart": false
     },
@@ -66,7 +65,7 @@
       "id": "cs-DEBUG",
       "type": "cs",
       "name": "DEBUG",
-      "timestamp": "20160129-15274416",
+      "timestamp": "20160202-224000201",
       "importOnce": false,
       "autostart": false
     },
@@ -79,21 +78,20 @@
       "sfile": "",
       "script": "define(\"#Dev\", [\"ready\", \"jquery\", \"#LibBase\", \"#Messenger\"], function(require, exports, module) {\n  var ready = require(\"ready\");\t// ready(callback) registers callback as a DOMDocumentLoaded event listener. Remove it if you do not need it.\n  var $ = require(\"jquery\");\n  var libBase = require(\"#LibBase\");\n  var msg = require(\"#Messenger\");\n  \n  function Dev() {\n    this.init();\n  }\n  Dev.prototype = Object.create(libBase);\n  Dev.prototype.constructor = Dev;\n  \n  /**\n   * Set the value of a CodeMirror editor which is identified by a CSS selector\n   * and an index of the matching DOM element array.\n   *\n   * setValue(cssSelector, index, text)\n   * setValue(cssSelector, text)\t\t\t\t\tindex = 0\n   * setValue(index, text)\t\t\t\t\t\t\t\tcssSelector = \".CodeMirror\"\n   * setValue(text)\t\t\t\t\t\t\t\t\t\t\t\tcssSelector = \".CodeMirror\", index = 0\n   */\n  Dev.prototype.setCodeMirrorText = function(cssSelector, index, text) {\n    var self = this;\n    \n    function onload() {    \n      msg.invokeFunction(\"__JSTricks_Injected_CodeMirror_setValue\", \n                         [cssSelector, index, text], function(ret) {\n        self.showMsg(\"Value is set to CodeMirror editor\");\n      });\n    }\n    msg.injectContentScript(\"CodeMirror_INJ\", onload);\n  };\n  \n  return new Dev();\n});",
       "importOnce": false,
-      "timestamp": "20160129-154334299",
+      "timestamp": "20160202-224000202",
       "id": "cs-Dev"
     },
     "cs-HightlightSelector": {
       "name": "HightlightSelector",
       "type": "cs",
-      "index": "1",
+      "index": "4",
       "group": "",
-      "title": "Hightlight jQuery Selector",
+      "title": "Hightlight CSS Selector",
       "sfile": "",
       "script": "// Hightlight the node in current webpage that matches the selected string\n// as a jQuery selector.\n\n(function() {\n  console.log(\"-------------------------------\");\n  var text = INFO.contextMenuInfo.selectionText.trim(), selector = text; \n  \n  if (text.startsWith(\"'\") && text.endsWith(\"'\") )\n    selector = text.slice(1,-1).replace(/\\\\'/g, \"'\");\n  else if (text.startsWith('\"') && text.endsWith('\"') )\n    selector = text.slice(1,-1).replace(/\\\\\"/g, '\"');\n  else if (text.startsWith('`') && text.endsWith('`') )\n    selector = text.slice(1,-1).replace(/\\\\`/g, \"`\");\n  else\n    selector = text.replace(/\\\\'/g, \"'\").replace(/\\\\\"/g, '\"');\n  \n  selector = selector.trim();\n   \n  console.log(\"The selected text is\", text, \"and the selector is\", selector);\n  \n  var request = {method: \"NS-HightlightSelectorNode\", tabid:INFO.tabid, selector:selector};\n  \n  run([\"nodeSelector\"], function(handler) {\n    handler.handleMessages(request);\n  });\n  \n}) ();\n",
       "importOnce": false,
-      "id": "cs-HightlightSelector",
-      "autostart": false,
-      "timestamp": "20160127-205736241"
+      "timestamp": "20160202-234546486",
+      "id": "cs-HightlightSelector"
     },
     "cs-InjectAsScriptNode_Demo": {
       "group": "Demo",
@@ -103,7 +101,7 @@
       "id": "cs-InjectAsScriptNode_Demo",
       "type": "cs",
       "name": "InjectAsScriptNode_Demo",
-      "timestamp": "20160111-131849448",
+      "timestamp": "20160202-224000202",
       "importOnce": false,
       "autostart": false
     },
@@ -115,20 +113,20 @@
       "id": "cs-InjectAsScriptNode_Injected",
       "type": "cs",
       "name": "InjectAsScriptNode_Injected",
-      "timestamp": "20160111-131849448",
+      "timestamp": "20160202-224000202",
       "importOnce": false,
       "autostart": false
     },
     "cs-LibBase": {
       "name": "LibBase",
       "type": "cs",
-      "index": "20",
+      "index": "19",
       "group": "Lib",
       "title": "LibBase",
       "sfile": "",
-      "script": "define(\"#LibBase\", [\"msgbox\"], function(require, exports, module) {\n  var msgbox = require(\"msgbox\");\n//   var msgbox = chrome.extension ? window.msgbox : \n//                window.msgbox_02510e5e_ac1d_4f71_b376_92d5fba1437c;\n//   var ready  = chrome.extension ? window.ready : \n//                window.ready_f128a08a_c284_4a1b_82ac_db46c31d4fa5;\n//   var UTIL   = chrome.extension ? window.UTIL : \n//                window.UTIL_dad28be6_ead8_4d79_87bf_6fd217f27d6d;\n//   var INFO = chrome.extension ? window.INFO : \n//              window.INFO_cb8e4309_b9cf_44ad_95d1_b570a913ccd9;\n  \n  function LibBase() {\n    this.classname = \"LibBase\";\n  }\n  \n  LibBase.prototype.init = function() {  \n    this.classname = this.constructor.name;\n    \n    // 2 extra stack trace level: LibBase.log/showMsg/showMsgRaw, and callMsgboxMethod\n  \tmsgbox = msgbox.clone(this.classname, 2); \n    this.config = this.getConfig(this.classname);\n  };\n  \n  LibBase.prototype.log = function() {\n    callMsgboxMethod(this, \"log\", arguments);\n  };\n  \n  LibBase.prototype.showMsgRaw = function() {\n  \t//msgbox.showRaw.apply(msgbox, arguments);\n    callMsgboxMethod(this, \"showRaw\", arguments);\n  };\n  \n  LibBase.prototype.showMsg = function() {\n  \t//msgbox.show.apply(msgbox, arguments);\n    callMsgboxMethod(this, \"show\", arguments);\n  };\n  \n  LibBase.prototype.getConfig = function(name) {\n    var storageName = \"$setting.libconfig-\" + name;\n    if (!localStorage[storageName]) {\n      localStorage[storageName] = {};\n    }\n    \n    return localStorage[storageName];\n  };\n  \n  function callMsgboxMethod(self, methodName, args) {\n  \tmsgbox[methodName].apply(msgbox, args);\n  }\n  \n  return new LibBase();\n});\n\n",
+      "script": "define(\"#LibBase\", [\"msgbox\"], function(require, exports, module) {\n  var msgbox = require(\"msgbox\");\n//   var msgbox = chrome.extension ? window.msgbox : \n//                window.msgbox_02510e5e_ac1d_4f71_b376_92d5fba1437c;\n//   var ready  = chrome.extension ? window.ready : \n//                window.ready_f128a08a_c284_4a1b_82ac_db46c31d4fa5;\n//   var UTIL   = chrome.extension ? window.UTIL : \n//                window.UTIL_dad28be6_ead8_4d79_87bf_6fd217f27d6d;\n//   var INFO = chrome.extension ? window.INFO : \n//              window.INFO_cb8e4309_b9cf_44ad_95d1_b570a913ccd9;\n  \n  function LibBase() {\n    this.classname = \"LibBase\";\n  }\n  \n  LibBase.prototype.init = function() {  \n    this.classname = this.constructor.name;\n    \n    // 2 extra stack trace level: LibBase.log/showMsg/showMsgRaw, and callMsgboxMethod\n  \tmsgbox = msgbox.clone(this.classname, 2); \n    this.config = this.getConfig(this.classname);\n  };\n  \n  LibBase.prototype.log = function() {\n    callMsgboxMethod(this, \"log\", arguments);\n  };\n  \n  LibBase.prototype.showMsgRaw = function() {\n  \t//msgbox.showRaw.apply(msgbox, arguments);\n    callMsgboxMethod(this, \"showRaw\", arguments);\n  };\n  \n  LibBase.prototype.showMsg = function() {\n  \t//msgbox.show.apply(msgbox, arguments);\n    callMsgboxMethod(this, \"show\", arguments);\n  };\n  \n  LibBase.prototype.getConfig = function(name) {\n    var storageName = \"$setting.libconfig-\" + name;\n    if (!localStorage[storageName]) {\n      localStorage[storageName] = {};\n    }\n    \n    return localStorage[storageName];\n  };\n  \n  LibBase.prototype.triggerCustomEvent = function(name, data) {\n    var e = document.createEvent(\"CustomEvent\");\n    e.initCustomEvent(name, true, true, data);\n    document.dispatchEvent(e);\n  };\n  \n  function callMsgboxMethod(self, methodName, args) {\n  \tmsgbox[methodName].apply(msgbox, args);\n  }\n  \n  return new LibBase();\n});\n\n",
       "importOnce": false,
-      "timestamp": "20160129-152531455",
+      "timestamp": "20160202-234208138",
       "id": "cs-LibBase"
     },
     "cs-Messenger": {
@@ -142,7 +140,7 @@
       "importOnce": false,
       "id": "cs-Messenger",
       "autostart": false,
-      "timestamp": "20160127-205736241"
+      "timestamp": "20160202-224000202"
     },
     "cs-OpenLinks": {
       "name": "OpenLinks",
@@ -154,18 +152,30 @@
       "script": "(function() {\n\tvar h;\n\th = [/^mailto\\:/i, /^javascript/i];\n\tvar j = window,\n\tf = function(b, a) {\n\t\tthis.html = b;\n\t\tthis.selection = a;\n\t\tthis.links = {};\n\t};\n\tf.fromSelection = function(b) {\n\t\tvar a, c, e, d, g;\n\t\ta = function(a, b, c) {\n\t\t\treturn a.appendChild(b.getRangeAt(c).cloneContents());\n\t\t};\n\t\tc = document.createElement(\"div\");\n\t\te = d = 0;\n\t\tfor (g = b.rangeCount; 0 <= g ? d < g: d > g; e = 0 <= g ? ++d: --d) a(c, b, e);\n\t\treturn new f(c, b.toString());\n\t};\n\tf.fromHTMLString = function(b) {\n\t\tvar a;\n\t\ta = document.createElement(\"div\");\n\t\ta.innerHTML = b;\n\t\treturn new f(a, a.innerText);\n\t};\n\tf.prototype.allLinks = function() {\n\t\tthis.gatherHTMLLinks();\n\t\tthis.gatherPlainLinks();\n\t\treturn this.createLinkList();\n\t};\n\tf.prototype.gatherHTMLLinks = function() {\n\t\tvar b, a, c, e, d;\n\t\tb = this.html.getElementsByTagName(\"a\");\n\t\td = [];\n\t\tc = 0;\n\t\tfor (e = b.length; c < e; c++) a = b[c],\n\t\ta.href && !this.onBlackList(a.href) && d.push(this.links[a.href] = !0);\n\t\treturn d;\n\t};\n\tf.prototype.onBlackList = function(b) {\n\t\tvar a,\n\t\tc,\n\t\te;\n\t\tc = 0;\n\t\tfor (e = h.length; c < e; c++) if (a = h[c], b.match(a)) return ! 0;\n\t\treturn ! 1;\n\t};\n\tf.prototype.gatherPlainLinks = function() {\n\t\tvar b, a, c, e, d;\n\t\tif (a = this.selection.match(/(\\b(https?|ftp|file):\\/\\/[-A-Z0-9+&@#\\/%?=~_|!:,.;]*[-A-Z0-9+&@#\\/%=~_|])/ig)) {\n\t\t\td = [];\n\t\t\tc = 0;\n\t\t\tfor (e = a.length; c < e; c++) b = a[c],\n\t\t\td.push(this.links[b] = !0);\n\t\t\treturn d;\n\t\t}\n\t};\n\tf.prototype.createLinkList = function() {\n\t\tvar b, a;\n\t\ta = [];\n\t\tfor (b in this.links) a.push(b);\n\t\treturn a;\n\t};\n\tj.LinkGrabber = f;\n  \n  \n    var allLinks = LinkGrabber.fromSelection(window.getSelection()).allLinks();\n    if(confirm(\"Open \" + allLinks.length + \" in new tabs?\")) {\n      for (var i = 0; i < allLinks.length; ++i) {\n        window.open(allLinks[i]);\n      }\n    } \n}).call(this);\n\n",
       "importOnce": false,
       "id": "cs-OpenLinks",
-      "timestamp": "20160127-205736242"
+      "timestamp": "20160202-224000203"
+    },
+    "cs-PluginDemo": {
+      "name": "PluginDemo",
+      "type": "cs",
+      "index": "13",
+      "group": "Demo",
+      "title": "Plugin Demo",
+      "sfile": "PluginDemo_lib",
+      "script": "/* globals a */\nconsole.log(\"efef\", a);",
+      "importOnce": false,
+      "timestamp": "20160202-224000203",
+      "id": "cs-PluginDemo"
     },
     "cs-Plugins": {
       "name": "Plugins",
       "type": "cs",
-      "index": "12",
+      "index": "17",
       "group": "Plugins",
       "title": "Plugins",
       "sfile": "",
-      "script": "/******************************************************************************\n *               This file is mainly used in Top-Frame Plugins                *\n *                                                                            *\n * This script defines function that will be invoked in lots of website as    *\n * plugins. In order to reduce memory usage, it should be avoided to openning *\n * the background page (an event page), which may result from sending message *\n * to the background page with chrome.runtime.sendMessage to load scripts     *\n * from database.                                                             *\n * Thus this script as a Top-Frame plugin script should not depends on other  *\n * content scripts.                                                           *   \n * Note: if a plugin is tested against a CSS selector condition, then it is   *\n *       loaded on window.onload event (after a delay defined in the plugin). *\n *       Otherwise, it is loaded on onDOMContentLoaded event.                 *\n ******************************************************************************/\n\n(function() {\n  var msgbox = chrome.extension ? window.msgbox : \n               window.msgbox_02510e5e_ac1d_4f71_b376_92d5fba1437c;\n  var ready  = chrome.extension ? window.ready : \n               window.ready_f128a08a_c284_4a1b_82ac_db46c31d4fa5;\n  var UTIL   = chrome.extension ? window.UTIL : \n               window.UTIL_dad28be6_ead8_4d79_87bf_6fd217f27d6d;\n  var INFO = chrome.extension ? window.INFO : \n             window.INFO_cb8e4309_b9cf_44ad_95d1_b570a913ccd9;\n  \n  var plugins = {};\n  msgbox = msgbox.clone(\"Plugins\");\n  \n  plugins.adjustHeightForCYE = function (delay) {\n    delay = delay ? delay : 500;\n    function doAction() {\n      var height = document.body.scrollHeight;\n      document.getElementById(\"cye-workaround-body\").style.height = height + \"px\";\n      document.getElementById(\"cye-workaround-body-image\").style.height = height + \"px\";\n    \n      msgbox.log(\"Height is adjusted for Care-Your-Eyes extension, height=\", height);\n    }\n    if (delay == 0)\n      doAction();\n    else\n    \tsetTimeout(doAction, delay);\n  };\n  \n  plugins.test = function() {\n  \tmsgbox.log(\"test\");\n  };\n  \n  // Export symbol\n  window.JSTricks_plugins = plugins;\n  if (window.define)\n  \tdefine(\"#Plugins\", [], plugins);\n  \n}) ();",
+      "script": "/******************************************************************************\n *               This file is mainly used in Top-Frame Plugins                *\n *                                                                            *\n * This script defines function that will be invoked in lots of website as    *\n * plugins. In order to reduce memory usage, it should be avoided to openning *\n * the background page (an event page), which may result from sending message *\n * to the background page with chrome.runtime.sendMessage to load scripts     *\n * from database.                                                             *\n * Thus this script as a Top-Frame plugin script should not depends on other  *\n * content scripts.                                                           *   \n * Note: if a plugin is tested against a CSS selector condition, then it is   *\n *       loaded on window.onload event (after a delay defined in the plugin). *\n *       Otherwise, it is loaded on onDOMContentLoaded event.                 *\n ******************************************************************************/\n\n(function() {\n  var msgbox = chrome.extension ? window.msgbox : \n               window.msgbox_02510e5e_ac1d_4f71_b376_92d5fba1437c;\n  var ready  = chrome.extension ? window.ready : \n               window.ready_f128a08a_c284_4a1b_82ac_db46c31d4fa5;\n  var UTIL   = chrome.extension ? window.UTIL : \n               window.UTIL_dad28be6_ead8_4d79_87bf_6fd217f27d6d;\n  var INFO = chrome.extension ? window.INFO : \n             window.INFO_cb8e4309_b9cf_44ad_95d1_b570a913ccd9;\n  \n  var plugins = {};\n  msgbox = msgbox.clone(\"Plugins\");\n  \n  plugins.adjustHeightForCYE = function (delay) {\n    delay = delay != undefined ? delay : 500;\n    function doAction() {\n      var height = window.getComputedStyle(document.body).height; //document.body.scrollHeight + \"px\";\n      document.getElementById(\"cye-workaround-body\").style.height = height + \"px\";\n      document.getElementById(\"cye-workaround-body-image\").style.height = height;\n    \n      msgbox.log(\"Height is adjusted for Care-Your-Eyes extension, height=\", height);\n    }\n    if (delay == 0)\n      doAction();\n    else\n    \tsetTimeout(doAction, delay);\n    \n    document.addEventListener('DOMNodeInserted', doAction, true);\n    document.addEventListener('DOMAttrModified', doAction, true);\n    document.addEventListener('DOMNodeRemoved', doAction, true);\n    // this is a custom event\n    document.addEventListener(\"Height_Updated\", doAction, true);\n  };\n  \n  plugins.test = function() {\n  \tmsgbox.log(\"test\");\n  };\n  \n  // Export symbol\n  window.JSTricks_plugins = plugins;\n  if (window.define)\n  \tdefine(\"#Plugins\", [], plugins);\n  \n}) ();",
       "importOnce": false,
-      "timestamp": "20160129-200647917",
+      "timestamp": "20160202-234011429",
       "id": "cs-Plugins"
     },
     "cs-QRCodeDecode": {
@@ -176,7 +186,7 @@
       "id": "cs-QRCodeDecode",
       "type": "cs",
       "name": "QRCodeDecode",
-      "timestamp": "20160111-131849450",
+      "timestamp": "20160202-224000203",
       "importOnce": false,
       "autostart": false
     },
@@ -188,34 +198,8 @@
       "id": "cs-QRCodeEncode",
       "type": "cs",
       "name": "QRCodeEncode",
-      "timestamp": "20160111-131849451",
+      "timestamp": "20160202-224000203",
       "importOnce": false
-    },
-    "cs-dfdf": {
-      "name": "dfdf",
-      "type": "cs",
-      "index": "8",
-      "group": "Demo",
-      "title": "dfdf",
-      "sfile": "",
-      "script": "var a = 1;\nconsole.log(\"dfdf\");",
-      "importOnce": false,
-      "id": "cs-dfdf",
-      "autostart": false,
-      "timestamp": "20160127-205736242"
-    },
-    "cs-efef": {
-      "name": "efef",
-      "type": "cs",
-      "index": "9",
-      "group": "Demo",
-      "title": "efef",
-      "sfile": "dfdf",
-      "script": "/* globals a */\nconsole.log(\"efef\", a);",
-      "importOnce": false,
-      "id": "cs-efef",
-      "autostart": false,
-      "timestamp": "20160127-205736242"
     },
     "cs-localStorage": {
       "group": "util",
@@ -225,7 +209,7 @@
       "id": "cs-localStorage",
       "type": "cs",
       "name": "localStorage",
-      "timestamp": "20160111-131849451",
+      "timestamp": "20160202-224000204",
       "importOnce": false,
       "autostart": false
     },
@@ -237,7 +221,7 @@
       "id": "dss-Main",
       "type": "dss",
       "name": "Main",
-      "timestamp": "20160111-131849452"
+      "timestamp": "20160202-224000204"
     }
   },
   "props": {
@@ -269,6 +253,7 @@
     "backup-readable": "false",
     "misc_refreshOnSaveAnOption": "false",
     "misc_refreshOnSaveAllOptions": "true",
-    "DEBUG_runbuttoncode": "false"
+    "DEBUG_runbuttoncode": "false",
+    "DEVMODE": "false"
   }
 }

@@ -110,7 +110,10 @@ html body.theme-light { background:rgb(252,252,252); }
   -moz-box-sizing: border-box;
   box-sizing: border-box;
   opacity: .5;
-}
+}   
+ 
+/* Styles for preview mode in find and replace */
+.cm-s-default.CodeMirror.findReplacePreview { background-color: rgb(255, 226, 226); }
 
 /* styles from lib/codemirror/theme/default.css */
 .cm-s-default .cm-header {color: blue;}

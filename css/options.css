@@ -579,7 +579,7 @@
 		  border-width: 0;
 		}
 		
-		#json-viewer-site-list {
+		.json-viewer-right-panel {
 		  position: absolute;
 		  top: 100px;
 		  right: 0;

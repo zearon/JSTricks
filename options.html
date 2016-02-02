@@ -130,7 +130,9 @@
 				Redo: Ctrl+Y / Shift+Cmd+Z, Cmd+Y<br/>
 				Auto-completion: Ctrl+Space <br/>
 				Toggle comment: Ctrl+Alt+C / Cmd+Alt+C <br/>
-				Select Matched brackets: Ctrl+B / Cmd+B <br/>
+				Select Matched brackets: Ctrl+B / Cmd+B or<br/>
+				&nbsp;&nbsp;Ctrl+Shift+B / Cmd+Shift+B <br/>
+				&nbsp;&nbsp;(The brackets are also selected)<br/>
 				Jump to line: Alt+G <br/>
 				Start searching: Ctrl+F / Cmd+F <br/>
 				Find next: Ctrl+G / Cmd+G <br/>
@@ -714,6 +716,23 @@
 									<td><input type="button" class="localstorage_saveitem" target="$setting.DEBUG_runbuttoncode" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.DEBUG_runbuttoncode" value="Set to Default" /></td>
 								<tr>
+								
+								<tr>
+									<td colspan="4" class="togglePanel" target=".devmode">
+									<h3>DEV MODE</h3></td>
+								<tr>								
+								<tr class="localstorage_item devmode hide">
+									<td title="DO NOT SWITCH ON THIS MDOE!!! It is only for development of JavaScript Tricks .">
+									DEV MODE</td>
+									<td>
+									<span class="localstorage_itemvalue" target="$setting.DEVMODE" defaultvalue="false" >
+										<input type="radio" value="false" name="$setting.DEVMODE" /><div class="option">No</div>
+										<input type="radio" value="true" name="$setting.DEVMODE" /><div class="option">Yes</div>
+									<span>
+									</td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.DEVMODE" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.DEVMODE" value="Set to Default" /></td>
+								<tr>
 								<!--
 								<tr class="localstorage_item">
 									<td>Popup window width</td>
@@ -752,7 +771,7 @@
 					<div id="settings-list" class="navbar">
 						<div style='overflow:auto;min-width:200px;clear:both;height:100%'>
 							<div class="jstbox settingKey selected" target="settings-default"><div class="jsttitle">Backup and Restore</div></div>
-							<div class="jstbox settingKey" target="settings-json-viewer"><div class="jsttitle">JSON Viewer</div></div>
+							<div class="jstbox settingKey" target="settings-json-viewer"><div class="jsttitle">JSON Inspector</div></div>
 							<div class="jstbox settingKey" target="settings-manual"><div class="jsttitle">User Manual</div></div>
 							<div class="jstbox settingKey" target="settings-about"><div class="jsttitle">About</div></div>
 						</div>
@@ -849,7 +868,7 @@
 							<br/>
 							<hr/>
 							
-							<div class="hide0">
+							<div class="devmode">
 								<h2>Generate Initial Settings (only for development use)</h2>
 								<input type="button" id="genInitSettingbtn" value="Generate" style='height:25px' />
 								<a id="__UI_dialog__link_init_setting" download="init_settings.json" title="Click to download and view the init_settings.json file." style="display:none;position:relative;top:5px">Download and View</a>
@@ -857,24 +876,25 @@
 							</div>
 						</div>
 						<div id="settings-json-viewer" class="settingPanel">
-							<h3>JSON Viewer</h3><hr/>
-							<input id="jsonFileFormat" type="button" value="Format JSON" />
-							<input id="jsonFileUpdate" type="button" value="Update JSON Object" />
-							&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-							<input id="jsonFileLoad" type="button" value="Load File" />
+							<h3>JSON Inspector</h3><hr/>
+							<input id="jsonFileUpdate" type="button" value="Update & Format JSON Object" title="Update the JSON object for inspection. <br/>The JSON text in the editor will be formatted to a more reading-friendly format." />
+							<input id="jsonLoadLocalStorage" class="devmode" type="button" value="Load LocalStorage" />
+							&nbsp;&nbsp;
+							<input id="jsonFileLoad" type="button" value="Load File" title="Load a JSON file for object inspection" />
 							<input id="jsonFilePath" type="file"/>
 							<br/>
-							<input id="jsonObjExtract" type="button" value="Extract Attribute" />
+							<input id="jsonObjExtract" type="button" value="Extract Attribute" title="Extract the property from the inspected JSON object. If the property path ends with ':formatted' and the property value is a JSON string, then it will be properly indented."/>
 							<input id="jsonObjPath" type="text" list="recentObjPaths" size="80" value="" />
 							<datalist id="recentObjPaths" class="localstorage_itemvalue" target="$setting.temp-recentObjPaths">
 								<option value=".props"></option>
+								<option value=".props['contextMenu-index']:formatted"></option>
 								<option value=".assetStorage['dss-Default']"></option>
 							</datalist>
 							<hr/>
 							<div id="json-viewer-tabs">
 							  <ul>
 								<li><a href="#json-viewer-tabs-1">JSON File</a></li>
-								<li><a href="#json-viewer-tabs-2">Javascript</a></li>
+								<li><a href="#json-viewer-tabs-2">Property Value</a></li>
 							  </ul>
 							  <div id="json-viewer-tabs-1">
 							  	<textarea id="json-file"></textarea>
@@ -883,7 +903,15 @@
 							  	<textarea id="json-file-obj"></textarea>
 							  </div>
 							</div>
-							<div id="json-viewer-site-list"></div>
+							<div class="json-viewer-right-panel">
+								<span>Attributes</span> 
+								<span style="float:right;" title="Switch to the property value tab when extracting a property from the JSON object.">
+									Switch Tab 
+									<input type="checkbox" id="json-viewer-switch-tab" checked style="margin:0; top:0;"></input>
+								</span>
+								<span style="clear:both;"></span>
+								<div id="json-viewer-site-list"></div>
+							</div>
 						</div>
 						<div id="settings-manual" class="settingPanel">
 							<div id="manual-content" class="accordion">

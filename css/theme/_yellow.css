@@ -111,6 +111,9 @@ html body.theme-_yellow { background:#fefebb; color:black; }
   box-sizing: border-box;
   opacity: .5;
 }
+ 
+/* Styles for preview mode in find and replace */
+.cm-s-_yellow.CodeMirror.findReplacePreview { background-color: rgb(255, 226, 226); }
 
 /* styles from lib/codemirror/theme/default.css */
 .cm-s-_yellow .cm-header {color: blue;}
