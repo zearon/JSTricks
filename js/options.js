@@ -6,6 +6,7 @@
     });
   });
 
+    var pageLoaded = false;
     var mac_os = navigator.userAgent.indexOf("Mac OS") > -1;
     
     var mapSiteScriptFunc = dummyMapFunc;
@@ -941,6 +942,8 @@
         }
 //         ,show: { delay: 1000 }
       });
+      
+      pageLoaded = true;
     });//;
     
     function moveToPosForEditor(editor, scriptName) {      
@@ -1232,10 +1235,17 @@
             
             $(tabs).find("> div").each(function(ind,el){
               $(el).css({"z-index":100});
-              if(el.id === target)
-                $(el).css({"z-index":200}).animate({"margin-left":0});
-              else
-                $(el).animate({"margin-left":-$("body").width() });
+              if (pageLoaded) {
+                if(el.id === target)
+                  $(el).css({"z-index":200}).animate({"margin-left":0});
+                else
+                  $(el).animate({"margin-left":-$("body").width() });
+              } else {
+                if(el.id === target)
+                  $(el).css({"z-index":200, "margin-left":0});
+                else
+                  $(el).css({"margin-left":-$("body").width() });
+              }
                 
             });
           });

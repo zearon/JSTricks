@@ -17,6 +17,12 @@ var ENABLED = storage.getSetting("enabled") !== 'false';
   
 var mac_os = navigator.userAgent.indexOf("Mac OS") > -1;
 
+var cssSelector = "";
+var cssSourceCode = "";
+var cssAst = null;
+var cssWidgets = [];
+var cssWidgetDict = {};
+
 // iframe.contentWindow.postMessage({ type: "RestoreEditDialogContextResponse", tabid:NS_tabid, context:NS_editDialogContext }, "*");
 // iframe.contentWindow.postMessage({type:"NS-NodeSelected", tabid:tabid, controlid:NS_controlId, context:NS_editDialogContext}, "*");
 window.addEventListener("message", function(event) {
@@ -29,7 +35,7 @@ window.addEventListener("message", function(event) {
     //console.log(event.data.context);
     restoreEditDialogContext(event.data.context);
   } else if (event.data.type == "NS-NodeSelected") {
-    onNodeSelected(event.data.controlid, event.data.value);
+    onNodeSelected(event.data.controlid, event.data);
   } else if (event.data.method === "Messages") {
     onContentPageMessage(event.data);
   }
@@ -116,7 +122,7 @@ function API_ExecuteScriptInTab(name, script, includes, callback) {
 }
 
 function API_InsertCssInTab(css) {
-  var data = [{code:`AppendStyleNodeToDom_____(decodeURIComponent("${encodeURIComponent(css)}"));`}];
+  var data = [{code:`AppendStyleNodeToDom_____("site-css", decodeURIComponent("${encodeURIComponent(css)}"));`}];
   var msg = {tabid:tabID, method:"ExecuteJsCodeOrFile", data:data};
   chrome.runtime.sendMessage(msg);
 }
@@ -203,7 +209,6 @@ function onContentPageMessage(msg) {
         var match = stacktrace.match(/(\/dynamic\/.*):(\d+):(\d+)/);
 
         if (match) {
-          console.log(source);
           var source = match[1], line = parseInt(match[2]), col = parseInt(match[3]);
           var type = null, file = null, tab = 1;
           source = source.replace(/\.js$/, "");
@@ -286,6 +291,29 @@ function onContentPageMessage(msg) {
         $("#enableDisableBtn").removeClass("disable");
       }
     }
+    
+    function showMessage(htmlcode) {
+      // Update status to let user know options were saved.
+      var status = document.getElementById("title");
+      status.innerHTML = htmlcode;
+      if (window.msgboxTimeout) {
+        clearTimeout(window.msgboxTimeout);
+        window.msgboxTimeout = null;
+      }
+      
+      window.msgboxTimeout = setTimeout(function() {
+        status.innerHTML = "";
+        window.msgboxTimeout = null;
+      }, 2750);
+    }
+    
+    function clearMessage() {
+      if (window.msgboxTimeout) {
+        clearTimeout(window.msgboxTimeout);
+        window.msgboxTimeout = null;
+      }
+      status.innerHTML = "";
+    }
 
     // remove current site-specific script
     function remove() {
@@ -303,11 +331,7 @@ function onContentPageMessage(msg) {
         $("#jstcb").button("refresh");
       
         // Update status to let user know options were saved.
-        var status = document.getElementById("title");
-        status.innerHTML = "Options deleted. <br/>Please refresh the page.";
-        setTimeout(function() {
-          status.innerHTML = "";
-        }, 2750);
+        showMessage("Options deleted. <br/>Please refresh the page.");
       });
     }
     // Saves options event handler for UI event.    
@@ -340,11 +364,7 @@ function onContentPageMessage(msg) {
       });
       
       // Update status to let user know options were saved.
-      var status = document.getElementById("title");
-      status.innerHTML = "Options Saved.";
-      setTimeout(function() {
-        status.innerHTML = "";
-      }, 750);
+      showMessage("Options Saved.");
       
       var noErrorFound = checkScriptSyntax(editor);
       
@@ -368,13 +388,19 @@ function onContentPageMessage(msg) {
           // No site script is found, so load the default code template
           ta.value = compile_template(template_site_script, {url:domain});
         } else {
+          // parse and format CSS source code  
+          cssSourceCode = script.css;
+          cssAst = CssParser.parse(cssSourceCode);
+          cssSourceCode = CssParser.stringify(cssAst);
+          
           // Update the View 
           ta.value = script.script;
-          taCss.value = script.css;
+          taCss.value = cssSourceCode;
           if(script.autostart)
             cb.checked = true;
           $("#jsincludefile").val(script.sfile);
           $("#jstcb").button("refresh");
+          
         }
         
         if(callback)
@@ -520,6 +546,8 @@ function onContentPageMessage(msg) {
       $("#optionsBtn").click(function() { window.open(chrome.runtime.getURL("options.html"), "OptionPage"); });
       
       $(".toolbar button").button();
+      $("#cssui button, #cssui input:button").button();
+      initCssEditUI();
       
       $("#jstcb").button({icons: {
             primary: "ui-icon-close"
@@ -551,12 +579,12 @@ function onContentPageMessage(msg) {
           onChange: function() {  cacheScript();  }
         });
         editorCss = generateEditor("scriptTextCss", "text/css", {
-          onChange: function() {  cacheCss();  }
+          onChange: function() {  cacheCss();  },          
         });
-        editorDemo = generateEditor("demo-code", "text/javascript", {
-          readOnly:true
-        });
-        editors = [editor, editorCss, editorDemo];
+//         editorDemo = generateEditor("demo-code", "text/javascript", {
+//           readOnly:true
+//         });
+        editors = [editor, editorCss/*, editorDemo*/];
         
         // Select <SELECTION_START><SELECTION_END> region
         function setSelectionInEditor(editor, setFocus) {
@@ -577,10 +605,6 @@ function onContentPageMessage(msg) {
         }
         setSelectionInEditor(editor, true);
         editor.clearHistory();
-        
-        if (storage.getSetting("popupwindow_displayRequiresField") !== "false") {
-          $("#jsincludefile-wrapper").show();
-        }
       
         // Height adjusting 
         $(".CodeMirror").each(function(index, ele) {
@@ -594,6 +618,10 @@ function onContentPageMessage(msg) {
           $("#js-editor-hint").show();
         }
       });
+        
+      if (!storage.getSetting("popupwindow_displayRequiresField", true, false)) {
+        $("#jsincludefile-wrapper").hide();
+      }
       
       // Adjust editor height when switching among different module tabs
       $("#editor-script-gen-ui-title > ul:first > li").click(adjustSiteEditorWrapperHeight); 
@@ -601,17 +629,11 @@ function onContentPageMessage(msg) {
       
       function adjustSiteEditorWrapperHeight() {
         var editorTop = $("#siteScriptEditorWrapper").offset().top - 32;
+        console.log(editorTop);
         $("#siteScriptEditorWrapper").css("height", "calc( 100% - " + editorTop + "px)");
         $("#siteScriptEditorWrapper .CodeMirror").css("height", "100%")
               .find(".CodeMirror-gutters, .CodeMirror-scroll")
               .css("height", "100%");
-      }
-      
-      function getWindowHeight() {
-        if (inExtensionPage) {
-          return $("body").height();
-        } else {
-        }
       }
       
       $(document).tooltip({
@@ -663,8 +685,29 @@ function onContentPageMessage(msg) {
         }
       }
       
+      if (mode === "text/css") {
+        options.lint.onUpdateLinting = function(annotationsNotSorted, annotations, cm) { 
+          //console.info("parse css");
+          cssAst = CssParser.parse(cm.getValue());
+          updateCssUI();
+        };
+      }
+      
       var editor = CodeMirror.fromTextArea(document.getElementById(textareaID), options); 
       editors.push(editor);
+      
+      if (mode === "text/css") {
+//         editor.on("change", function(cm, change) { 
+//           cssAst = CssParser.parse(cm.getValue()); 
+//         });
+        editor.on("cursorActivity", updateCssUI);
+//         editor.on("mousedown", updateCssUI);
+//         editor.on("keydown", function(cm, e) {
+//           // page up,pagedown: 33,34; end,home:35,36; left,up,right,down:37,38,39,40
+//           if (e.which >= 33 && e.which <= 40)
+//             updateCssUI();
+//         });
+      }
       return editor;
     }
     
@@ -698,11 +741,13 @@ function onContentPageMessage(msg) {
           $(this).addClass("selected");
           
           $("#tabs > div").each(function(ind,el){
-            $(el).css({"z-index":100});
+            $(el).css({"z-index":"-1"});
             if(el.id == target)
-              $(el).css({"z-index":200}).animate({"margin-left":0});
+              //$(el).css({"z-index":200}).animate({"margin-left":0});
+              $(el).css({"z-index":"0", "visibility": "visible"});
             else
-              $(el).animate({"margin-left":-$("#tabs").width()});
+              //$(el).animate({"margin-left":-$("#tabs").width()});
+              $(el).css({"z-index":"-1", "visibility": "hidden"});
               
           });
         })
@@ -711,9 +756,389 @@ function onContentPageMessage(msg) {
         
       });
       
-      $("#tabs > div").css({"z-index:":200}).not("#tabs-1").css({"margin-left":-$("#tabs").width(),'z-index':100});
+      // $("#tabs > div").css({"z-index":200}).not("#tabs-1").css({"margin-left":-$("#tabs").width(),'z-index':100});
+      $("#tabs > div").css({"z-index":"0", "visibility": "visible"}).not("#tabs-1").css({"z-index":"-1", "visibility": "hidden"});
       $("#tabs > ul li:first").addClass("selected");
     }
+    
+    function initCssEditUI() {
+      // select dom node button
+      $("#cssSelectNodeBtn").click(cssStartSelectingDomNode);
+      $("#cssHighlightNodeBtn").click(hightlightSelectorNode);
+      $("#cssSelectedNode").on("input", function() {
+        onCssSelectedNodeUpdated(this.value);
+      });
+      
+      // section title
+      $(".sectionTitle").click(function() {
+        var node = $(this);
+        if (node.hasClass("closed")) {
+          // open
+          node.next().show();
+          node.removeClass("closed");
+        } else {
+          // close
+          node.next().hide();
+          node.addClass("closed");
+        }
+      });
+      
+      // style values in section content
+      // combobox is defined in /lib/jquery-ui-combobox.js
+      $(".combobox").combobox({
+        copyAttrs: ["name"],
+        select: function(event, args) {
+          var val = args.item.value;
+          var input = event.originalEvent.target;
+          input.value = val;
+          //console.log("selected:", val, event, input);    
+          //console.log("Value is", input.value);
+          $(input).triggerHandler("input");  
+        }
+      });
+      
+      $("input:text.styleValue.raw").on("input", onCssStyleUpdated_Text)
+        .each(function(idx, ele) {
+          cssWidgets.push(ele);
+          UTIL.Object.addToArrAttr(cssWidgetDict, ele.name, ele);
+          ele.updateCssWidget = updateCssWidget_Raw;
+        });
+        
+      $("select.styleValue.raw").on("change", onCssStyleUpdated_Text)
+        .each(function(idx, ele) {
+          cssWidgets.push(ele);
+          UTIL.Object.addToArrAttr(cssWidgetDict, ele.name, ele);
+          ele.updateCssWidget = updateCssWidget_Select;
+        });
+        
+      $(".styleValue.needUnit").on("input", onCssStyleUpdated_TextWithUnit)      
+        .each(function(idx, ele) {
+          var node = $(ele);
+          var valuesNode = node.closest(".styleValues");
+          var unitNode = node.parent().find(".styleUnit:first");
+          var initUnit = unitNode.val();
+          node.data("unit", initUnit);
+        
+          // set unit to input dom node
+          unitNode.change(function() {
+            var newUnit = this.value;
+            node.data("unit", newUnit);
+            node.triggerHandler("input");
+          });
+        
+          cssWidgets.push(ele);
+          UTIL.Object.addToArrAttr(cssWidgetDict, ele.name, ele);
+          ele.updateCssWidget = updateCssWidget_Raw;
+          ele.unitNode = unitNode;
+          ele.styleValuesNode = valuesNode;
+        });
+      
+      // setup buttonsets
+      $(".styleValue.buttonset")
+        .each(function(idx, ele) {
+          var node = $(ele);
+          var stylename = node.attr("name");
+          node.find("input").each(function(idx, ele) {
+            var id = "cssui-" + stylename + "-" + idx;
+            var node = $(ele);
+            node.attr("id", id);
+            node.next().attr("for", id);
+            if (!node.attr("name"))
+              node.attr("name", stylename);
+        
+            cssWidgets.push(ele);
+          UTIL.Object.addToArrAttr(cssWidgetDict, ele.name, ele);
+            ele.updateCssWidget = updateCssWidget_Buttonset;
+          });
+        });
+      $("#cssui .buttonset").buttonset();      
+      
+      // event handlers for buttonsets
+      $(".styleValue.buttonset label").click(onCssStyleUpdated_ButtonsetLabel);
+      
+      // setup color widgets
+      //jscolor.init();
+      $(".styleValue.colorValue").on("input", onCssStyleUpdated_Color)
+        .each(function(idx, ele) {
+          var node = $(ele);
+          var colorNode = node.prev().attr("title", "Color picker");
+          var colorPicker = colorNode[0].jscolor;
+          colorNode.val("");
+          // the onchange event requires that the valueElement cannot be null.
+          // colorPicker.valueElement = null;
+          colorPicker.alphaValue = 1;
+          colorPicker.fromString2 = colorPickerFromString2;
+          colorPicker.toRGBAString = colorPickerToRGBAString;
+          colorPicker.exportColor_ = colorPicker.exportColor;
+          colorPicker.exportColor = function() {
+            this.exportColor_.apply(this, arguments);
+            this.valueElement.style.color = this.valueElement.style.backgroundColor;
+          }
+        
+          colorPicker.onFineChange = getOnColorWidgetFineChanged(node);
+          colorNode.on("change", function() {
+            node.trigger("input");
+          });
+          
+          cssWidgets.push(ele);
+          UTIL.Object.addToArrAttr(cssWidgetDict, ele.name, ele);
+          ele.updateCssWidget = updateCssWidget_Color;
+        });
+        
+      // setup 
+      $(".styleValues .four-dimensions .dimension").each(function(idx, ele) {
+        var node = $(ele);
+        node.attr("title", ele.name);
+      });
+      $(".styleValues .four-dimensions").each(function(idx, ele) {
+        var node = $(ele);
+        var center = node.children(".center");
+        var top = node.children(".top");
+        var bottom = node.children(".bottom");
+        var left = node.children(".left");
+        var right = node.children(".right");
+        
+        center[0].topNode = top[0];
+        center[0].bottomNode = bottom[0];
+        center[0].leftNode = left[0];
+        center[0].rightNode = right[0];
+      });
+    }
+    
+    function colorPickerFromString2(str) {
+      var match = /rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*([\d\.]+)\s*\)/.exec(str);
+      if (match && match[1])
+        this.alphaValue = parseFloat(match[1]);
+      else
+        this.alphaValue = 1;
+        
+      var colorCodes = CssParser.getColorFromName(str);
+      if (colorCodes)  str = colorCodes;
+      return this.fromString(str);
+    }
+    
+    function colorPickerToRGBAString() {
+      return ('rgba(' +
+              Math.round(this.rgb[0]) + ',' +
+              Math.round(this.rgb[1]) + ',' +
+              Math.round(this.rgb[2]) + ',' + 
+              this.alphaValue + ')'
+            );
+    }
+    
+    function getColorPicker(node) {
+      return node.prev()[0].jscolor;
+    }
+    
+    function getOnColorWidgetFineChanged(node) {
+      return function onColorFineChange() {
+        this.valueElement.style.color = this.valueElement.style.backgroundColor;
+        
+        //var rgbstr = this.toRGBString();
+        //var hexstr = this.toHEXString();
+        var rgbastr = this.toRGBAString();
+        node.val(rgbastr);
+      };
+    }
+    
+    function onCssStyleUpdated_Color() {
+      var node = $(this);
+      var style = node.attr("name");
+      var value = node.val();
+      
+      getColorPicker(node).fromString2(value);
+      
+      value = value === "" ? null : value;
+      onCssStyleUpdated(style, value);
+    }
+    
+    function onCssStyleUpdated_Text() {
+      var node = $(this);
+      var style = node.attr("name");
+      var value = node.val();
+      value = value === "" ? null : value;
+      onCssStyleUpdated(style, value);
+    }
+    
+    function onCssStyleUpdated_TextWithUnit() {
+      var node = $(this);
+      var style = node.attr("name");
+      var value = node.val();
+      var unit = node.data("unit");
+      var valueHasUnit = /\D$/.test(value);      
+      value = value === "" ? null : 
+              (valueHasUnit || value == 0 ? value : value + unit);
+              
+      onCssStyleUpdated(style, value);
+    }
+    
+    function onCssStyleUpdated_ButtonsetLabel() {
+      var node = $(this).prev();
+      var style = node.closest(".styleValue").attr("name");
+      var value = node.val();
+      onCssStyleUpdated(style, value);      
+    }
+    
+    function onCssStyleUpdated(style, value) {      
+      if (editorCss.performLintErrorFound()) {
+        showMessage("Cannot update CSS rules:<br/>There are some errors in the code.");
+        return;
+      }
+      
+      updateCssRule(cssSelector, style, value);
+    }
+    
+    function updateCssRule(selector, style, value) {
+      if (value === "") value = null;
+      if (value === "Default") value = null;
+      if (value === "-") return;      
+      
+      console.log(cssSelector, "CSS style", style, "updated:", value);
+      
+      cssAst = CssParser.setStyleValue(selector, style, value);
+      var cssNewSrcCode = CssParser.stringify(cssAst);
+      editorCss.setValue(cssNewSrcCode);
+      API_InsertCssInTab(cssNewSrcCode);
+//       var pos = CssParser.findStylePos(selector, style);
+//       if (pos) {
+//         Modify an existing style
+//         var css = edito// rCss.getValue();
+//         editorCss.replaceRange(style + ": " + value + ";", pos.from, pos.to);
+//       } else {
+//         Add a new style
+//       }
+    }
+    
+    function updateCssUI() {
+      if (!editorCss)
+        return;   
+      if (editorCss.performLintErrorFound()) {
+        return;
+      }
+      
+      var cursorPos = editorCss.getCursor();      
+      var rule = CssParser.findRule(cursorPos);
+      
+      console.debug("update CSS UI", cursorPos);
+      
+      if (!rule) {        
+        cssSelector = "";
+        $("#cssSelectedNode").val("");
+      } else {
+        cssSelector = rule.selectors.join(", ");
+        $("#cssSelectedNode").val(cssSelector);
+      }
+      
+      // update widgets
+      $(".styleValues").data("unit", null);
+//       $(".four-dimensions .top, .four-dimensions .bottom, .four-dimensions .left, .four-dimensions .right")
+//         .each(function(idx, ele) {
+//           ele.setByCenterNode = false;
+//         });
+      cssWidgets.forEach(function(ele) {
+        ele.cssValueUpdated = false;
+      });
+      
+      CssParser.iterateStylesInRule(rule, function(styleName, value) {
+        var elements = cssWidgetDict[styleName];
+        if (elements) {
+          for (var i = 0; i < elements.length; ++ i) {
+            var ele = elements[i];
+            // call updateCssWidgets_xx on elements;
+            ele.updateCssWidget.call(ele, value);
+            ele.cssValueUpdated = true;
+          }
+        }
+      });
+      
+      cssWidgets.forEach(function(ele) {
+        if (!ele.cssValueUpdated) {
+          ele.updateCssWidget.call(ele, null);
+        };
+      });
+    }
+    
+    function updateCssWidget_Raw(value) {        
+      if (value == null) {
+        this.value = "";
+        return;
+      }      
+      
+      var units = [], unit;
+      
+      console.log(this.name, value, units);
+      var needUnit  = value !== "0" && 
+                      (value.split(/\s+/).forEach(function(str) { 
+                        var match = str.match(/\D+$/);
+                        if (match)
+                          units.push(match[0]); 
+                      }), units.length > 0);
+      
+      if (this.unitNode && needUnit) {
+        var valuesUnit = this.styleValuesNode.data("unit"),
+            unit = units[0];
+        if (this.name !== "border-width" && this.name !== "margin" && this.name != "padding") {
+          if (!valuesUnit) {
+            value = value.replace(/\D+$/, "");
+          
+            this.unitNode.val(unit);
+            this.styleValuesNode.data("unit", unit);
+          } else {
+            value = value.replace(new RegExp(valuesUnit + "$"), "");
+          }
+        }
+      }
+      
+      this.value = value;
+    }
+    
+    function updateCssWidget_Select(value) {
+      if (value == null) {
+        this.selectedIndex = 0;
+        return;
+      }
+      
+      this.value = value;
+    }
+    
+    function updateCssWidget_Buttonset(value) {
+      if (value == null || value.toLowerCase() !== this.value) {
+        this.checked = false;
+      } else {
+        this.checked = true;
+      }
+      $(this).button("refresh");
+    }
+    
+    function updateCssWidget_Color(value) {
+      if (value == null) {
+        this.value = "";
+        getColorPicker($(this)).fromString2("#ffffff");
+        return;
+      }
+      
+      this.value = value;
+      getColorPicker($(this)).fromString2(value);
+    }
+    
+    function cssStartSelectingDomNode() {
+      if (inExtensionPage) {
+        showPageInDialog(true);
+      }
+      
+      var tabid = tabID;
+      var msg = {method: "NS-StartSelectingNode", tabid:tabID, mode:"style",
+                  setVariable:"cssSelector", controlid:"cssSelectedNode"};
+      API_SendMessageToTab(tabid, msg);
+    }
+    
+    // window.postMessage({type:"NS-NodeSelected", tabid:1157, controlid:"cssSelectedNode", value:"DIV.b_caption" setVariable:"cssSelector"}, "*");
+    // share: function onNodeSelected(controlId, dataObj)
+    function onCssSelectedNodeUpdated(selector) {
+      console.log("Selected CSS node selector is modified to", selector);
+      cssSelector = selector;
+    }
+    
     
     function changeAutostart() {      
       //$("#jstcb").button("refresh");
@@ -722,42 +1147,6 @@ function onContentPageMessage(msg) {
       var lineCount = editor.lineCount();
       
       save_options();
-      
-      
-      //console.log("linecount=" + lineCount);
-      /*if (autostart) {
-        // change from autostart to not autostart
-        editor.removeLine(lineCount - 1);
-        // remove the last \n
-        var indexN = editor.indexFromPos({line:(lineCount-1), ch:0});
-        editor.replaceRange("", editor.posFromIndex(indexN-1),editor.posFromIndex(indexN));
-        editor.removeLine(0);
-      } else {
-        // change from not autostart to autostart
-        editor.setLine(0, "jQuery(function($) {\n" + editor.getLine(0));
-        editor.setLine(lineCount, editor.getLine(lineCount) + "\n});");
-      }*/
-      
-      /*
-      if (autostart) {
-        // change from autostart to not autostart
-        //
-        //     $(main);    ->      main();
-        //  })(jQuery);    ->    })(jQuery);
-        //
-        var srccode = editor.getValue();
-        var srccode = srccode.replace(/\$\s*\(\s*main\s*\)\s*;(\s*\}\s*\)\s*\(\s*jQuery\s*\)\s*;\s*)$/, "main();$1");
-        editor.setValue(srccode);
-      } else {
-        // change from not autostart to autostart
-        //
-        //     main();    ->      $(main);
-        //  })(jQuery);    ->    })(jQuery);
-        //
-        var srccode = editor.getValue();
-        var srccode = srccode.replace(/main\s*\(\s*\)\s*;(\s*\}\s*\)\s*\(\s*jQuery\s*\)\s*;\s*)$/, "$(main);$1");
-        editor.setValue(srccode);
-      }*/
     }
     
     function updateBgRules(mode, site, autostart) {
@@ -1006,9 +1395,15 @@ function onContentPageMessage(msg) {
     }
     
     // window.postMessage({type:"NS-NodeSelected", tabid:1157, controlid:"code-arg-0-5-0", value:"DIV.b_caption"}, "*");
-    function onNodeSelected(controlId, value) {
+    function onNodeSelected(controlId, dataObj) {
       var node = $("#"+controlId);
-      node.val(value);
+      node.val(dataObj.value);
+      if (dataObj.setVariable) {
+        window[dataObj.setVariable] = dataObj.value;
+        if (dataObj.setVariable === "cssSelector")
+          onCssSelectedNodeUpdated(dataObj.value);
+      }
+      
       blinkNode(node, 3, 
         {"background-color":"white"},
         {"background-color":"yellow"},
@@ -1027,7 +1422,10 @@ function onContentPageMessage(msg) {
     }
     
     function hightlightSelectorNode() {
-      var selector = $(this).next().val();
+      var selectorNode = $(this).next();
+      if (selectorNode.length < 1)
+        selectorNode = $(this).prev();
+      var selector = selectorNode.val();
       var tabid = tabID;
       var msg = {method: "NS-HightlightSelectorNode", tabid:tabID, selector:selector};
       API_SendMessageToTab(tabid, msg);

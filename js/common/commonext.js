@@ -146,6 +146,23 @@
   
 	
   /*********************************************************
+   *            Extension to Object.prototype              *
+   *********************************************************/
+  var ObjectExtension = {};
+  
+  ObjectExtension.addToArrAttr = function (attrName, element) {
+    var array = this[attrName];
+    if (array === undefined) {
+      array = this[attrName] = [ element ];
+    } else if (isArray(array)) {
+      array.push(element);
+    } else {
+      throw new Error("Cannot add to the array attribute. The attribute " + attrName + " is already defined and is not an array.");
+    }
+  }
+  
+	
+  /*********************************************************
    *               Other Utility functions                 *
    *********************************************************/
 	
@@ -285,10 +302,12 @@
 	  addExtensionWrapper("Date", DateExtension);
 	  addExtensionWrapper("String", StringExtension);
 	  addExtensionWrapper("Array", ArrayExtension);
+	  addExtensionWrapper("Object", ObjectExtension);
 	  
 	  extendPrototype(Date, DateExtension);
 	  extendPrototype(String, StringExtension);
 	  extendPrototype(Array, ArrayExtension);
+	  //extendPrototype(Object, ObjectExtension); // conflict with jQuery
 	  
 	  window.UTIL = UTIL;
 	} else {
@@ -296,6 +315,7 @@
 	  addExtensionWrapper("Date", DateExtension);
 	  addExtensionWrapper("String", StringExtension);
 	  addExtensionWrapper("Array", ArrayExtension);
+	  addExtensionWrapper("Object", ObjectExtension);
 	  
 	  window.JSTricks_UTIL = UTIL;
 	  window.UTIL_dad28be6_ead8_4d79_87bf_6fd217f27d6d = UTIL;

@@ -34,8 +34,8 @@
 					.replace(/;/g, " !important;");
 	};
 	
-	window.AppendStyleNodeToDom_____ = function (styles) {
-		var id = 'javascript-tricks';
+	window.AppendStyleNodeToDom_____ = function (id, styles) {
+		var id = 'javascript-tricks-' + id;
 		var os = document.getElementById(id);
 		if (os) {
 			os.parentNode.removeChild(os);
