@@ -6,11 +6,19 @@ body{
 	margin:0;
 	padding:0; 
 	overflow:hidden;
-	width: 600px;
+	width: 100%;
 	height: 100%;
 }
 body.inExtensionPage {
 	height: 600px;
+	width: 600px;
+}
+#tabs {
+	width: 100%;
+	font-size: 11px;
+}
+#tabs.inExtensionPage {
+  width: 600px;
 }
 ul {
 	display: block;
