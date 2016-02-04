@@ -590,7 +590,7 @@ if (localStorage["info"])
           if (css) {
             // This way, the css can override the styles built in the injected webpage        
             chrome.tabs.executeScript(tabid, {"code": `
-              AppendStyleNodeToDom_____(decodeURIComponent("${encodeURIComponent(css)}"));
+              AppendStyleNodeToDom_____("site-css", decodeURIComponent("${encodeURIComponent(css)}"));
             `}); 
           }
         }

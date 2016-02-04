@@ -88,7 +88,7 @@ input[type=button]:active
 	max-width:99%;
 	min-width:99%;
 	border:1px solid black;
-	clear:both;			
+	clear:both;
 }
 h4{margin:0px;}
 #editor-script-gen-ui {
@@ -312,4 +312,138 @@ li.tab-title.selected
 
 .disabled .pluginIcon {
   background-image: url("theme/img/red.png");
+}
+
+#cssui {
+  position: relative;
+  height: 100%;
+  width: 260px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#editorwrap2 {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 260px;
+  height: 100%;
+}
+
+.sections {
+  position: absolute;
+  top: 28px;
+  width: 100%;
+  height: calc(100% - 28px);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.oneline {
+  margin-top: 2px;
+  position: relative;
+}
+.oneline > * {
+  vertical-align: middle;
+}
+
+#cssSelectNodeBtn {
+  width: 24px;
+  height: 24px;
+  margin-left: 0px;
+  background-image: url("theme/img/target.jpg");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+#cssHighlightNodeBtn {
+  float: right;
+  width: 24px;
+  height: 24px;
+  margin-left: 0px;
+  background-image: url("theme/img/eye.jpg");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+#cssSelectedNode {
+  width: 200px;
+}
+
+#cssui .ui-button-text-only .ui-button-text {
+  padding: .2em 0.4em;
+}
+.section {
+  margin-top: 0px;
+}
+.sectionTitle {
+  font-weight: bold;
+  font-size: 16px;
+  padding: 2px 0px 2px 20px;
+}
+.sectionContent {
+  padding-left: 10px;
+  display: table;
+  margin: 0 0 5px 0;
+}
+.sectionItem {
+  display: table-row;
+}
+.sectionItem > * {
+  display: table-cell;
+  padding: 5px 0 0 0;
+  vertical-align: middle;
+}
+.sectionItem > *:nth-child(1) {
+  padding-right: 5px;
+}
+.styleValues .custom-combobox-input {
+  width: 110px;
+  padding: 2px 5px;
+}
+.styleValues .custom-combobox-toggle {
+  width: 20px;
+}
+.dimension {
+  width: 38px;
+}
+#cssui .jscolor {
+  width: 15px;
+}
+.colorValue {
+  width: 130px;
+}
+.four-dimensions {
+  position: relative;
+  width: 130px;
+  height: 70px;
+}
+.four-dimensions .dimension {
+  position: absolute;
+  width: 30px;
+  height: 15px;
+}
+.four-dimensions .center {
+  top: 48px;
+  left: 0px;
+  width: 165px;
+}
+.four-dimensions .top {
+  top: 0px;
+  left: 40px;
+}
+.four-dimensions .bottom {
+  top: 24px;
+  left: 40px;
+}
+.four-dimensions .left {
+  top: 24px;
+  left: 0px;
+}
+.four-dimensions .right {
+  top: 24px;
+  left: 80px;
+}
+.four-dimensions .styleUnit {
+  position: absolute;
+  top: 26px;
+  left: 124px;
 }

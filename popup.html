@@ -6,60 +6,67 @@
 -->
 <html>
   <head>  
-<meta charset="utf-8" />
-  <!-- CodeMirror stylesheets and scripts -->
-  <link rel="stylesheet" href="lib/codemirror/lib/codemirror.css">
-  <link rel="stylesheet" href="lib/codemirror/addon/hint/show-hint.css">
-  <link rel="stylesheet" href="lib/codemirror/addon/fold/foldgutter.css" />
-  <link rel="stylesheet" href="lib/codemirror/addon/lint/lint.css">
-  <link rel="stylesheet" href="css/theme/light.css">
-  <link rel="stylesheet" href="css/theme/_yellow.css">
-  <link rel="stylesheet" href="css/theme/dark.css">  
-  <link rel="stylesheet" href="css/jquery-ui.structure.css"> 
-  <link rel="stylesheet" href="css/theme/jqueryui/jquery-ui.theme-light.css"> 
-  <link rel="stylesheet" href="css/theme/jqueryui/jquery-ui.theme-_yellow.css"> 
-  <link rel="stylesheet" href="css/theme/jqueryui/jquery-ui.theme-dark.css"> 
+  <meta charset="utf-8" />
+    <!-- CodeMirror stylesheets and scripts -->
+    <link rel="stylesheet" href="lib/codemirror/lib/codemirror.css">
+    <link rel="stylesheet" href="lib/codemirror/addon/hint/show-hint.css">
+    <link rel="stylesheet" href="lib/codemirror/addon/fold/foldgutter.css" />
+    <link rel="stylesheet" href="lib/codemirror/addon/lint/lint.css">
+    <link rel="stylesheet" href="css/theme/light.css">
+    <link rel="stylesheet" href="css/theme/_yellow.css">
+    <link rel="stylesheet" href="css/theme/dark.css">  
+    <link rel="stylesheet" href="css/jquery-ui.structure.css"> 
+    <link rel="stylesheet" href="css/theme/jqueryui/jquery-ui.theme-light.css"> 
+    <link rel="stylesheet" href="css/theme/jqueryui/jquery-ui.theme-_yellow.css"> 
+    <link rel="stylesheet" href="css/theme/jqueryui/jquery-ui.theme-dark.css"> 
+    <link rel="stylesheet" href="css/theme/jqueryui/jquery-ui-combobox.css"> 
 
-  <script src="lib/codemirror/lib/codemirror.js"></script>
-  <script src="lib/codemirror/addon/selection/active-line.js"></script>
-  <script src="lib/codemirror/addon/edit/matchbrackets.js"></script>
-  <script src="lib/codemirror/addon/comment/continuecomment.js"></script>
-  <script src="lib/codemirror/addon/comment/comment.js"></script>
-  <script src="lib/codemirror/addon/hint/show-hint.js"></script>
-  <script src="lib/codemirror/addon/hint/javascript-hint.js"></script>
-  <script src="lib/codemirror/mode/javascript/javascript.js"></script>
-  <script src="lib/codemirror/addon/hint/css-hint.js"></script>
-  <script src="lib/codemirror/mode/css/css.js"></script>
-  <script src="lib/codemirror/addon/fold/foldcode.js"></script>
-  <script src="lib/codemirror/addon/fold/foldgutter.js"></script>
-  <script src="lib/codemirror/addon/fold/brace-fold.js"></script>
-  <script src="lib/codemirror/addon/fold/comment-fold.js"></script>
+    <script src="lib/codemirror/lib/codemirror.js"></script>
+    <script src="lib/codemirror/addon/selection/active-line.js"></script>
+    <script src="lib/codemirror/addon/edit/matchbrackets.js"></script>
+    <script src="lib/codemirror/addon/comment/continuecomment.js"></script>
+    <script src="lib/codemirror/addon/comment/comment.js"></script>
+    <script src="lib/codemirror/addon/hint/show-hint.js"></script>
+    <script src="lib/codemirror/addon/hint/javascript-hint.js"></script>
+    <script src="lib/codemirror/mode/javascript/javascript.js"></script>
+    <script src="lib/codemirror/addon/hint/css-hint.js"></script>
+    <script src="lib/codemirror/mode/css/css.js"></script>
+    <script src="lib/codemirror/addon/fold/foldcode.js"></script>
+    <script src="lib/codemirror/addon/fold/foldgutter.js"></script>
+    <script src="lib/codemirror/addon/fold/brace-fold.js"></script>
+    <script src="lib/codemirror/addon/fold/comment-fold.js"></script>
   
-  <script src="lib/jshint/jshint.js"></script>
-  <script src="lib/3rdparty-lint/jsonlint_zaach.js"></script>
-  <script src="lib/3rdparty-lint/csslint.js"></script>
-  <script src="lib/codemirror/addon/lint/lint.js"></script>
-  <script src="lib/codemirror/addon/lint/javascript-lint.js"></script>
-  <script src="lib/codemirror/addon/lint/json-lint.js"></script>
-  <script src="lib/codemirror/addon/lint/css-lint.js"></script>  
-  <!-- End of CodeMirror stylesheets and scripts -->
+    <script src="lib/jshint/jshint.js"></script>
+    <script src="lib/3rdparty-lint/jsonlint_zaach.js"></script>
+    <script src="lib/3rdparty-lint/csslint.js"></script>
+    <script src="lib/codemirror/addon/lint/lint.js"></script>
+    <script src="lib/codemirror/addon/lint/javascript-lint.js"></script>
+    <script src="lib/codemirror/addon/lint/json-lint.js"></script>
+    <script src="lib/codemirror/addon/lint/css-lint.js"></script>  
+    <!-- End of CodeMirror stylesheets and scripts -->
+  
+    <script type="text/javascript" src="lib/jscolor/jscolor.js"></script>   
+    <script type="text/javascript" src="lib/jquery.js" ></script>
+    <script type="text/javascript" src="lib/jquery-ui.js" ></script>
+    <script type="text/javascript" src="lib/jquery-ui-combobox.js" ></script>
+    <script type="text/javascript" src="lib/cssparser.js"></script>  
+  
+    <script src="js/common/commonext.js" ></script>  
+    <script src="js/common/templating.js" ></script>  
+    <script src="js/common/templates.js" ></script>  
+    <script src="js/common/codesnippet.js" ></script>  
+    <script src="js/common/storage.js" ></script>  
+    <script src="js/common/jsonanalyser.js" ></script>
+    <script src="js/common/theme.js" ></script>
+
   
   
-  <script  type="text/javascript" src="lib/jquery.js" ></script>
-  <script  type="text/javascript" src="lib/jquery-ui.js" ></script>
   
-  <script src="js/common/commonext.js" ></script>  
-  <script src="js/common/templating.js" ></script>  
-  <script src="js/common/templates.js" ></script>  
-  <script src="js/common/codesnippet.js" ></script>  
-  <script src="js/common/storage.js" ></script>  
-  <script src="js/common/jsonanalyser.js" ></script>
-  <script src="js/common/theme.js" ></script>
   
-  <script  type="text/javascript" src="js/popup.js" ></script>
-  <link rel=stylesheet href="css/popup.css">
+    <script  type="text/javascript" src="js/popup.js" ></script>
+    <link rel=stylesheet href="css/popup.css">
   </head>
-  <body class="jstricks theme-dark">
+  <body class="popupwindow jstricks theme-dark">
   
   <div id="img-icon" style='float:left; display:none;'><img src='icon/icon32.png' alt='' style='vertical-align:bottom;margin-bottom:5px;'/></div>
   <div class="toolbarContainer ui-widget-header ui-corner-all">
@@ -94,6 +101,7 @@
     <style>
     </style>
     
+    <!-- Javascript tab -->
     <div id="tabs-1" class="tabContent">
       <div id="editorwrap" class="topeditorwrap" style="clear:both">
         <div class="tabs">
@@ -104,7 +112,7 @@
         </div>
         <hr/>
         <!-- Not used with sea.js -->
-        <div id="jsincludefile-wrapper" style="display:none; margin-bottom:5px;">
+        <div id="jsincludefile-wrapper" style="margin-bottom:5px;">
           Requires: <input id="jsincludefile" size="88" title="The text (seperated by commas) specified in this filed indicates the names of content scripts that should be loaded before this site script is loaded. " />
         </div>
         <div id="siteScriptEditorWrapper">
@@ -112,13 +120,38 @@
           <textarea id='scriptText' style="display:none;"></textarea>
         </div>
       </div>
-    </div>
+    </div>    
     
-    <div id="tabs-2" class="tabContent">
-      <div id="editorwrap2" class="topeditorwrap" style="clear:both">
-        <textarea id='scriptTextCss'></textarea>
+    <!-- Info tab -->
+    <div id="tabs-4" class="tabContent">
+      <h2>Loaded Plugins:</h2>
+      <div class="">
+        <table id="loadedPlugins">
+          <tr style="display: none;">
+            <td class="time">Time</td>
+            <td>Plugin</td>
+          </tr>
+        </table>
+      </div>
+      <h2>Logs:</h2>
+      <div class="">
+        <table id="logMessages">
+          <tr style="display: none;">
+            <td class="time">Time</td>
+            <td>Message</td>
+          </tr>
+        </table>
       </div>
     </div>
+    
+    <!-- Plugins tab -->
+    <div id="tabs-5" class="tabContent">
+      <h2>All Plugins:</h2>      
+      <table id="allplugins">
+      </table>
+    </div>
+    
+    <!-- Demo Code tab -->
     <div id="tabs-3" class="tabContent">
       <div id="editorwrap3" class="topeditorwrap" style="clear:both">
         <textarea id='demo-code'>
@@ -144,31 +177,310 @@ run(["jquery", "#Novel"], function($, novel) {
       </div>
     </div>
     
-    <div id="tabs-4" class="tabContent">
-      <h2>Loaded Plugins:</h2>
-      <div class="">
-        <table id="loadedPlugins">
-          <tr style="display: none;">
-            <td class="time">Time</td>
-            <td>Plugin</td>
-          </tr>
-        </table>
+    <!-- CSS tab -->
+    <div id="tabs-2" class="tabContent">
+      <div id="cssui">     
+        
+        <div class="oneline">
+          <input id='cssSelectNodeBtn' type="button" title="Select a node" /><!--
+          --><input id="cssSelectedNode" type="text" value=""/>
+          <input id='cssHighlightNodeBtn' type="button" title="Highlight nodes that matching this CSS selector" />
+        </div>
+        
+        <div class="sections">
+          <div class="section">
+            <div class="sectionTitle jstbox folder">Text</div>
+            <div class="sectionContent">
+              <div class="sectionItem">
+                <div class="styleGroup">
+                  Font Family
+                </div>
+                <div class="styleValues">
+                  <!-- input class="styleValue raw font-family" name="font-family" type="text" list="allfonts" /-->
+                     
+                  <select class="combobox styleValue raw font-family" name="font-family">
+                    <option>Default</option>
+                    <option>monospace</option>
+                    <option>Consolas</option>
+                    <option>Lucida Grande</option>
+                    <option>Georgia</option>
+                    <option>Palatino</option>
+                    <option>Lato</option>
+                    <option>Helvetica</option>
+                    <option>Roboto</option>
+                  </select>
+                </div>
+              </div>
+            
+              <div class="sectionItem">
+                <div class="styleGroup">
+                  Font Size
+                </div>
+                <div class="styleValues">
+                  <input class="styleValue needUnit dimension" name="font-size" type="text" data-unit="px" />
+                  <select class="styleUnit"><option>px</option> <option>em</option> <option>%</option> <option>pt</option></select>
+                </div>
+              </div>
+            
+              <div class="sectionItem">
+                <div class="styleGroup">
+                  Font Weight
+                </div>
+                <div class="styleValues">
+                  <div class="styleValue buttonset" name="font-weight">
+                    <input type="radio" value="bold"><label for="" style="font-weight:bold;">Bold</label>
+                    <input type="radio" value="normal"><label for="">Normal</label>
+                  </div>
+                </div>
+              </div>
+            
+              <div class="sectionItem">
+                <div class="styleGroup">
+                  Font Style
+                </div>
+                <div class="styleValues">
+                  <div class="styleValue buttonset" name="font-style">
+                    <input type="radio" value="italic"><label for="" style="font-style:italic;">Italic</label>
+                    <input type="radio" value="normal"><label for="">Normal</label>
+                  </div>
+                </div>
+              </div>
+            
+              <div class="sectionItem">
+                <div class="styleGroup">
+                  Font Variant
+                </div>
+                <div class="styleValues">
+                  <div class="styleValue buttonset" name="font-variant">
+                    <input type="radio" value="small-caps"><label for="" style="font-variant:small-caps;">Small Caps</label>
+                    <input type="radio" value="normal"><label for="">Normal</label>
+                  </div>
+                </div>
+              </div>
+            
+              <div class="sectionItem">
+                <div class="styleGroup">
+                  Transform
+                </div>
+                <div class="styleValues">
+                  <div class="styleValue buttonset" name="text-transform">
+                    <input type="radio" value="capitalize"><label for="">Abc</label>
+                    <input type="radio" value="uppercase"><label for="">ABC</label>
+                    <input type="radio" value="lowercase"><label for="">abc</label>
+                    <input type="radio" value="none"><label for="">None</label>
+                  </div>
+                </div>
+              </div>
+            
+              <div class="sectionItem">
+                <div class="styleGroup">
+                  Decoration
+                </div>
+                <div class="styleValues">
+                  <div class="styleValue buttonset" name="text-decoration">
+                    <input type="radio" value="underline"><label for="" style="text-decoration:underline;">ab</label>
+                    <input type="radio" value="line-through"><label for="" style="text-decoration:line-through;">ab</label>
+                    <input type="radio" value="overline"><label for="" style="text-decoration:overline;">ab</label>
+                    <input type="radio" value="none"><label for="">None</label>
+                  </div>
+                </div>
+              </div>
+            
+              <div class="sectionItem">
+                <div class="styleGroup">
+                  Line Height
+                </div>
+                <div class="styleValues">
+                  <input class="styleValue needUnit dimension" name="line-height" type="text" />
+                  <select class="styleUnit"><option>px</option> <option>em</option> <option>%</option> <option>pt</option></select>
+                </div>
+              </div>
+            
+              <div class="sectionItem">
+                <div class="styleGroup">
+                  Letter Spacing
+                </div>
+                <div class="styleValues">
+                  <input class="styleValue needUnit dimension" name="letter-spacing" type="text" data-unit="px" />
+                  <select class="styleUnit"><option>px</option> <option>em</option> <option>%</option> <option>pt</option></select>
+                </div>
+              </div>
+            
+              <!-- end of sectionContent -->
+            </div>
+            <!-- end of section -->
+          </div>        
+        
+          <div class="section">
+            <div class="sectionTitle jstbox folder">Color & Background</div>
+            <div class="sectionContent">
+              <div class="sectionItem">
+                <div class="styleGroup">
+                  Color
+                </div>
+                <div class="styleValues">
+                  <input class="jscolor" type="text" readonly/>
+                  <input class="styleValue colorValue" name="color" type="text"/>
+                </div>
+                <!-- end of sectionItem -->
+              </div>
+            
+              <div class="sectionItem">
+                <div class="styleGroup">
+                  Background<br/>Color
+                </div>
+                <div class="styleValues">
+                  <input class="jscolor" type="text" readonly/>
+                  <input class="styleValue colorValue" name="background-color" type="text"/>
+                </div>
+                <!-- end of sectionItem -->
+              </div>
+            
+              <!-- end of sectionContent -->
+            </div>
+            <!-- end of section -->
+          </div>      
+        
+          <div class="section">
+            <div class="sectionTitle jstbox folder">Borders</div>
+            <div class="sectionContent">
+              <div class="sectionItem">
+                <div class="styleGroup">
+                  Style
+                </div>
+                <div class="styleValues">
+                  <select class="styleValue raw" name="border-style">
+                    <option>Default</option>
+                    <option>none</option>
+                    <option>solid</option>
+                    <option>dotted</option>
+                    <option>dashed</option>
+                    <option>double</option>
+                    <option>groove</option>
+                    <option>ridge</option>
+                    <option>inset</option>
+                    <option>outset</option>
+                  </select>
+                </div>
+                <!-- end of sectionItem -->
+              </div>
+            
+              <div class="sectionItem">
+                <div class="styleGroup">
+                  Color
+                </div>
+                <div class="styleValues">
+                  <input class="jscolor" type="text" readonly/>
+                  <input class="styleValue colorValue" name="border-color" type="text"/>
+                </div>
+                <!-- end of sectionItem -->
+              </div>
+            
+              <div class="sectionItem">
+                <div class="styleGroup">
+                  Thickness
+                </div>
+                <div class="styleValues">
+                  <div class="four-dimensions"> 
+                    <input class="styleValue raw dimension center" name="border-width" type="text" />
+                    <input class="styleValue needUnit dimension top" name="border-top-width" type="text" />
+                    <input class="styleValue needUnit dimension right" name="border-right-width" type="text" />
+                    <input class="styleValue needUnit dimension bottom" name="border-bottom-width" type="text" />
+                    <input class="styleValue needUnit dimension left" name="border-left-width" type="text" />
+                    <select class="styleUnit"><option>px</option> <option>em</option> <option>%</option> <option>pt</option></select>
+                  </div>
+                </div>
+                <!-- end of sectionItem -->
+              </div>
+            
+              <!-- end of sectionContent -->
+            </div>
+            <!-- end of section -->
+          </div>    
+        
+          <div class="section">
+            <div class="sectionTitle jstbox folder">Layout & Visibility</div>
+            <div class="sectionContent">
+              <div class="sectionItem">
+                <div class="styleGroup">
+                  Visibility
+                </div>
+                <div class="styleValues">
+                  <div class="styleValue buttonset" name="display">
+                    <input type="radio" value="none"><label for="">Hide</label>
+                    <input type="radio" value=""><label for="">Unchanged</label>
+                  </div>
+                </div>
+                <!-- end of sectionItem -->
+              </div>
+            
+              <div class="sectionItem">
+                <div class="styleGroup">
+                  Width
+                </div>
+                <div class="styleValues">
+                  <input class="styleValue needUnit dimension" name="width" type="text" data-unit="px" />
+                  <select class="styleUnit"><option>px</option> <option>em</option> <option>%</option> <option>pt</option></select>
+                </div>
+                <!-- end of sectionItem -->
+              </div>
+            
+              <div class="sectionItem">
+                <div class="styleGroup">
+                  Height
+                </div>
+                <div class="styleValues">
+                  <input class="styleValue needUnit dimension" name="height" type="text" data-unit="px" />
+                  <select class="styleUnit"><option>px</option> <option>em</option> <option>%</option> <option>pt</option></select>
+                </div>
+                <!-- end of sectionItem -->
+              </div>
+            
+              <div class="sectionItem">
+                <div class="styleGroup">
+                  Margins
+                </div>
+                <div class="styleValues">
+                  <div class="four-dimensions"> 
+                    <input class="styleValue raw dimension center" name="margin" type="text" />
+                    <input class="styleValue needUnit dimension top" name="margin-top" type="text" />
+                    <input class="styleValue needUnit dimension right" name="margin-right" type="text" />
+                    <input class="styleValue needUnit dimension bottom" name="margin-bottom" type="text" />
+                    <input class="styleValue needUnit dimension left" name="margin-left" type="text" />
+                    <select class="styleUnit"><option>px</option> <option>em</option> <option>%</option> <option>pt</option></select>
+                  </div>
+                </div>
+                <!-- end of sectionItem -->
+              </div>
+            
+              <div class="sectionItem">
+                <div class="styleGroup">
+                  Paddings
+                </div>
+                <div class="styleValues">
+                  <div class="four-dimensions"> 
+                    <input class="styleValue raw dimension center" name="padding" type="text" />
+                    <input class="styleValue needUnit dimension top" name="padding-top" type="text" />
+                    <input class="styleValue needUnit dimension right" name="padding-right" type="text" />
+                    <input class="styleValue needUnit dimension bottom" name="padding-bottom" type="text" />
+                    <input class="styleValue needUnit dimension left" name="padding-left" type="text" />
+                    <select class="styleUnit"><option>px</option> <option>em</option> <option>%</option> <option>pt</option></select>
+                  </div>
+                </div>
+                <!-- end of sectionItem -->
+              </div>
+            
+              <!-- end of sectionContent -->
+            </div>
+            <!-- end of section -->
+          </div>
+          <!-- end of sections -->
+        </div>
+        <!-- end of cssui -->
       </div>
-      <h2>Logs:</h2>
-      <div class="">
-        <table id="logMessages">
-          <tr style="display: none;">
-            <td class="time">Time</td>
-            <td>Message</td>
-          </tr>
-        </table>
+      <div id="editorwrap2" class="topeditorwrap" style="clear:both">
+        <textarea id='scriptTextCss'></textarea>
       </div>
-    </div>
-    
-    <div id="tabs-5" class="tabContent">
-      <h2>All Plugins:</h2>      
-      <table id="allplugins">
-      </table>
     </div>
     
     <span><div style='height:501px;'></div></span>

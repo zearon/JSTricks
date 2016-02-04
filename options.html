@@ -597,7 +597,7 @@
 								<tr class="localstorage_item settings-msgbox hide">
 									<td title='The backgound color of the message box shown by calling log (assigned by require("msgbox")) function in content scripts.'>
 									Background Color</td>
-									<td><input type="text" class="localstorage_itemvalue color" target="$setting.builtin_msgboxBgColor" defaultvalue="#F7DF1D" value="#F7DF1D" size="9" /></td>
+									<td><input type="text" class="localstorage_itemvalue jscolor" target="$setting.builtin_msgboxBgColor" defaultvalue="#F7DF1D" value="#F7DF1D" size="9" /></td>
 									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_msgboxBgColor" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_msgboxBgColor" value="Set to Default" /></td>
 								<tr>
@@ -605,7 +605,7 @@
 									<td title='Extra CSS style of the message box shown by calling log (assigned by require("msgbox")) function in content scripts.'>
 									Extra Styles</td>
 									<td><textarea class="localstorage_itemvalue" target="$setting.builtin_msgboxExtraStyles" defaultvalue="border:1px solid #937B13;" style="min-width:175px;" >border:1px solid #937B13;</textarea>
-									<br/>Color chooser <input type="text" class="color" value="#937B13" size="8" />
+									<br/>Color chooser <input type="text" class="jscolor" value="#937B13" size="8" />
 									</td>
 									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_msgboxExtraStyles" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_msgboxExtraStyles" value="Set to Default" /></td>
@@ -625,7 +625,7 @@
 								<tr class="localstorage_item settings-selectbox hide">
 									<td title='CSS color value of the edge of selection box shown in webpage when Choose DOM Node buttons are clicked in popup window.'>
 									Edge Color</td>
-									<td><input type="text" class="localstorage_itemvalue color" target="$setting.builtin_selectionboxEdgeColor" defaultvalue="#65F166" value="#65F166" size="9" /></td>
+									<td><input type="text" class="localstorage_itemvalue jscolor {hash:true}" target="$setting.builtin_selectionboxEdgeColor" defaultvalue="#65F166" value="#65F166" size="9" /></td>
 									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_selectionboxEdgeColor" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_selectionboxEdgeColor" value="Set to Default" /></td>
 								<tr>
