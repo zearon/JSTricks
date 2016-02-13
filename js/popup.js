@@ -617,6 +617,8 @@ function onContentPageMessage(msg) {
           $("#tabs-1 .CodeMirror").css("background-color", "#ffeeee");
           $("#js-editor-hint").show();
         }
+        
+        adjustSiteEditorWrapperHeight();
       });
         
       if (!storage.getSetting("popupwindow_displayRequiresField", true, false)) {
