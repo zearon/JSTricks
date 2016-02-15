@@ -987,7 +987,9 @@ function onContentPageMessage(msg) {
         return;
       }
       
+      var cursorPos = editorCss.getCursor();
       updateCssRule(cssSelector, style, value);
+      editorCss.setCursor(cursorPos);
     }
     
     function updateCssRule(selector, style, value) {
