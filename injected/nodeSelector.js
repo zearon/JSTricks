@@ -156,7 +156,7 @@ define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, expo
 	}
 	
 	function NS_MouseMove(e) {
-	  if (e.target !== hoveredNode) {
+	  if (e.target !== hoveredNode && e.target.id !== NS_titleNode) {
 	    hoveredNode = e.target;
 	    NS_processNode($(hoveredNode));	
 	  }
@@ -178,7 +178,7 @@ define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, expo
 		$("#JST-POPUP-PINNED").closest(".ui-dialog").css("z-index", "2147483645");
 		$("#JST-POPUP-PINNED").parent().show();
 		
-		$("*").removeClass(NS_styleName);
+		$("." + NS_styleName).removeClass(NS_styleName);
 		$("#" + NS_titleNode).text("");
 		
     document.removeEventListener("mousemove", NS_MouseMove, true);
@@ -196,8 +196,13 @@ define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, expo
 		
 		var nodeName = getNodeSelectorStr(node);
 		
-		$("#" + NS_titleNode).offset(node.offset());
-		$("#" + NS_titleNode).text(nodeName);
+		var selectorTitleNode = $("#" + NS_titleNode);
+		var pos = node.offset();
+		var offset_y = parseInt(selectorTitleNode.height()) + parseInt(edgeSize);
+		if (pos.top > offset_y)
+		  pos.top -= offset_y;
+		selectorTitleNode.offset(pos);
+		selectorTitleNode.text(nodeName);
 	}
 	
 	// node is a jquery node

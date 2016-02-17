@@ -1408,7 +1408,9 @@ function onContentPageMessage(msg) {
           onCssSelectedNodeUpdated(dataObj.value);
       }
       
-      adjustSiteEditorWrapperHeight();
+      // Refresh the layout
+      editorWrapNode = $("#editorwrap").hide();
+      setTimeout(function() { editorWrapNode.show() }, 10);
       
       blinkNode(node, 3, 
         {"background-color":"white"},
