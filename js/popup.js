@@ -629,21 +629,21 @@ function onContentPageMessage(msg) {
       $("#editor-script-gen-ui-title > ul:first > li").click(adjustSiteEditorWrapperHeight); 
       adjustSiteEditorWrapperHeight();
       
-      function adjustSiteEditorWrapperHeight() {
-        var editorTop = $("#siteScriptEditorWrapper").offset().top - 32;
-        console.log(editorTop);
-        $("#siteScriptEditorWrapper").css("height", "calc( 100% - " + editorTop + "px)");
-        $("#siteScriptEditorWrapper .CodeMirror").css("height", "100%")
-              .find(".CodeMirror-gutters, .CodeMirror-scroll")
-              .css("height", "100%");
-      }
-      
       $(document).tooltip({
         content: function() {
           return $(this).attr('title');
         }
       });
     });//;
+      
+    function adjustSiteEditorWrapperHeight() {
+      var editorTop = $("#siteScriptEditorWrapper").offset().top - 32;
+      console.log(editorTop);
+      $("#siteScriptEditorWrapper").css("height", "calc( 100% - " + editorTop + "px)");
+      $("#siteScriptEditorWrapper .CodeMirror").css("height", "100%")
+            .find(".CodeMirror-gutters, .CodeMirror-scroll")
+            .css("height", "100%");
+    }
     
     function generateEditor(textareaID, mode, extraOptions) {
       var commentKey = mac_os ? "Cmd-Alt-C" : "Ctrl-Alt-C";
@@ -1407,6 +1407,8 @@ function onContentPageMessage(msg) {
         if (dataObj.setVariable === "cssSelector")
           onCssSelectedNodeUpdated(dataObj.value);
       }
+      
+      adjustSiteEditorWrapperHeight();
       
       blinkNode(node, 3, 
         {"background-color":"white"},
