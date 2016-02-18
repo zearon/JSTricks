@@ -209,7 +209,7 @@ if (localStorage["info"])
         //debug_log(data);
         var name = data.name;
         var includes = data.includes;
-        var script = data.script;
+        var script = data.script + "\n//# sourceURL=" + chrome.runtime.getURL("/dynamic/ss/" + name + ".js");
         
         var autoloadFileList = [];
         var loadProperty = {domain:domain, necessaryAdded: false, testURL: true,
@@ -219,7 +219,7 @@ if (localStorage["info"])
         injectAndAutoIncludeScript(tabid, url, autoloadFileList, loadProperty);
         
         addContentScriptsToLoadList(autoloadFileList, includes, loadProperty);
-        autoloadFileList.push( {"name":name+"-"+UTIL.guid(), "code":script, "type":"js"} );
+        autoloadFileList.push( {"name":name, "code":script, "type":"js"} );
         
         loadAndInjectScripts(tabid, autoloadFileList);
       }
