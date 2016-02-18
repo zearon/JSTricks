@@ -424,16 +424,15 @@ function onContentPageMessage(msg) {
         });
       }
     }
-    function run(){
-      
-      execute("Site script", editor.getValue(), editorCss.getValue());
+    function run(){      
+      execute(tabSite, editor.getValue(), editorCss.getValue());
     }
     function runCodeSnippet(codesnippet) {
       var header = editor.getValue().match(/\s*(run[\s\S]*?function\s*\(.*\)\s*\{)/)[1];
       var wrappedCode = header + "\n" + codesnippet + "\n});";
       
       console.log(wrappedCode);
-      execute("Selected site script", wrappedCode, editorCss.getSelection());
+      execute(tabSite + "_snippet", wrappedCode, editorCss.getSelection());
     }
     function runSelected(){
       runCodeSnippet(editor.getSelection());
