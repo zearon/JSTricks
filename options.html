@@ -547,6 +547,13 @@
 									<td><input type="button" class="localstorage_saveitem" target="$setting.outline_showAnonymousFunctions" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.outline_showAnonymousFunctions" value="Set to Default" /></td>
 								<tr>
+								<tr class="localstorage_item">
+									<td title="Max hint count in Javascript Editor. If the the number of hints, including errors and warnings, in a script exceed this value, the hinting function will stop. <br/>If you want to change the setting for individual script, add the following comment at the beginning of the file: <br/>/*jshint maxerr: 10000 */">
+									JS Syntax Check - Max Hint Count</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.cmeditor_jshint_maxerr" defaultvalue="200" value="100" size="9" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.cmeditor_jshint_maxerr" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.cmeditor_jshint_maxerr" value="Set to Default" /></td>
+								<tr>
 								
 								<tr>
 									<td colspan="4" class="togglePanel" target=".settings-msgbox" title="Click to toggle display">

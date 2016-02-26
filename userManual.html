@@ -389,7 +389,7 @@ run(["jquery", "#Novel"], function($, novel) {
 	<p><a href="http://jshint.com/" target="_blank">JSHint</a> is incorporated to do the syntax checking job with a preset of syntax rules. If you want to change them, you can use directives in individual files. Go to <a href="http://jshint.com/docs/" target="_blank">JSHint Doc</a> and skip to <b>Inline configuration</b> section for reference.</p>
 	<p>A typical example is putting the following comments at the beginning of your script. <p>
 	<pre>
-/* jshint undef: true, unused: true */
+/* jshint undef: true, unused: true, maxerr: 10000 */
 /* globals MY_GLOBAL, MY_GLOBAL2 */	
 	</pre>
 	<p>The above directives tell the JSHint to report usage of undefined variables, as well as unused variables, and consider MY_GLOBAL and MY_GLOBAL2 as global variables.<p>

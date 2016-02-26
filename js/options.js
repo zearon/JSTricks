@@ -995,7 +995,8 @@
           async: true,
           /* This option need hack on /lib/codemirror/addon/lint/lint.js */
           lineCountDelay: [{lines:5000, delay:1000}, {lines:10000, delay:2000}],
-          options: {"esversion":6, "expr":true, "indent":2, "globals":
+          options: {"esversion":6, "expr":true, "indent":2, "maxerr":storage.getSetting("cmeditor_jshint_maxerr", true), 
+            "globals":
             {"console":false, "chrome":false, "run":false, "seajs":false, "define":false, "ready":false, 
             "INFO":false, "UTIL":false, "window":false, "navigator":false, "document":false, "alert":false, "confirm":false, 
             "prompt":false, "setTimeout":false, "setInterval":false, "location":false,
