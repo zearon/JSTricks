@@ -48,6 +48,10 @@
 		//(document.body||document.documentElement).appendChild(s);
 		//document.documentElement.insertBefore(s, document.documentElement.childNodes[1]);
 		document.documentElement.appendChild(s);
+    
+    var e = document.createEvent("CustomEvent");
+    e.initCustomEvent("CSS_Updated", true, true, {id:id, css:styles});
+    document.dispatchEvent(e);
 	};
 	
 	if (chrome.extension) {

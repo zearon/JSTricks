@@ -96,9 +96,9 @@
     }
     
     if (condition.selector) {
-      window.onload = function() {
+      window.addEventListener("load", function() {
         testCssSelectorCondition(condition, action);
-      }
+      });
       return false;
     }
     
