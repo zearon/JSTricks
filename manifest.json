@@ -34,7 +34,8 @@
 	"name": "JavaScript Tricks",
 	"options_page": "options.html",
 	"permissions": [ "declarativeContent", "webNavigation", "contextMenus", "activeTab", 
-		"tabs", "cookies", "storage", "unlimitedStorage", "http://*/*", "https://*/*", "file://*/*"],
+		"tabs", "cookies", "storage", "unlimitedStorage", "chrome://favicon/", 
+		"http://*/*", "https://*/*", "file://*/*"],
 	"update_url": "https://clients2.google.com/service/update2/crx",
 	"version": "2.0.0"
 }
