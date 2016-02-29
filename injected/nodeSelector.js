@@ -58,6 +58,7 @@ define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, expo
 	var NS_cssMode = false;
 	var NS_styleName = "NS_SELECTED_NODE_2312356451321356453";
 	var NS_titleNode = "NS_nodeSelector";
+	var NS_targetClassName = null;
 	
 	var timer = null;
 	var currentSelector = null;
@@ -146,6 +147,7 @@ define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, expo
 		NS_controlId = request.controlid;
 		NS_setVariable = request.setVariable;
 		NS_cssMode = request.mode === "style";
+		NS_targetClassName = request.targetClassName ? request.targetClassName : null;
 		
 		$("#" + NS_titleNode).show();
 		$("#JST-POPUP-PINNED").parent().hide();
@@ -172,11 +174,19 @@ define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, expo
 		var nodestr = currentSelector.full; //$("#" + NS_titleNode).text();
 		setTimeout(function() { selectionBox.hide(); }, 5000);
 		
+		var msg = {type:"NS-NodeSelected", tabid:tabid, controlid:NS_controlId, value:nodestr, setVariable:NS_setVariable, targetClassName:NS_targetClassName};
+		if (NS_targetClassName) {
+		  $(event.target).addClass(NS_targetClassName);
+		}
+		
 		var iframe = $("#JST-POPUP-PINNED")[0];
-		iframe.contentWindow.postMessage({type:"NS-NodeSelected", tabid:tabid, controlid:NS_controlId, value:nodestr, setVariable:NS_setVariable}, "*");
-	
-		$("#JST-POPUP-PINNED").closest(".ui-dialog").css("z-index", "2147483645");
-		$("#JST-POPUP-PINNED").parent().show();
+		if (iframe) {
+      iframe.contentWindow.postMessage(msg, "*");
+  
+      $("#JST-POPUP-PINNED").closest(".ui-dialog").css("z-index", "2147483645");
+      $("#JST-POPUP-PINNED").parent().show();
+		}
+		window.postMessage(msg, "*");
 		
 		$("." + NS_styleName).removeClass(NS_styleName);
 		$("#" + NS_titleNode).text("");
