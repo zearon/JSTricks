@@ -549,7 +549,9 @@
       
       highlightMatchesInEditor(mapOptions.editor, mapOptions.indexes);
       highlightMatchesInEditor(mapOptions.editor2, mapOptions.indexes2);
-        
+      
+      if (storage.getSetting("outline_foldAllFunctions_ss", true, false))
+        editorJs.foldAllFunctions("fold", true);
         
       selectedTitle = lsd.name;
       console.log("selectedTitle is", selectedTitle);
@@ -3324,7 +3326,10 @@
       currentSavedStateDCS = script.script;
       editorDynScript.clearHistory();
       
-      highlightMatchesInEditor(mapOptions.editor, mapOptions.indexes);
+      highlightMatchesInEditor(mapOptions.editor, mapOptions.indexes);      
+      
+      if (storage.getSetting("outline_foldAllFunctions_cs", true, false))
+        editorDynScript.foldAllFunctions("fold", true);
       
       // Switch from Meta data editor to script editor.
       $("#tabs-dcs .tabs > ul li:eq(0)").click();
