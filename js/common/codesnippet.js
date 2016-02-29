@@ -43,7 +43,7 @@ var codesnippit_showPopupInWebpage =
 	dialog.children(".ui-dialog-titlebar")
 	      .css({
 	          "font-size": "12px",
-	          "height": dialogTitleHeight + "px);"
+	          "height": dialogTitleHeight + "px;"
 	        });
 	dialog.css({
 	          "z-index": "2147483645", 
