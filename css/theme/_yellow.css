@@ -101,6 +101,11 @@ html body.theme-_yellow { background:#fefebb; color:black; }
     box-shadow: rgba(0,0,0,0.4) 2px 0 20px;
 }
 
+/* Styles for fold-gutter */
+.theme-_yellow .CodeMirror-foldgutter-folded:after {
+  color: #0025FF;
+}
+
 /* Styles for the selected text */
 .theme-_yellow .highlighted-background { background-color: rgba(255,255,119, 1); }
 .theme-_yellow .highlighted-scrollbar { 

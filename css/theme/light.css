@@ -101,6 +101,11 @@ html body.theme-light { background:rgb(252,252,252); }
     box-shadow: rgba(0,0,0,0.4) 2px 0 20px;
 }
 
+/* Styles for fold-gutter */
+.theme-light .CodeMirror-foldgutter-folded:after {
+  color: #FF006F;
+}
+
 /* Styles for the selected text */
 .theme-light .highlighted-background { background-color: rgba(255,255,119, 1); }
 .theme-light .highlighted-scrollbar { 
