@@ -1001,7 +1001,7 @@
           /* This option need hack on /lib/codemirror/addon/lint/lint.js */
           lineCountDelay: [{lines:5000, delay:1000}, {lines:10000, delay:2000}],
           options: {"esversion":6, "expr":true, "indent":2, "maxerr":storage.getSetting("cmeditor_jshint_maxerr", true), 
-            "regions":[{id:"Code region", start:/\s*#region(-folded)?\s*([^\n]*)/, end:/\s*#endregion.*/, namegroupindex:2, remove:/(^\s*\**)|(\s*\**\s*$)/mg}],
+            "regions":[{id:"Code region", start:/\s*#region\s*([^\n]*)/, end:/\s*#endregion.*/, namegroupindex:1, remove:/(^\s*\**)|(\s*\**\s*$)/mg}],
             "globals":
             {"console":false, "chrome":false, "run":false, "seajs":false, "define":false, "ready":false, 
             "INFO":false, "UTIL":false, "window":false, "navigator":false, "document":false, "alert":false, "confirm":false, 

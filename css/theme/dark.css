@@ -98,6 +98,11 @@ html body.theme-dark { background:#0f0f0f; color:#eeeeee; }
     box-shadow: rgba(255,255,255,0.8) 2px 0 20px;
 }
 
+/* Styles for fold-gutter */
+.theme-dark .CodeMirror-foldgutter-folded:after {
+  color: #00FF03;
+}
+
 /* Styles for the selected text */
 .theme-dark .highlighted-background { background-color: #0233f7; }
 .theme-dark .highlighted-scrollbar { 
