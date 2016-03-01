@@ -38,6 +38,7 @@
 	<script src="lib/codemirror/mode/css/css.js"></script>
 	<script src="lib/codemirror/addon/fold/foldcode.js"></script>
 	<script src="lib/codemirror/addon/fold/foldgutter.js"></script>
+	<script src="lib/codemirror/addon/fold/region-fold.js"></script>
 	<script src="lib/codemirror/addon/fold/brace-fold.js"></script>
 	<script src="lib/codemirror/addon/fold/comment-fold.js"></script>
 	
@@ -512,14 +513,17 @@
 								<tr>
 								<tr class="localstorage_item">
 									<td title="Fold all functions when opening a site script.">
-									Fold All Functions</td>
-									<td>
-									<span class="localstorage_itemvalue" target="$setting.outline_foldAllFunctions_ss" defaultvalue="false" >
-										<input type="radio" value="false" name="$setting.outline_foldAllFunctions_ss" /><span class="option">No</span>
-										<input type="radio" value="true" name="$setting.outline_foldAllFunctions_ss" /><span class="option">Yes</span>
-									<span></td>
-									<td><input type="button" class="localstorage_saveitem" target="$setting.outline_foldAllFunctions_ss" value="Save" /></td>
-									<td><input type="button" class="localstorage_resetitem" target="$setting.outline_foldAllFunctions_ss" value="Set to Default" /></td>
+									Fold Functions to Depth</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.outline_foldFunctionDepth_ss" defaultvalue="-1" value="-1" size="9" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.outline_foldFunctionDepth_ss" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.outline_foldFunctionDepth_ss" value="Set to Default" /></td>
+								<tr>
+								<tr class="localstorage_item">
+									<td title="The Depth at which all regions is folded when a site script is loaded. 0 is the top level.">
+									Fold Regions to Depth</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.outline_foldRegionDepth_ss" defaultvalue="-1" value="-1" size="9" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.outline_foldRegionDepth_ss" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.outline_foldRegionDepth_ss" value="Set to Default" /></td>
 								<tr>
 								
 								<tr>
@@ -538,14 +542,17 @@
 								<tr>
 								<tr class="localstorage_item">
 									<td title="Fold all functions when opening a content script.">
-									Fold All Functions</td>
-									<td>
-									<span class="localstorage_itemvalue" target="$setting.outline_foldAllFunctions_cs" defaultvalue="false" >
-										<input type="radio" value="false" name="$setting.outline_foldAllFunctions_cs" /><span class="option">No</span>
-										<input type="radio" value="true" name="$setting.outline_foldAllFunctions_cs" /><span class="option">Yes</span>
-									<span></td>
-									<td><input type="button" class="localstorage_saveitem" target="$setting.outline_foldAllFunctions_cs" value="Save" /></td>
-									<td><input type="button" class="localstorage_resetitem" target="$setting.outline_foldAllFunctions_cs" value="Set to Default" /></td>
+									Fold Functions to Depth</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.outline_foldFunctionDepth_cs" defaultvalue="1" value="1" size="9" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.outline_foldFunctionDepth_cs" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.outline_foldFunctionDepth_cs" value="Set to Default" /></td>
+								<tr>
+								<tr class="localstorage_item">
+									<td title="The Depth at which all regions is folded when a content script is loaded. 0 is the top level.">
+									Fold Regions to Depth</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.outline_foldRegionDepth_cs" defaultvalue="1" value="1" size="9" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.outline_foldRegionDepth_cs" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.outline_foldRegionDepth_cs" value="Set to Default" /></td>
 								<tr>
 								
 								<tr>
