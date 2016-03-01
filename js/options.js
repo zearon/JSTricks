@@ -3215,13 +3215,25 @@
       var item = contentScriptHistory[contentScriptHistoryPos];
       if (item) {
         item.pos = editorDynScript.getScrollInfo();
+        item.foldedLines = editorDynScript.getFoldedLines();
+        delete item.foldOptions;
+        
+        //console.log("remember CSE status", item, item.foldedLines);
       }
     }
     
     function restoreStatusForCSEditor() {
       var item = contentScriptHistory[contentScriptHistoryPos];
-      if (item && item.pos) {
-        editorDynScript.scrollTo(item.pos.left, item.pos.top);
+      if (item) {
+        //console.log("restore CSE status", item, item.foldedLines);
+        
+        if (item.foldOptions)
+          editorDynScript.foldAllFunctions("fold", true, item.foldOptions);
+        else if (item.foldedLines)
+          editorDynScript.foldLines(item.foldedLines);
+          
+        if (item.pos)
+          editorDynScript.scrollTo(item.pos.left, item.pos.top);
       }
     }
     
@@ -3274,7 +3286,11 @@
         
       rememberStatusForCSEditior();
       var name = $(this).attr('name');
-      var item = {name, pos:{left:0, top:0}};
+      var foldOptions = {
+        functionDepth: storage.getSetting("outline_foldFunctionDepth_cs", true),
+        regionDepth: storage.getSetting("outline_foldRegionDepth_cs", true)
+      };
+      var item = {name:name, pos:{left:0, top:0}, foldOptions:foldOptions};
       contentScriptHistory.splice(contentScriptHistoryPos, 0, item);
       contentScriptHistoryLastPos = contentScriptHistoryPos + 1;
       contentScriptHistoryLen ++;
@@ -3330,13 +3346,7 @@
       currentSavedStateDCS = script.script;
       editorDynScript.clearHistory();
       
-      highlightMatchesInEditor(mapOptions.editor, mapOptions.indexes);      
-      
-      var foldOptions = {
-        functionDepth: storage.getSetting("outline_foldFunctionDepth_cs", true),
-        regionDepth: storage.getSetting("outline_foldRegionDepth_cs", true)
-      };
-      editorDynScript.foldAllFunctions("fold", true, foldOptions);
+      highlightMatchesInEditor(mapOptions.editor, mapOptions.indexes); 
       
       // Switch from Meta data editor to script editor.
       $("#tabs-dcs .tabs > ul li:eq(0)").click();
