@@ -548,10 +548,13 @@
       moveToPosForEditor(editorJs, lsd.name);
       
       highlightMatchesInEditor(mapOptions.editor, mapOptions.indexes);
-      highlightMatchesInEditor(mapOptions.editor2, mapOptions.indexes2);
+      highlightMatchesInEditor(mapOptions.editor2, mapOptions.indexes2); 
       
-      if (storage.getSetting("outline_foldAllFunctions_ss", true, false))
-        editorJs.foldAllFunctions("fold", true);
+      var foldOptions = {
+        functionDepth: storage.getSetting("outline_foldFunctionDepth_ss", true),
+        regionDepth: storage.getSetting("outline_foldRegionDepth_ss", true)
+      };
+      editorJs.foldAllFunctions("fold", true, foldOptions);
         
       selectedTitle = lsd.name;
       console.log("selectedTitle is", selectedTitle);
@@ -998,6 +1001,7 @@
           /* This option need hack on /lib/codemirror/addon/lint/lint.js */
           lineCountDelay: [{lines:5000, delay:1000}, {lines:10000, delay:2000}],
           options: {"esversion":6, "expr":true, "indent":2, "maxerr":storage.getSetting("cmeditor_jshint_maxerr", true), 
+            "regions":[{id:"Code region", start:/\s*#region(-folded)?\s*([^\n]*)/, end:/\s*#endregion.*/, namegroupindex:2, remove:/(^\s*\**)|(\s*\**\s*$)/mg}],
             "globals":
             {"console":false, "chrome":false, "run":false, "seajs":false, "define":false, "ready":false, 
             "INFO":false, "UTIL":false, "window":false, "navigator":false, "document":false, "alert":false, "confirm":false, 
@@ -3328,8 +3332,11 @@
       
       highlightMatchesInEditor(mapOptions.editor, mapOptions.indexes);      
       
-      if (storage.getSetting("outline_foldAllFunctions_cs", true, false))
-        editorDynScript.foldAllFunctions("fold", true);
+      var foldOptions = {
+        functionDepth: storage.getSetting("outline_foldFunctionDepth_cs", true),
+        regionDepth: storage.getSetting("outline_foldRegionDepth_cs", true)
+      };
+      editorDynScript.foldAllFunctions("fold", true, foldOptions);
       
       // Switch from Meta data editor to script editor.
       $("#tabs-dcs .tabs > ul li:eq(0)").click();

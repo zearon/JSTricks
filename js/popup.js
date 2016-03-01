@@ -655,7 +655,9 @@ function onContentPageMessage(msg) {
         matchBrackets :true,
         theme: getCodeMirrorTheme(), //_yellow
         foldGutter: true,
-        lint: {"esversion":6, "expr":true, "indent":2, "maxerr":500, "globals":
+        lint: {"esversion":6, "expr":true, "indent":2, "maxerr":500, 
+            "regions":[{id:"region", start:/\s*#region\s*([^\n]*)/, end:/\s*#endregion.*/, namegroupindex:1, remove:/(^\s*\**)|(\s*\**\s*$)/mg}],
+            "globals":
             {"console":false, "chrome":false, "run":false, "seajs":false, "define":false, 
             "ready":false, "msgbox":false, "INFO":false, "UTIL":false,
             "window":false, "navigator":false, "document":false, "alert":false, "confirm":false, 
