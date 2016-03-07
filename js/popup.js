@@ -1241,8 +1241,9 @@ function onContentPageMessage(msg) {
             var element = `<div style="display:inline" class="${displayClass}"><button class="add-script-btn${runClass} init-script-btn" type="button" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-addRequires="${addRequires}" data-code="" >${command.title}</button></div>`
             sectionDiv.append(element);
           } else if (code) {
-            var element = `<div style="display:inline" class="${displayClass}"><button class="add-script-btn${runClass}" type="button" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-code="${command.code}" >${command.title}</button></div>`
-            sectionDiv.append(element);
+            var element = $(`<div style="display:inline" class="${displayClass}"><button class="add-script-btn${runClass}" type="button" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-code="" >${command.title}</button></div>`)
+                          .appendTo(sectionDiv);
+            element[0].children[0].setAttribute("data-code", code);
           } else {
             var src = `<div style="display:${display}" class="${displayClass}"><button class="add-script-btn${runClass}" type="button" title="${title}" data-module="${moduleName}" data-obj="${objName}" data-statement="${statementType}" data-func="${section.objName}.${command.funcname}" >${command.title}</button></div>`;
             var commandDiv = $(src).appendTo(sectionDiv);
