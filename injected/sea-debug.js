@@ -1074,7 +1074,9 @@ seajs.use = function(ids, callback) {
 }
 
 Module.define.cmd = {}
+Module.define.JSTRICKS = "JSTRICKS module manager"
 global.define = Module.define
+
 
 
 // For Developers
