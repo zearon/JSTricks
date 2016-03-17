@@ -149,7 +149,7 @@ function createAutoload() {
     msgbox.log("reset icon", INFO.iconStatus);
     
     callListeners(this, this.onInitPrerenderedPage, this.storage)
-  }
+  };
 
   // msg should be like {type:"log", msg:text}
   Autoload.prototype.notifyMessage = function (msg) {
@@ -163,23 +163,26 @@ function createAutoload() {
       // Send message to subscribers
       port.postMessage({method:"Messages", data:[msg]});
     });
-  }
+  };
   
   Autoload.prototype.respondToMessage = function (port, msg) {
     if (msg.method == "GetAllMessages")
       port.postMessage({method:"Messages", data:this.messages});
-  }
+    else if (msg.forwardToBG)
+      // forward the message to the background
+      sendMessage(msg);
+  };
   
   Autoload.prototype.callMethodInDelegatedObject = function (objName, funcName, args) {
     var obj = window[objName];
     var func = obj[funcName];
     func.apply(obj, args);
-  }
+  };
   
   Autoload.prototype.loadContentScript = function (csName, initCode) {
     chrome.runtime.sendMessage({method: "ExecuteContentScript", 
           data: {name:csName, initCode:initCode} });
-  }
+  };
   
   function prepare(self, storage) { 
     self.setIcon();
