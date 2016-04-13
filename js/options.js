@@ -50,6 +50,8 @@
     var contentScriptHistoryPos = 0;
     var contentScriptHistoryLen = 0;
     var contentScriptHistoryLastPos = 0;
+    
+    var gotoLineAtStartup = false;
 
 
     var optionPageParams = {};
@@ -899,6 +901,7 @@
       // Jump to tab if page=sitescripts is specified.
       var tab = optionPageParams["tab"], item = optionPageParams["item"], 
           line = optionPageParams["line"], col = optionPageParams["col"];
+      gotoLineAtStartup = (line != null);
       if (tab) {
         $(`#toptabs > ul >li:eq(${tab})`).click();
         switch (tab) {
@@ -3225,13 +3228,16 @@
     function restoreStatusForCSEditor() {
       var item = contentScriptHistory[contentScriptHistoryPos];
       if (item) {
-        //console.log("restore CSE status", item, item.foldedLines);
+        console.log("restore CSE status", gotoLineAtStartup, item, item.foldedLines);
         
-        if (item.foldOptions)
-          editorDynScript.foldAllFunctions("fold", true, item.foldOptions);
-        else if (item.foldedLines)
+        if (item.foldOptions) {
+          if (gotoLineAtStartup)
+            gotoLineAtStartup = false;
+          else
+            editorDynScript.foldAllFunctions("fold", true, item.foldOptions);
+        } else if (item.foldedLines) {
           editorDynScript.foldLines(item.foldedLines);
-          
+        }  
         if (item.pos)
           editorDynScript.scrollTo(item.pos.left, item.pos.top);
       }
