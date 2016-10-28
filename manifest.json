@@ -19,7 +19,8 @@
 			"injected/autoload.js", "injected/plugin/loader.js"],
 		"css": ["css/jquery-ui.structure.css", "css/theme/jqueryui/jquery-ui.theme-light.css"],
 		"matches": [ "http://*/*", "https://*/*", "file://*/*" ],
-		"run_at": "document_start"
+		"run_at": "document_start",
+		"all_frames": true
 	} ],
 	"web_accessible_resources": ["lib/*", "injected/*", "js/*", "popup.html"],
 	"sandbox": { "pages": ["sandbox.html"] },
@@ -34,7 +35,7 @@
 	"name": "JavaScript Tricks",
 	"options_page": "options.html",
 	"permissions": [ "declarativeContent", "webNavigation", "contextMenus", "activeTab", 
-		"tabs", "cookies", "storage", "unlimitedStorage", "chrome://favicon/", 
+		"tabs", "cookies", "storage", "unlimitedStorage", "chrome://favicon/",
 		"http://*/*", "https://*/*", "file://*/*"],
 	"update_url": "https://clients2.google.com/service/update2/crx",
 	"version": "2.0.0"
