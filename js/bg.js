@@ -327,7 +327,7 @@ if (localStorage["info"])
           //console.log("__JSTricks_Messenger_OnScriptLoaded is", window["__JSTricks_Messenger_OnScriptLoaded"]);
           window["__JSTricks_Messenger"].onScriptLoaded("${callbackID}");
         }, "${scriptSrc}");
-      `} );
+      `, "allFrames":true} );
     }
     
     function setIconSet(tabid, domain, status) {
@@ -483,7 +483,7 @@ if (localStorage["info"])
           INFO.loaded["$sys/injected/injected.js"] = true;
           //InjectCodeToOriginalSpace("chrome-extension://" + chrome.runtime.id + "/injected/injected.js");
         }
-      `});
+      `, "allFrames":true});
       
       // Inject content scripts in include section of meta data.
       addContentScriptsToLoadList(autoloadFileList, INFO.meta_data.include, loadProperty);
@@ -620,7 +620,7 @@ if (localStorage["info"])
         debug_log("------------------");
         
       debug_log("Tab " + tabid + ": Injecting Content script " + file.name + " ...");
-      var execDetail = {};
+      var execDetail = {"allFrames":true};
       if (file["code"])
         execDetail["code"] = file.code;
       else if (file["file"])
