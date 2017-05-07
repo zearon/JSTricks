@@ -187,8 +187,19 @@
 	
 	 		
 	function cloudStoragePost(data, resInJson, onok, onerr) {
-		if (!this.url || !this.passphrase || !this.keyiv) {
+		if (!this.url) {
 		  var err = new Error("Cannot initialize cloud save. Cloud storage is not set yet.");
+		  err.code = "error-init";
+		  if (onerr)
+			  onerr(err);
+			else
+			  throw err;
+			return;
+		}
+		
+		if (!this.passphrase || !this.keyiv) {
+		  var err = new Error("Cannot initialize cloud save. Passphrase and key for cloud storage are not set yet.");
+		  err.code = "error-passwd";
 		  if (onerr)
 			  onerr(err);
 			else
@@ -210,7 +221,8 @@
 					onok(data);
 				} else {
 					var err = new Error("Failed to delete the configuration. \n" + data.message);
-					console.error("Cloud post error:", data);
+		      err.code = "error-http";
+					console.error("HTTP post error:", data);
 					onerr(err);
 				}
 			} else {
@@ -218,14 +230,16 @@
 			}
 		}
 	
-		function onPostError(err) {		  		
-      if (!onerr)	{
-        onerr = onPostError;
+		function onPostError(err) {
+			err.message = "HTTP Post Error: "	+ err.status + " " + err.statusText; 		
+		  err.code = "error-http";
+			if (onerr)	{
+				onerr(err);
 			} else {
-			  console.error(err);
-        if (window.alert)
-          window.alert(err.statusText);
-      }
+				console.error(err);
+//         if (window.alert)
+//           window.alert(err.statusText);
+			}
 		}
 	}
 

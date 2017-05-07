@@ -65,8 +65,7 @@ if (localStorage["info"])
     });
       
     
-    //chrome.extension.onRequest.addListener(function(request, sender) {
-    chrome.runtime.onMessage.addListener(function(request, sender) {
+    global.onMessage = function (request, sender) {
       if (request.tabid) {
         processTab(request.tabid, request.method, request.data);
       } else if (request.windowid) {
@@ -85,7 +84,9 @@ if (localStorage["info"])
         var tabid = (sender && sender.tab) ? sender.tab.id : undefined;
         processTab(tabid, request.method, request.data);
       }
-    });
+    }
+    //chrome.extension.onRequest.addListener(function(request, sender) {
+    chrome.runtime.onMessage.addListener(window.onMessage);
     
     function processTab(tabid, requestMethod, requestData) {
       // if tabid is undefined
@@ -459,7 +460,7 @@ if (localStorage["info"])
         loadProperty.siteAdded = true;
         
         // add dependency
-        addContentScriptsToLoadList(autoloadFileList, loadProperty.index.cachedDeps[key], loadProperty);
+        addContentScriptsToLoadList(autoloadFileList, loadProperty.index.cachedDeps[domain], loadProperty);
         // add site script
         autoloadFileList.push({name:"Site Script " + loadProperty.domain, 
             tobeloaded:["ss", loadProperty.domain], type:"js", 

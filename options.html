@@ -411,7 +411,7 @@
 									<td colspan="4"><h3>Keyboard Shortcut Setting</h3></td>
 								<tr>							
 								<tr class="" >
-									<td colspan="4">Goto: chrome://extensions/configureCommands</td>
+									<td colspan="4" title="Copy this link and paste it in the address bar and press enter.">Goto: chrome://extensions/configureCommands</td>
 								<tr>	
 								<tr class="togglePanel" target=".settings-theme" >
 									<td colspan="4"><h3>Theme …</h3></td>
@@ -687,6 +687,18 @@
 									</td>
 									<td><input type="button" class="localstorage_saveitem" target="$setting.backup-readable" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.backup-readable" value="Set to Default" /></td>
+								<tr>
+								<tr class="localstorage_item ">
+									<td title="Backup all the scripts and settings to cloud when saving any scripts in the option page.">
+									Backup to cloud when saving scripts</td>
+									<td>
+									<span class="localstorage_itemvalue" target="$setting.backup-backtocloudonsaving" defaultvalue="true" >
+										<input type="radio" value="false" name="$setting.backup-backtocloudonsaving" /><span class="option">No</span>
+										<input type="radio" value="true" name="$setting.backup-backtocloudonsaving" /><span class="option">Yes</span>
+									<span>
+									</td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.backup-backtocloudonsaving" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.backup-backtocloudonsaving" value="Set to Default" /></td>
 								<tr>
 								<!--tr class="localstorage_item ">
 									<td title="Refresh this page when the <b>Save All</b> or <b>All Set to Default</b> button is clicked.">
