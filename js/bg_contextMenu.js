@@ -265,7 +265,10 @@
   
     function execScriptInTab(tabid) {
       var initCode = 'delete INFO.contextMenuInfo; INFO.contextMenuInfo = JSON.parse(decodeURIComponent("'+encodeURIComponent(JSON.stringify(info))+'")); if (INFO.debug) { console.debug(INFO); }';
-      chrome.runtime.sendMessage({tabid: tabid, method: "ExecuteContentScript", data: {name:file, initCode:initCode} });
+      var msg = {tabid: tabid, method: "ExecuteContentScript", data: {name:file, initCode:initCode} };
+      
+      //chrome.runtime.sendMessage(msg);  not work anymore
+      window.onMessage(msg);
     }
   
     if (tab.id >= 0) {

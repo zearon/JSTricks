@@ -33,12 +33,22 @@ ul {
 	color: black;
 	background-color: yellow;
 	position: absolute;
-	width: 150px;
-	right: 367px;
-	top: 0px;
+	max-width: 250px;
+	right: 2px;
+	top: 30px;
+}
+#title.ok {
+	color: black;
+	background-color: rgb(208, 251, 197);
+	border:2px outset;
+}
+#title.error {
+	color: black;
+	background-color: rgb(251, 197, 197);
+	border:2px outset;
 }
 #title.indialog {
-	right: 276px;
+	right: 276px; /*367px;*/
 }
 .toolbarContainer {
   float:right;

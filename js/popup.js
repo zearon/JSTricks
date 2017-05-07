@@ -72,7 +72,11 @@ chrome.runtime.onMessage.addListener(function(msg) {
   if (msg && msg.MsgType == "chrome-ext-api-response") {
     //console.log("chrome-ext-api-response for", msg.method, msg);
     
-    API_CALLBACKS[msg.id](JSON.parse(msg.arg));
+    var arg = msg.arg;
+    try {
+      arg = JSON.parse(msg.arg);
+    } catch (e) {}
+    API_CALLBACKS[msg.id](arg);
     delete API_CALLBACKS[msg.id];
   }
 });
@@ -154,6 +158,55 @@ function API_OpenWindow(url, name) {
 
 function API_ConsoleLog() {
   API_SendRequest("ConsoleLog", arguments);
+}
+
+function API_CloudCheck() {
+  showMessage("Checking newer versions in cloud...");
+  API_SendRequest("CloudCheck", arguments, function(result) {
+    if (!result) {
+      return;
+    }
+    if (result.code == "notset") {
+      showMessage("ok", "Cloud storage is not configured.");
+    } else if (result.code == "err") {
+      showMessage("error", "Cloud Error:" + result.msg);
+    } else if (result.code == "unchanged") {
+      showMessage("ok", "This is already the newest version.");
+    } else if (result.code == "newversion") {
+      showMessage("Updated to version:" + result.ver);
+      API_CloudRestore(result.ver);
+    }
+  });
+}
+
+function API_CloudRestore(version) {
+  showMessage("Checking newer versions in cloud...");
+  API_SendRequest("CloudRestore", {"ver":version}, function(result) {
+    if (!result) {
+      return;
+    } 
+    if (result.code == "err") {
+      showMessage("error", "Cloud Error:" + result.msg);
+    } else if (result.code == "ok") {
+      showMessage("ok", "Successfully loaded version:" + version);      
+      //location.reload();
+    }
+  });
+}
+
+function API_CloudBackup() {
+  API_SendRequest("CloudBackup", arguments, function(result) {
+    if (!result) {
+      return;
+    }    
+    if (result.code == "notset") {
+      showMessage("ok", "Saved locally. <br/>Cloud storage is not configured.");
+    } else if (result.code == "err") {
+      showMessage("error", "Cloud Error:" + result.msg);
+    } else if (result.code == "ok") {
+      showMessage("ok", "Saved both locally and in cloud.");
+    }
+  });
 }
 
 function log() {
@@ -292,9 +345,33 @@ function onContentPageMessage(msg) {
       }
     }
     
+    function initMessageBox() {
+      $("#title").mouseenter(enterMsgbox).mouseleave(leaveMsgbox);
+         
+      function enterMsgbox(evt) {
+        if (window.msgboxTimeout) {
+          clearTimeout(window.msgboxTimeout);
+          window.msgboxTimeout = null;
+        }
+      }
+      function leaveMsgbox(evt) {
+        evt.target.innerHTML = "";
+        evt.target.className = "";
+      }
+    }
+    
     function showMessage(htmlcode) {
       // Update status to let user know options were saved.
+      if (arguments.length <= 1) {
+        style = "";
+        htmlcode = arguments[0];
+      } else if (arguments.length <= 2) {
+        style = arguments[0];
+        htmlcode = arguments[1];
+      }
+      
       var status = document.getElementById("title");
+      status.className = style;
       status.innerHTML = htmlcode;
       if (window.msgboxTimeout) {
         clearTimeout(window.msgboxTimeout);
@@ -303,6 +380,7 @@ function onContentPageMessage(msg) {
       
       window.msgboxTimeout = setTimeout(function() {
         status.innerHTML = "";
+        status.className = "";
         window.msgboxTimeout = null;
       }, 2750);
     }
@@ -364,7 +442,8 @@ function onContentPageMessage(msg) {
       });
       
       // Update status to let user know options were saved.
-      showMessage("Options Saved.");
+      showMessage("Saved locally. <br/>Save to Cloud now……");
+      API_CloudBackup();
       
       var noErrorFound = checkScriptSyntax(editor);
       
@@ -566,10 +645,13 @@ function onContentPageMessage(msg) {
         $("body").addClass("inExtensionPage");
         //$("body").height("570px");
       }
+      initMessageBox();
       tabs();
       setEnableDisableBtnImage();
       setupKeyEventHandler();
-       
+      
+      //
+      API_CloudCheck(); 
       createCustomizeUI();
     
       restore_options(function(){

@@ -194,7 +194,7 @@
 			line-height:30px;
 			font-weight:900;
 			width:500px;
-			height:30px;
+			/*height:30px; comment it out to contain multiple messages */
 			padding:0 10px;
 			background:rgba(247,223,29,1);
 			box-shadow:rgba(0,0,0,0.4) 0 3px 10px;

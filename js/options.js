@@ -107,6 +107,9 @@
     var saveFunc = emptyFunc, findReplaceFunc = emptyFunc;
     function save() {
       saveFunc();
+      if (storage.getSetting("backup-backtocloudonsaving") == "true") {
+        cloudBackup();
+      }
     }
     function emptyFunc() {}
     function saveDisabledForPreviewFunc() {
@@ -262,7 +265,13 @@
       var $message = $("#jstmessage");
       clearTimeout(messageTimer);
       $message.stop().animate({top:"0px"});
-      $message.text(text);
+      var newcontent = $message.html();
+      if (newcontent) {
+        newcontent = newcontent + "<br/>" + text;
+      } else {
+        newcontent = text;
+      }
+      $message.html(newcontent);
       messageTimer = setTimeout(function(){
           $("#jstmessage").animate({top:"-50px"},
             function(){
@@ -2293,8 +2302,12 @@
             showMessage("Configurations are backup up in cloud.");
         
         },   function(err) {
-          // on err
+          // on err  
+          if (err.code == "error-init") {
+            showMessage("Saved locally. Cloud storage is not configured.");
+          } else {
             alert("Failed to list configurations. \n" + err.message);
+          }
         }); 
         // end of cloudGetHandler().backupSingleFile
         
