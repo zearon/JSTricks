@@ -339,7 +339,15 @@ else {
       node.getAttribute("src", 4)
   }
   //loaderPath = getScriptAbsoluteSrc(loaderScript)
-  loaderPath = chrome.runtime.getURL("sea.js");
+  // In content script
+  if (chrome.extension) {
+    loaderPath = chrome.runtime.getURL("sea.js");
+  }
+  // In top frame
+  else {
+    // JSTricks_extUrlPrefix is defined and injected in dom.js
+    loaderPath = JSTricks_extUrlPrefix + "/sea.js";
+  }
   // When `sea.js` is inline, set loaderDir to current working directory
   loaderDir = dirname(loaderPath || cwd)
 }
@@ -1040,11 +1048,11 @@ Module.use = function (ids, callback, uri) {
       try {
         callback.apply(global, exports)
       } catch (ex) {
-        var match = ex.stack.match(/at .*?:(\d+):(\d+)\)/g);
-        var err = match[0] + ": " + ex.message
-        	+ "\nInvoker script is:\n" + match[1] + "\n" + callback.toString() ;
+//         var match = ex.stack.match(/at .*?:(\d+):(\d+)\)/g);
+//         var err = match[0] + ": " + ex.message
+//         	+ "\nInvoker script is:\n" + match[1] + "\n" + callback.toString() ;
         console.error(ex);
-        console.info(err);
+//         console.info(err);
       }
     }
 
@@ -1066,7 +1074,9 @@ seajs.use = function(ids, callback) {
 }
 
 Module.define.cmd = {}
+Module.define.JSTRICKS = "JSTRICKS module manager"
 global.define = Module.define
+
 
 
 // For Developers

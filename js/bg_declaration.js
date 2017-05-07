@@ -33,10 +33,10 @@
         
         // Set disabled icon
         rules.push( {
-          id: "setDisabledIcon", priority: 0,
+          id: "setDisabledIcon", priority: 10,
           conditions: [
             new chrome.declarativeContent.PageStateMatcher({
-              pageUrl: { urlMatches: getExtDisabledPattern() },
+              pageUrl: { urlMatches: storage.getExtDisabledPattern() },
             })
           ],
           // Set disabled icon
@@ -83,7 +83,7 @@
   }
   
   function invokeCallback(cb) {
-    if (cb && isFunction(cb)) {
+    if (cb && UTIL.isFunction(cb)) {
       cb();
     }
   }

@@ -13,6 +13,8 @@
 	<link rel="stylesheet" href="lib/codemirror/lib/codemirror.css">
 	<link rel="stylesheet" href="lib/codemirror/addon/hint/show-hint.css">
 	<link rel="stylesheet" href="lib/codemirror/addon/fold/foldgutter.css" />
+	<link rel="stylesheet" href="lib/codemirror/addon/search/matchesonscrollbar.css">
+	<link rel="stylesheet" href="lib/codemirror/addon/dialog/dialog.css">
 	<link rel="stylesheet" href="lib/codemirror/addon/lint/lint.css">
 	<link rel="stylesheet" href="css/theme/light.css">
 	<link rel="stylesheet" href="css/theme/_yellow.css">
@@ -20,6 +22,12 @@
 
 	<script src="lib/codemirror/lib/codemirror.js"></script>
 	<script src="lib/codemirror/addon/selection/active-line.js"></script>
+	<script src="lib/codemirror/addon/search/search.js"></script>
+	<script src="lib/codemirror/addon/search/searchcursor.js"></script>
+	<script src="lib/codemirror/addon/search/jump-to-line.js"></script>
+	<script src="lib/codemirror/addon/scroll/annotatescrollbar.js"></script>
+	<script src="lib/codemirror/addon/search/matchesonscrollbar.js"></script>
+	<script src="lib/codemirror/addon/dialog/dialog.js"></script>
 	<script src="lib/codemirror/addon/edit/matchbrackets.js"></script>
 	<script src="lib/codemirror/addon/comment/continuecomment.js"></script>
 	<script src="lib/codemirror/addon/comment/comment.js"></script>
@@ -30,6 +38,7 @@
 	<script src="lib/codemirror/mode/css/css.js"></script>
 	<script src="lib/codemirror/addon/fold/foldcode.js"></script>
 	<script src="lib/codemirror/addon/fold/foldgutter.js"></script>
+	<script src="lib/codemirror/addon/fold/region-fold.js"></script>
 	<script src="lib/codemirror/addon/fold/brace-fold.js"></script>
 	<script src="lib/codemirror/addon/fold/comment-fold.js"></script>
 	
@@ -37,9 +46,14 @@
 	<script src="lib/3rdparty-lint/jsonlint_zaach.js"></script>
 	<script src="lib/3rdparty-lint/csslint.js"></script>
 	<script src="lib/codemirror/addon/lint/lint.js"></script>
-	<script src="lib/codemirror/addon/lint/javascript-lint.js"></script>
+	<!--script src="lib/codemirror/addon/lint/javascript-lint.js"></script-->
+	<script src="lib/codemirror/addon/lint/javascript-lint-async.js"></script>
 	<script src="lib/codemirror/addon/lint/json-lint.js"></script>
-	<script src="lib/codemirror/addon/lint/css-lint.js"></script>	
+	<script src="lib/codemirror/addon/lint/css-lint.js"></script>
+	
+	<script src="lib/codemirror/addon/display/rightcolumn.js"></script>
+	<script src="lib/codemirror/addon/view/outline.js"></script>
+	<script src="lib/codemirror/addon/view/outline-javascript.js"></script>
 	
 	<script src="lib/codemirror/addon/selection/mark-selection.js"></script>
 	<script src="lib/codemirror/addon/scroll/annotatescrollbar.js"></script>
@@ -50,15 +64,14 @@
 	<script src="lib/jsformatter.js" ></script>
 	
 	<script src="lib/jscolor/jscolor.js"></script> 
-
-	<script src="usrlib/localStorageBackup.js"></script>
 	
 	<script src="js/common/commonext.js" ></script>	
 	<script src="js/common/templating.js" ></script>	
 	<script src="js/common/templates.js" ></script>	
 	<script src="js/common/storage.js" ></script>	
+  <script src="js/common/jsonanalyser.js" ></script>
 	<script src="js/common/codesnippet.js" ></script>	
-	<script src="js/theme.js" ></script>	
+	<script src="js/common/theme.js" ></script>	
 	
 	<script src="js/common/cloudsave/cryptojs/aes.js" ></script>	
 	<script src="js/common/cloudsave/cryptojs/md5.js" ></script>	
@@ -77,7 +90,7 @@
 		
 	</style>
 	</head>
-	<body>
+	<body class="jstricks">
 	<div id="jstmessage" ></div>
 	<div id="floatingWindow" ></div>
 	<div class="header">
@@ -89,23 +102,45 @@
 	</div>
 	<div id="centercontainer" >
 		<div id="toptabs" class="tabs">
-			<ul>
+			<ul class="">
 				<li><a href="#tabs-sss">Site-Specific Scripts</a></li>
 				<li><a href="#tabs-dcs">Dynamic Content Scripts</a></li>
 				<li><a href="#tabs-options">Options</a></li>
 				<li><a href="#tabs-gs">Backup Restore & Misc.</a></li>
 			</ul>
-			<span id="backupToolbar" class="hide" style="display:block;margin-right:60px;float:right;position:relative;top:-25px;">
+			<span id="backupToolbar" class="hide">
 				<input id="testtest" type="button" value="Test" class="hide" style="display:none" />
 				Theme:
-				<select id="theme" class="localstorage_itemvalue" target="$setting.theme" defaultvalue="_yellow" title="Theme. Automatic means automatically change between a day theme and a night theme.">
+				<select id="theme" class="localstorage_itemvalue" target="$setting.theme" defaultvalue="automatic" title="Theme. Automatic means automatically change between a day theme and a night theme.">
 					<option value="light">Light</option>
 					<option value="_yellow">Yellow</option>
 					<option value="dark">Dark</option>
 					<option value="automatic">Automatic</option>
 				</select>
 				<input class="cloudbackup" type="button" value="Backup" />
-				<input class="cloudrestore" type="button" value="Restore" /><br/><br/>
+				<input class="cloudrestore" type="button" value="Restore" />
+				<div id="helpicon" title="
+				Keyboard shortcuts: (PC / Mac)<br/>
+				Change selected scripts: Up Arrow, Down Arrow
+				Save: Ctrl+S / Cmd+S <br/>
+				Webpage find: Ctrl+F / Cmd+F <br/>
+				Script find and replace: Ctrl+Shift+F / Cmd+Shift+F <br/><br/>
+				
+				In script editor: <br/>
+				Undo: Ctrl+Z / Cmd+Z <br/>
+				Redo: Ctrl+Y / Shift+Cmd+Z, Cmd+Y<br/>
+				Auto-completion: Ctrl+Space <br/>
+				Toggle comment: Ctrl+Alt+C / Cmd+Alt+C <br/>
+				Select Matched brackets: Ctrl+B / Cmd+B or<br/>
+				&nbsp;&nbsp;Ctrl+Shift+B / Cmd+Shift+B <br/>
+				&nbsp;&nbsp;(The brackets are also selected)<br/>
+				Jump to line: Alt+G <br/>
+				Start searching: Ctrl+F / Cmd+F <br/>
+				Find next: Ctrl+G / Cmd+G <br/>
+				Find previous: Shift+Ctrl+G / Shift+Cmd+G <br/>
+				Replace: Ctrl+Alt+F / Cmd+Alt+F <br/>
+				Replace all: Shift+Ctrl+R / Shift+Cmd+Alt+F <br/>
+				"></div>
 			</span>
 			<div id="tabs-sss" class="tab">
 				<div class="editwrap" >
@@ -114,7 +149,7 @@
 					</div>
 					<div class="editorPanel">
 						<div id='editorJs' class="hidableEditorArea" style='visibility:block;'>
-							<div class="toolbar" style="left:0; right:280px;" >
+							<div class="toolbar left" >
 								<!-- <table class="toolbar-left">
 									<tr>
 									<td style="width: 120px;">Content Contains: </td>
@@ -134,20 +169,21 @@
 								</tr>
 								</table>
 							</div>
-							<div class="toolbar" style="top:0px;" >	
+							<div class="toolbar" >	
 								<!-- div style="">
 									<input id="jscontentfilterbtn" type="button" value="Filter JS" />
 									<input id="csscontentfilterbtn" type="button" value="Filter CSS" />
 									<input id="clearcontentfilterbtn" type="button" value="Show All" style="width:107px" />
 								</div -->
-								<div style="margin-bottom: 6px;">
-									<input id="jscb" type='checkbox' /><label for='jscb' id="forjscb" style="height:20px; top:-1px;">Autostart</label>
+								<div style="margin-bottom: 3px;">
+									<input id="jscb" type='checkbox' />
+									<label for='jscb' class="autostartBtn" class="saveBtn" id="forjscb" style="height:20px; top:-1px;">Autostart</label>
 									<input id="jshid" type='checkbox' style='display:none'/><label for='jshid' style='display:none'>Hidden</label>
-									<input id="jssave" type='button' value="Save [Ctrl+S]" style="width: 98px;" />
-									<input id="jsdelete" type='button' value="Delete" />		
+									<input id="jssave" class="saveBtn" type='button' value="Save" />
+									<input id="jsdelete" class="deleteBtn" type='button' value="Delete" />		
 								</div>
 								<div style="display:inline-block;">
-									<input class="findReplaceDialogBtn" type="button" value="Find and Replace" target="Site Scripts" style="width: 160px;" />
+									<input class="findReplaceDialogBtn" type="button" value="Find and Replace" title="Shortcut: Ctrl+Shift+F" target="Site Scripts" />
 								</div>
 								<div style="display:inline-block; float:right;">
 									<input type="button" value="+" class="textSizeUpBtn" />
@@ -186,11 +222,12 @@
 									<option>String</option>
 									<option>Regular Expression</option>
 								</select>
-								<span class="findDialog-for-site-script">in
+								<span class="">in
 									<select id="findDialog-searchfor"> 
-										<option>Script</option>
-										<option>CSS</option>
-										<option>Both</option>
+										<option value="Script">Script</option>
+										<option value="CSS" class="findDialog-for-site-script">CSS</option>
+										<option value="Both" class="findDialog-for-site-script">Both</option>
+										<option value="Name" class="findDialog-for-site-script">Name</option>
 									</select></span>
 								</div>
 								<div><textarea id="findDialog-findstring" style="width:100%" ></textarea></div>
@@ -245,7 +282,7 @@
 									<option value="current">Current</option>
 									<option value="all">All</option>
 								</select>
-								<b><span id="findDialog-target">Site-Scripts</span></b>:
+								<b><span id="findDialog-target">Site-Scripts</span></b> (save first):
 								<div style="margin-top: 2px;">
 								<input type="button" id="findDialog-findBtn" value="Find" />
 								<input type="button" id="findDialog-previewBtn" value="Preview Replace" />
@@ -261,13 +298,26 @@
 			<div id="tabs-dcs" class="tab">
 				<div class="editwrap" >
 					<div id="script-list" class="navbar" style="overflow:hidden">
-						<div class="" style="height:28px; border:white solid; border-width:1px 1px 0 0; padding-top:4px; padding-left: 0px;">
-							<input id="dcsadd" type='button' value="Add" />
-							<input id="dcssort" type='button' value="Sort" />
-							<input id="dcsreindex" type='button' value="Reindex" />
-							<input id="dcsupdatemenu" type='button' value="Re-Menu" title="Refresh context menu"/>
+						<div class="actions ui-widget-header ui-corner-all" style="">
+							<div id="dcstoolbar-1" class="">  <!--class="ui-widget-header ui-corner-all"-->
+								<!-- input id="dcsmultiselect" type='button' title="" style="width:26px;" / -->
+								<button id="dcsadd" value="+" title="Create a new content script."></button>
+								<button id="dcsdelete-allselected" value="-" title="Delete <font color='red'>ALL</font> selected scripts."></button>
+								<button id="dcsindexup" title="Move Up" ></button>
+								<button id="dcsreindex" value="IDX" title="Reset the display order of scripts in context menues with continuous numbers starting from 1 according to current order."  ></button>
+								<button id="dcssort"  value="Sort" style="display:none" ></button>
+								<button id="dcsregroup" value="ReG" title="Reset group of <font color='red'>ALL</font> selected scripts."  ></button>
+								<input id="dcsupdatemenu" type='button' value="Re-Menu" style="display:none" title="Refresh context menu" />
+							</div>
+							<div id="dcstoolbar-2" class="">  <!--class="ui-widget-header ui-corner-all"-->
+								<input type="checkbox" id="dcsmultiselect"/><label for="dcsmultiselect" title="Toggle multiple selection mode" ></label>
+								<button id="dcsrename" value="Ren" title="Rename current script in edit."  ></button>
+								<button id="dcsindexdown" title="Move Down" ></button>
+								<input id="dcsshownameortitle" type="checkbox"/><label for="dcsshownameortitle" title="Show title instead of name of scripts." >Title</label>
+								<input id="dcsgroupselected" type="checkbox"/><label for="dcsgroupselected" title="If group is selected, The move up/down will move all the scripts in this group." >Group</label>
+							</div>							
 						</div>
-						<div id='contentscript-menu' style='overflow:auto;min-width:200px; position:absolute; bottom:0; left:0; right:0; top: 30px;'>
+						<div id='contentscript-menu' style=''>
 						</div>
 					</div>
 					<div class="editorPanel">
@@ -284,22 +334,25 @@
 									<td>
 										<input id="dcsinclude" type="text" style="width:98%;" title="The names of one or more content scripts that should be loaded before this script.<br/>Can be multiple values seperated by commas." />
 									</td>
-									<td style="width:380px; text-align:right;">
-										Index: 
-										<input id="dcsindex" type="text" size="3" style="width:24px;" title="A number representing the display order in context menu" />
-										<input id="dcsindexup" type="button" title="Move Up" style="width:26px;" />
-										<input id="dcsindexdown" type="button" title="Move Down" style="width:26px;" />
-										<input id="dcsrename" type='button' value="Rename" />		
-										<input id="dcssave" type='button' value="Save [Ctrl+S]" />
-										<input id="dcsdelete" type='button' value="Delete" />
+									<td style="width:260px; text-align:right;">
+										<input tabindex="1" type='checkbox' id='importOnce'  />
+										<label for="importOnce" class="importOnceBtn" id="forImportOnce" style="height:21px;" 
+											title="Automatically check if this script is already loaded and load this script only once. If there are problems, try to turn on DEBUG mode or uncheck this option.<br/>
+											Note: This DOES NOT work for scripts injected as script node into DOM tree via such as #Message.injectContentScript method.">
+										Import Once</label>
+	
+										<input id="dcssave" class="saveBtn" type='button' value="Save" title="Save current script in edit."/>
+										<input id="dcsdelete" class="deleteBtn" type='button' value="Delete" title="Delete current script in edit." />
 									</td>
 								</tr></table>
 							</div>
 							<div class="toolbar" style="top:30px;" >	
 								<div style="display:inline-block;float:right;">
 									<select id="dcsgencodebytemplate" title="Choose a template to generate code. <br/>Code comment can be set omitted or not by changing 'Output Comments in Templates' switch in Options tab.">
-										<option value="">Code Template</option>
+										<option value="">Template</option>
 									</select>
+									Index: 
+									<input id="dcsindex" type="text" size="3" style="width:24px;" title="A number representing the display order in context menu" />
 									<input class="findReplaceDialogBtn" type="button" value="Find and Replace" target="Content Scripts" />
 									<input type="button" value="+" class="textSizeUpBtn" >
 									<span class='textsizeval'>11px</span>
@@ -314,12 +367,18 @@
 							<div class="tabs" style="">
 								<ul>
 									<li><a href="#tabs-dcs1">JavaScript</a></li>
-									<li id="tabs-metadata"><a href="#tabs-dcs2">MetaData (Global) </a></li>
+									<li id="tabs-metadata" title="Global, not specific to certain content scripts."><a href="#tabs-dcs2">MetaData</a></li>
+									<div class="forward-backward">
+										<button id="dcsBackwardBtn" title="Previous content script"></button>
+										<button id="dcsForwardBtn" title="Next content script"></button>
+										<button id="dcsRecallScriptBtn" title="Recall last script"></button>
+									</div>
 								</ul>
 								<div id="tabs-dcs1" class="tab">
 									<div id="editorwrap" class="editwrap" >
-										<textarea id='dyscriptedit'></textarea>
+												<textarea id='dyscriptedit'></textarea>
 									</div>
+									
 								</div>
 								<div id="tabs-dcs2" class="tab">
 									<div id="editorwrap2" class="editwrap" >
@@ -346,9 +405,14 @@
 				<div class="editwrap" >
 					<div class="editorPanel">
 						<div id="settings-global">
-							<h2>Options</h2>
-							<p>Refresh page to make settings effective.</p><hr/>
-							<table class="localstorage_block">								
+							<h2 title="Refresh page to make settings effective in this page.">Options</h2>
+							<table class="localstorage_block">	
+								<tr class="" >
+									<td colspan="4"><h3>Keyboard Shortcut Setting</h3></td>
+								<tr>							
+								<tr class="" >
+									<td colspan="4" title="Copy this link and paste it in the address bar and press enter.">Goto: chrome://extensions/configureCommands</td>
+								<tr>	
 								<tr class="togglePanel" target=".settings-theme" >
 									<td colspan="4"><h3>Theme …</h3></td>
 								<tr>
@@ -362,7 +426,7 @@
 									</select>
 									</td>
 									<td><input type="button" class="localstorage_saveitem" target="$setting.theme_day" value="Save" /></td>
-									<td><input type="button" class="localstorage_resetitem" target="$setting.theme_day" value="Default" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.theme_day" value="Set to Default" /></td>
 								<tr>
 								<tr class="localstorage_item settings-theme hide">
 									<td>Night Theme in Automatic Mode</td>
@@ -374,7 +438,7 @@
 									</select>
 									</td>
 									<td><input type="button" class="localstorage_saveitem" target="$setting.theme_night" value="Save" /></td>
-									<td><input type="button" class="localstorage_resetitem" target="$setting.theme_night" value="Default" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.theme_night" value="Set to Default" /></td>
 								<tr>
 								<tr class="localstorage_item settings-theme hide">
 									<td title="Start time of night in format of hh:mm, e.g. 18:30">
@@ -400,6 +464,18 @@
 									<td><input type="text" class="localstorage_itemvalue" target="$setting.popupwindow_genUIPanelMaxHeight" defaultvalue="164" value="164" size="9" /></td>
 									<td><input type="button" class="localstorage_saveitem" target="$setting.popupwindow_genUIPanelMaxHeight" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.popupwindow_genUIPanelMaxHeight" value="Set to Default" /></td>
+								<tr>
+								<tr class="localstorage_item">
+									<td title="The height of the popup window when it is displayed as a pinned window.">
+									Height of Pinned Popup Window</td>
+									<td><input list="pinnedPopupHeight" class="localstorage_itemvalue" target="$setting.popupwindow_pinnedWindowHeight" defaultvalue="632" value="632" size="9" />
+											<datalist id="pinnedPopupHeight">
+												<option value="632">Default Height</option>
+												<option value="100%">Height of Window</option>
+											</datalist>
+									</td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.popupwindow_pinnedWindowHeight" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.popupwindow_pinnedWindowHeight" value="Set to Default" /></td>
 								<tr>
 								<tr class="localstorage_item">
 									<td title="The max height of the panel which contains buttons generated by meta data. The scrollbar will appear if the content is too much.">
@@ -441,6 +517,20 @@
 									<td><input type="button" class="localstorage_saveitem" target="$setting.sitescripts_showMainScript" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.sitescripts_showMainScript" value="Set to Default" /></td>
 								<tr>
+								<tr class="localstorage_item">
+									<td title="Fold all functions when opening a site script.">
+									Fold Functions to Depth</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.outline_foldFunctionDepth_ss" defaultvalue="2" value="2" size="9" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.outline_foldFunctionDepth_ss" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.outline_foldFunctionDepth_ss" value="Set to Default" /></td>
+								<tr>
+								<tr class="localstorage_item">
+									<td title="The Depth at which all regions is folded when a site script is loaded. 0 is the top level.">
+									Fold Regions to Depth</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.outline_foldRegionDepth_ss" defaultvalue="-1" value="-1" size="9" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.outline_foldRegionDepth_ss" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.outline_foldRegionDepth_ss" value="Set to Default" /></td>
+								<tr>
 								
 								<tr>
 									<td colspan="4"><h3>Dynamic Content Scripts</h3></td>
@@ -456,10 +546,64 @@
 									<td><input type="button" class="localstorage_saveitem" target="$setting.contentcripts_generateComments" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.contentcripts_generateComments" value="Set to Default" /></td>
 								<tr>
+								<tr class="localstorage_item">
+									<td title="Fold all functions when opening a content script.">
+									Fold Functions to Depth</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.outline_foldFunctionDepth_cs" defaultvalue="1" value="1" size="9" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.outline_foldFunctionDepth_cs" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.outline_foldFunctionDepth_cs" value="Set to Default" /></td>
+								<tr>
+								<tr class="localstorage_item">
+									<td title="The Depth at which all regions is folded when a content script is loaded. 0 is the top level.">
+									Fold Regions to Depth</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.outline_foldRegionDepth_cs" defaultvalue="1" value="1" size="9" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.outline_foldRegionDepth_cs" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.outline_foldRegionDepth_cs" value="Set to Default" /></td>
+								<tr>
+								
+								<tr>
+									<td colspan="4"><h3>Script Editor</h3></td>
+								<tr>
+								<tr class="localstorage_item">
+									<td title="Width in pixels of the function list view in the script editor.">
+									Function List View - Width</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.cmeditor_rightcolumnWidth" defaultvalue="150" value="150" size="9" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.cmeditor_rightcolumnWidth" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.cmeditor_rightcolumnWidth" value="Set to Default" /></td>
+								<tr>
+								<tr class="localstorage_item">
+									<td title="Show anonymous functions in the function list view.">
+									Function List View - Show Anonymous Functions</td>
+									<td>
+									<span class="localstorage_itemvalue" target="$setting.outline_showAnonymousFunctions" defaultvalue="false" >
+										<input type="radio" value="false" name="$setting.outline_showAnonymousFunctions" /><span class="option">No</span>
+										<input type="radio" value="true" name="$setting.outline_showAnonymousFunctions" /><span class="option">Yes</span>
+									<span></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.outline_showAnonymousFunctions" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.outline_showAnonymousFunctions" value="Set to Default" /></td>
+								<tr>
+								<tr class="localstorage_item">
+									<td title="Max hint count in Javascript Editor. If the the number of hints, including errors and warnings, in a script exceed this value, the hinting function will stop. <br/>If you want to change the setting for individual script, add the following comment at the beginning of the file: <br/>/*jshint maxerr: 10000 */">
+									JS Syntax Check - Max Hint Count</td>
+									<td><input type="text" class="localstorage_itemvalue" target="$setting.cmeditor_jshint_maxerr" defaultvalue="200" value="100" size="9" /></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.cmeditor_jshint_maxerr" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.cmeditor_jshint_maxerr" value="Set to Default" /></td>
+								<tr>
 								
 								<tr>
 									<td colspan="4" class="togglePanel" target=".settings-msgbox" title="Click to toggle display">
 									<h3>Build-in Scripts - Message Box ...</h3></td>
+								<tr>
+								<tr class="localstorage_item"> <!-- Do not hide this option, so class "settings-msgbox hide" is omitted -->
+									<td title="Output stack trace of script that invokes msgbox.log or msgbox.show function in console.">
+									Log invoker script and line in console</td>
+									<td>
+									<span class="localstorage_itemvalue" target="$setting.builtin_msgboxShowStacktrace" defaultvalue="false" >
+										<input type="radio" value="false" name="$setting.builtin_msgboxShowStacktrace" /><span class="option">No</span>
+										<input type="radio" value="true" name="$setting.builtin_msgboxShowStacktrace" /><span class="option">Yes</span>
+									<span></td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_msgboxShowStacktrace" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_msgboxShowStacktrace" value="Set to Default" /></td>
 								<tr>
 								<tr class="localstorage_item settings-msgbox hide">
 									<td title='Disaply time in milliseconds of the message box shown by calling log (assigned by require("msgbox")) function in content scripts.'>
@@ -495,7 +639,7 @@
 								<tr class="localstorage_item settings-msgbox hide">
 									<td title='The backgound color of the message box shown by calling log (assigned by require("msgbox")) function in content scripts.'>
 									Background Color</td>
-									<td><input type="text" class="localstorage_itemvalue color" target="$setting.builtin_msgboxBgColor" defaultvalue="#F7DF1D" value="#F7DF1D" size="9" /></td>
+									<td><input type="text" class="localstorage_itemvalue jscolor" target="$setting.builtin_msgboxBgColor" defaultvalue="#F7DF1D" value="#F7DF1D" size="9" /></td>
 									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_msgboxBgColor" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_msgboxBgColor" value="Set to Default" /></td>
 								<tr>
@@ -503,7 +647,7 @@
 									<td title='Extra CSS style of the message box shown by calling log (assigned by require("msgbox")) function in content scripts.'>
 									Extra Styles</td>
 									<td><textarea class="localstorage_itemvalue" target="$setting.builtin_msgboxExtraStyles" defaultvalue="border:1px solid #937B13;" style="min-width:175px;" >border:1px solid #937B13;</textarea>
-									<br/>Color chooser <input type="text" class="color" value="#937B13" size="8" />
+									<br/>Color chooser <input type="text" class="jscolor" value="#937B13" size="8" />
 									</td>
 									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_msgboxExtraStyles" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_msgboxExtraStyles" value="Set to Default" /></td>
@@ -523,10 +667,51 @@
 								<tr class="localstorage_item settings-selectbox hide">
 									<td title='CSS color value of the edge of selection box shown in webpage when Choose DOM Node buttons are clicked in popup window.'>
 									Edge Color</td>
-									<td><input type="text" class="localstorage_itemvalue color" target="$setting.builtin_selectionboxEdgeColor" defaultvalue="#65F166" value="#65F166" size="9" /></td>
+									<td><input type="text" class="localstorage_itemvalue jscolor {hash:true}" target="$setting.builtin_selectionboxEdgeColor" defaultvalue="#65F166" value="#65F166" size="9" /></td>
 									<td><input type="button" class="localstorage_saveitem" target="$setting.builtin_selectionboxEdgeColor" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.builtin_selectionboxEdgeColor" value="Set to Default" /></td>
 								<tr>
+								
+								<tr>
+									<td colspan="4" class="" target="">
+									<h3>Backup and Restore</h3></td>
+								<tr>
+								<tr class="localstorage_item ">
+									<td title="Decide if the created backup JSON text is friendly for human-reading. A readable backup is properly indented and thus more human-friendly for reading but it takes more space in storage.">
+									Create reading-friendly backups</td>
+									<td>
+									<span class="localstorage_itemvalue" target="$setting.backup-readable" defaultvalue="false" >
+										<input type="radio" value="false" name="$setting.backup-readable" /><span class="option">No</span>
+										<input type="radio" value="true" name="$setting.backup-readable" /><span class="option">Yes</span>
+									<span>
+									</td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.backup-readable" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.backup-readable" value="Set to Default" /></td>
+								<tr>
+								<tr class="localstorage_item ">
+									<td title="Backup all the scripts and settings to cloud when saving any scripts in the option page.">
+									Backup to cloud when saving scripts</td>
+									<td>
+									<span class="localstorage_itemvalue" target="$setting.backup-backtocloudonsaving" defaultvalue="true" >
+										<input type="radio" value="false" name="$setting.backup-backtocloudonsaving" /><span class="option">No</span>
+										<input type="radio" value="true" name="$setting.backup-backtocloudonsaving" /><span class="option">Yes</span>
+									<span>
+									</td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.backup-backtocloudonsaving" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.backup-backtocloudonsaving" value="Set to Default" /></td>
+								<tr>
+								<!--tr class="localstorage_item ">
+									<td title="Refresh this page when the <b>Save All</b> or <b>All Set to Default</b> button is clicked.">
+									Refresh Page On Change All Options</td>
+									<td>
+									<span class="localstorage_itemvalue" target="$setting.misc_refreshOnSaveAllOptions" defaultvalue="true" >
+										<input type="radio" value="true" name="$setting.misc_refreshOnSaveAllOptions" /><span class="option">Yes</span>
+										<input type="radio" value="false" name="$setting.misc_refreshOnSaveAllOptions" /><span class="option">No</span>
+									<span>
+									</td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.misc_refreshOnSaveAllOptions" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.misc_refreshOnSaveAllOptions" value="Set to Default" /></td>
+								<tr-->
 								
 								<tr>
 									<td colspan="4" class="" target="">
@@ -585,6 +770,23 @@
 									<td><input type="button" class="localstorage_saveitem" target="$setting.DEBUG_runbuttoncode" value="Save" /></td>
 									<td><input type="button" class="localstorage_resetitem" target="$setting.DEBUG_runbuttoncode" value="Set to Default" /></td>
 								<tr>
+								
+								<tr>
+									<td colspan="4" class="togglePanel" target=".devmode">
+									<h3>DEV MODE</h3></td>
+								<tr>								
+								<tr class="localstorage_item devmode hide">
+									<td title="DO NOT SWITCH ON THIS MDOE!!! It is only for development of JavaScript Tricks .">
+									DEV MODE</td>
+									<td>
+									<span class="localstorage_itemvalue" target="$setting.DEVMODE" defaultvalue="false" >
+										<input type="radio" value="false" name="$setting.DEVMODE" /><div class="option">No</div>
+										<input type="radio" value="true" name="$setting.DEVMODE" /><div class="option">Yes</div>
+									<span>
+									</td>
+									<td><input type="button" class="localstorage_saveitem" target="$setting.DEVMODE" value="Save" /></td>
+									<td><input type="button" class="localstorage_resetitem" target="$setting.DEVMODE" value="Set to Default" /></td>
+								<tr>
 								<!--
 								<tr class="localstorage_item">
 									<td>Popup window width</td>
@@ -609,7 +811,7 @@
 										<input type="button" class="localstorage_saveall" value="Save All" />
 										<input type="button" class="localstorage_resetall" value="All Set to Default" />
 										<div style="display:inline-block; width: 35px;"></div>
-										<input type="button" id="removeTempSettingsBtn" value="Remove Temporary Settings" />
+										<input type="button" id="removeTempSettingsBtn" value="Remove Temporary Settings" class="hide"/>
 									</td>
 								</tr>
 							</table>
@@ -623,7 +825,7 @@
 					<div id="settings-list" class="navbar">
 						<div style='overflow:auto;min-width:200px;clear:both;height:100%'>
 							<div class="jstbox settingKey selected" target="settings-default"><div class="jsttitle">Backup and Restore</div></div>
-							<div class="jstbox settingKey" target="settings-json-viewer"><div class="jsttitle">JSON Viewer</div></div>
+							<div class="jstbox settingKey" target="settings-json-viewer"><div class="jsttitle">JSON Inspector</div></div>
 							<div class="jstbox settingKey" target="settings-manual"><div class="jsttitle">User Manual</div></div>
 							<div class="jstbox settingKey" target="settings-about"><div class="jsttitle">About</div></div>
 						</div>
@@ -631,7 +833,7 @@
 					<div class="editorPanel">
 						<div id="settings-default" class="settingPanel">
 							<h2>Cloud Storage Backup and Restore</h2>
-							<input class="cloudbackup" type="button" value="Backup" />
+							<input class="cloudbackup" type="button" value="Backup"  title="Backup all scripts and configurations <b>excluding</b> cloud storage tokens."/>
 							<input class="cloudrestore" type="button" value="Restore" /><br/><br/>
 							Settings to be load: 
 							<input id="cloudrestore-key" type="text" class="localstorage_itemvalue" target="$setting.cloud-lastsave" value="" size="20" />
@@ -671,7 +873,18 @@
 							</tr>
 							<tr>
 								<td></td>
-								<td><input id="cloudsave-savesettings" class="localstorage_saveall" type="button" value="Save" /></td>
+								<td>
+								<input id="cloudsave-savesettings" class="localstorage_saveall" type="button" value="Save" />
+								<input id="cloudsave-backuptokens" class="" type="button" value="Backup Tokens Locally" />
+								<a id="__UI_dialog__link_cloud_setting" download="cloudtokens.json" title="Click to download the backup file cloudtokens.json." style="display:none;position:relative;top:5px">Download</a>
+								</td>
+							</tr>
+							<tr>
+								<td></td>
+								<td>
+								<input id="cloudsave-restoretokens" class="" type="button" value="Restore Tokens" />
+								<input id="__LocalStorageFP_cloudtokens" type="file" title="Please select the backup token file to restore" style="width:150px"/>
+								</td>
 							</tr>
 							</table>
 							
@@ -679,16 +892,16 @@
 							<div class="hide cloud-deployment" style="">
 								<p> The cloud storage system is a simple PHP application with only one php file. </p>
 								<p>Step 1. Create your passphrase and generate a Key-IV.</p>
-								<p>Step 2. Create a php file whose content can be fetch by clicking the "Show cloud save source" button below.</p>
-								<p>Step 3. Replace the variable value accordingly with php hosting setting and values got in step 1.</p>
-								<p>Step 4. Check if mcrypt is supported with phpinfo(). If not supported, install php5-mcrypt with "apt-get install" or "yum install"</p>
-								<p>Step 5. Deploy the php to your own php web server or php web hosting server.</p>
+								<p>Step 2. Create a <a href="cloudsave.php" target="_blank">php file</a> and replace the variable value accordingly with php hosting setting and values got in step 1.</p>
+								<p>Step 3. Check if mcrypt is supported with phpinfo(). If not supported, install php5-mcrypt with "apt-get install" or "yum install"</p>
+								<p>Step 4. Deploy the php to your own php web server or php web hosting server.</p>
+								<p>Step 5. (Optional) Enable gzip/deflate compression on your web hosting server if the network access speed from your computer to your server is not fast. One feasible choice on Apache (version >= 1.3) is adding the content in <a href="cloudsave.htaccess" target="_blank">this file</a> to your .htaccess file under the directory in which your php file is deployed.</p>
 								<input id="show-cloudsave-src" type="button" value="Show cloud save source" />
 							</div>
 							<hr/>
 							
 							<h2>Local Storage Backup and Restore</h2>
-							<input type="button" id="backupbtn" value="Backup" style='height:25px' />
+							<input type="button" id="backupbtn" value="Backup" style='height:25px' title="Backup all scripts and configurations including cloud storage tokens." />
 							<a id="__UI_dialog__link" download="backup.json" title="Click to download the backup file." style="display:none;position:relative;top:5px">Download</a>
 							<br/>
 							Local storage backup file:
@@ -698,35 +911,60 @@
 							
 							<h2>Restore with default settings</h2>
 							<input type="button" id="loadDftSettingsBtn" value="Load Default Settings" style='height:25px' />
+							<input type="button" id="rebuildScriptIndexesBtn" value="Rebuild Script Indexes" style='height:25px' />
 							<br/>
 							<hr/>
 							
-							<div class="hide0">
+							<h2>Data Store</h2>
+							<input type="button" id="loadScriptsLStoDBBtn" value="Migrate Old -> New" style='height:25px' />
+							<input class="hide" type="button" id="loadScriptsDBtoLSBtn" value="Migrate New -> Old" style='height:25px' />
+							<input type="button" id="reportStorageUsageDbBtn" value="Report Usage" style='height:25px' />
+							<br/>
+							<hr/>
+							
+							<div class="devmode">
 								<h2>Generate Initial Settings (only for development use)</h2>
 								<input type="button" id="genInitSettingbtn" value="Generate" style='height:25px' />
 								<a id="__UI_dialog__link_init_setting" download="init_settings.json" title="Click to download and view the init_settings.json file." style="display:none;position:relative;top:5px">Download and View</a>
+								<input type="button" id="clearDbBtn" value="Clear Database" style='height:25px' />
 							</div>
 						</div>
 						<div id="settings-json-viewer" class="settingPanel">
-							<h3>JSON Viewer</h3><hr/>
-							<input id="jsonFileLoad" type="button" value="Load" />
+							<h3>JSON Inspector</h3><hr/>
+							<input id="jsonFileUpdate" type="button" value="Update & Format JSON Object" title="Update the JSON object for inspection. <br/>The JSON text in the editor will be formatted to a more reading-friendly format." />
+							<input id="jsonLoadLocalStorage" class="devmode" type="button" value="Load LocalStorage" />
+							&nbsp;&nbsp;
+							<input id="jsonFileLoad" type="button" value="Load File" title="Load a JSON file for object inspection" />
 							<input id="jsonFilePath" type="file"/>
-							<br/>Show script for:
-							<input id="jsonObjPath" type="text" size="30" value="Default" />
-							<input id="jsonObjExtract" type="button" value="Extract" />
+							<br/>
+							<input id="jsonObjExtract" type="button" value="Extract Attribute" title="Extract the property from the inspected JSON object. If the property path ends with ':formatted' and the property value is a JSON string, then it will be properly indented."/>
+							<input id="jsonObjPath" type="text" list="recentObjPaths" size="80" value="" />
+							<datalist id="recentObjPaths" class="localstorage_itemvalue" target="$setting.temp-recentObjPaths">
+								<option value=".props"></option>
+								<option value=".props['contextMenu-index']:formatted"></option>
+								<option value=".assetStorage['dss-Default']"></option>
+							</datalist>
 							<hr/>
 							<div id="json-viewer-tabs">
 							  <ul>
 								<li><a href="#json-viewer-tabs-1">JSON File</a></li>
-								<li><a href="#json-viewer-tabs-2">Javascript</a></li>
+								<li><a href="#json-viewer-tabs-2">Property Value</a></li>
 							  </ul>
 							  <div id="json-viewer-tabs-1">
 							  	<textarea id="json-file"></textarea>
-							  	<div id="json-viewer-site-list" style="overflow:auto"></div>
 							  </div>
 							  <div id="json-viewer-tabs-2">
 							  	<textarea id="json-file-obj"></textarea>
 							  </div>
+							</div>
+							<div class="json-viewer-right-panel">
+								<span>Attributes</span> 
+								<span style="float:right;" title="Switch to the property value tab when extracting a property from the JSON object.">
+									Switch Tab 
+									<input type="checkbox" id="json-viewer-switch-tab" checked style="margin:0; top:0;"></input>
+								</span>
+								<span style="clear:both;"></span>
+								<div id="json-viewer-site-list"></div>
 							</div>
 						</div>
 						<div id="settings-manual" class="settingPanel">
@@ -747,7 +985,7 @@
 							to let me know.</p>
 							<p>
 							Several months ago, I searched the chrome web store and found <b>JScript Tricks</b> is very 
-							close to what I want, so I download it and start to use it. But later, I found that some necessary features are lacking , such as 
+							close to what I want, so I download it and start to use it. Later however, I found that some necessary features are lacking , such as 
 							configuration backup and restore, but Szamil does not update it any more. As a result, I start this project to 
 							extend the original JScript Tricks.
 							

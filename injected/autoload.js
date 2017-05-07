@@ -16,12 +16,16 @@ function createAutoload() {
     this.INFO = null;
     this.debug = null;
     this.onInitedListeners = [];
+    this.onInitPrerenderedPage = [];
     
     var url = location.href;
     var domain_ = url ? url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/) : "";
 		this.domain = domain_ ? domain_[1] : undefined;
 		this.siteStatus = null;
 		this.siteStatusCode = 0;
+		this.pluginStatus = false;
+		
+		this.messages = [];
   }
 
   Autoload.prototype.addOnInitedListener = function(listener) { 
@@ -33,6 +37,12 @@ function createAutoload() {
     }
   };
 
+  Autoload.prototype.addOnInitPrerenderedPage = function(listener) { 
+    var self = this;
+         
+    self.onInitPrerenderedPage.push(listener);
+  };
+
   Autoload.prototype.run = function() {
     var self = this;    
     if (self.loaded)
@@ -40,22 +50,80 @@ function createAutoload() {
       
     self.loaded = true;
     
-    chrome.storage.local.get(["enabled", "INFO", "iconStatus"], function(storage) { 
+    self.ports = [];
+    // Port between content page and Pinned Popup window
+    var wrappedPort = {
+      postMessage: function(msg) {
+        var iframe = document.getElementById("JST-POPUP-PINNED");
+        if (iframe)
+          iframe.contentWindow.postMessage(msg, "*");
+      }
+    };
+    window.addEventListener("message", function(event) {
+      // console.log("Received Message in autoload", event);
+      if (event.data.method === "CallContentScriptMethod") {
+        // Process function call request sent by delegate object defined in the content script page.
+        // for plugin scripts that run in the top frame. 
+        // The sending request code is in injected.js
+        self.callMethodInDelegatedObject(event.data.obj, event.data.func, event.data.args);
+      } else {
+        self.respondToMessage(wrappedPort, event.data);
+      }
+    }, false);
+    self.ports.push(wrappedPort);
+    
+    // Port between content page and Popup window
+    chrome.runtime.onConnect.addListener(function(port) {
+      console.log("Connected to", port.name);
+      
+      self.ports.push(port);
+      port.onMessage.addListener(function(msg) {
+        self.respondToMessage(port, msg);
+      });
+      port.onDisconnect.addListener(function(port) {
+        // DEBUG: remove the port from the self.ports
+        console.log("Disconnected with", port.name);
+        self.ports.removeElement(port);
+      });
+    });
+    
+    chrome.storage.local.get(["enabled", "INFO", "siteIndex"], function(storage) { 
       if (chrome.runtime.lastError)
         chrome.error("Cannot get object from chrome local storage.");
       
       self.storage = storage;
+      self.enabled = storage.enabled;
       self.INFO = storage.INFO;
       self.debug = storage.INFO.debug;
+      
+      if (!self.enabled) {
+        return;
+      }
   
       if (!window.INFO) { 
-        window.INFO = storage.INFO; 
+        window.INFO = storage.INFO;
+        // Inject INFO to the top frame
+        var infojson = encodeURIComponent(JSON.stringify(storage.INFO));
+        var infocode = `
+            var INFO_cb8e4309_b9cf_44ad_95d1_b570a913ccd9 = JSON.parse(decodeURIComponent("${infojson}"));
+            //# sourceURL=chrome-extension://${chrome.runtime.id}/dynamic/setInfoInTopFrame.js
+        `;
+        infocode = "data:text/javascript;charset=UTF-8," + encodeURIComponent(infocode);
+        InjectCodeToOriginalSpace(infocode, null, null);
       }
     
       if (self.debug) {
         console.log("Object in storage", storage);
       }
-       
+      
+      // Apply theme for injected UI components.
+      // Corresponding CSS should be injected as configured in manifest.json, like
+      //     "css": ["css/jquery-ui.structure.css", "css/theme/jqueryui/jquery-ui.theme-light.css"], 
+      window.onload = function() {
+        setTheme("light");
+      }
+      
+      // Prepare loading scripts 
       prepare(self, storage);
     });
   };
@@ -70,9 +138,50 @@ function createAutoload() {
     }
     
     if (iconStatus === "unchanged")
-      return;
+      return;    
     
+    INFO.iconStatus = iconStatus;
     sendMessage({method:"SetIcon", data:iconStatus});
+  };
+  
+  Autoload.prototype.initPrerenderedPage = function () {
+    sendMessage({method:"SetIcon", data:INFO.iconStatus});
+    msgbox.log("reset icon", INFO.iconStatus);
+    
+    callListeners(this, this.onInitPrerenderedPage, this.storage)
+  };
+
+  // msg should be like {type:"log", msg:text}
+  Autoload.prototype.notifyMessage = function (msg) {
+    var now = new Date();
+    msg.timeInt = now.getTime();
+    msg.time = now.Format("hh:mm:ss.S"); //"yyyy-M-d h:m:s.S"
+    this.messages.push(msg);
+    
+    this.ports.forEach(function(port) {
+      // CHECK if port is still connected.
+      // Send message to subscribers
+      port.postMessage({method:"Messages", data:[msg]});
+    });
+  };
+  
+  Autoload.prototype.respondToMessage = function (port, msg) {
+    if (msg.method == "GetAllMessages")
+      port.postMessage({method:"Messages", data:this.messages});
+    else if (msg.forwardToBG)
+      // forward the message to the background
+      sendMessage(msg);
+  };
+  
+  Autoload.prototype.callMethodInDelegatedObject = function (objName, funcName, args) {
+    var obj = window[objName];
+    var func = obj[funcName];
+    func.apply(obj, args);
+  };
+  
+  Autoload.prototype.loadContentScript = function (csName, initCode) {
+    chrome.runtime.sendMessage({method: "ExecuteContentScript", 
+          data: {name:csName, initCode:initCode} });
   };
   
   function prepare(self, storage) { 
@@ -81,7 +190,7 @@ function createAutoload() {
     setupSeajs(self);
     startLoading(self);
     
-    callListeners(self, storage);
+    callListeners(self, self.onInitedListeners, storage);
   }
   
   function setupSeajs(self) {    
@@ -111,9 +220,12 @@ function createAutoload() {
     }
   }
   
-  function callListeners(self, storage) {
-    for (var i = 0; i < self.onInitedListeners.length; ++ i) {
-      var listener = self.onInitedListeners[i];
+  function callListeners(self, listeners, storage) {    
+    if (!self.enabled) {
+      return;
+    }
+    for (var i = 0; i < listeners.length; ++ i) {
+      var listener = listeners[i];
       callListner(self, listener);
     }
   }
@@ -134,7 +246,7 @@ function createAutoload() {
     if (!self.storage.enabled) {
       console.log("[Javascript Tricks is disabled.]");
     }
-    else if (self.siteStatusCode > 2) {
+    else if (self.siteStatusCode >= 2) {
       console.log("autoload.js starts loading scripts.");
       sendMessage({method: "JSTinjectScript"});
     }
@@ -143,34 +255,39 @@ function createAutoload() {
   function getSiteStatus(self) {
     if (self.siteStatus)
       return self.siteStatus;
-      
-    var iconStatus = self.storage.iconStatus;
-    var defaultEnabled = iconStatus.defaultEnabled;
-    var activeSites = iconStatus.activeSites;			
-    var inactiveSites = iconStatus.inactiveSites;
-    var siteStatus, active = arrayContains(activeSites, self.domain), 
-        inactive = arrayContains(inactiveSites, self.domain);
+    
+    var allScripts = self.storage.siteIndex;
+    var siteOption = allScripts[self.domain];
+    var defaultEnabled = allScripts["Default"].active;
+   // console.log(allScripts, siteOption, defaultEnabled);
   
     if (!self.storage.enabled) {
       self.siteStatus = "disabled";
       self.siteStatusCode = 0;
-    } else if (defaultEnabled) {
-      if (active) {
-        self.siteStatus = "default+active";
-      self.siteStatusCode = 5;
-      } else {
+    } else if (!siteOption) {
+      if (defaultEnabled) {
         self.siteStatus = "default";
-      self.siteStatusCode = 3;
+        self.siteStatusCode = 2;
+      } else {
+        self.siteStatus = "none";
+        self.siteStatusCode = 1;
       }
-    } else if (active) {
-      self.siteStatus = "active";
-      self.siteStatusCode = 4;
-    } else if (inactive) {
-      self.siteStatus = "inactive";
-      self.siteStatusCode = 2;
+    } else if (!siteOption.active) {
+      if (defaultEnabled) {
+        self.siteStatus = "default+inactive";
+        self.siteStatusCode = 4;
+      } else {
+        self.siteStatus = "inactive";
+        self.siteStatusCode = 3;
+      }
     } else {
-      self.siteStatus = "none";
-      self.siteStatusCode = 1;
+      if (defaultEnabled) {
+        self.siteStatus = "default+active";
+        self.siteStatusCode = 6;
+      } else {
+        self.siteStatus = "active";
+        self.siteStatusCode = 5;
+      }
     }
       
     return self.siteStatus;
@@ -178,11 +295,12 @@ function createAutoload() {
   
   function getIconStatus(self) {
     var siteStatus = getSiteStatus(self);
+    var pluginStatus = self.pluginStatus ? "+plugin" : "";
     
-    if (!self.storage.enabled || siteStatus == "none" )  
+    if (!self.pluginStatus && (!self.storage.enabled || siteStatus == "none") )  
       return "unchanged";
     else
-      return siteStatus;
+      return siteStatus + pluginStatus;
   }
   
   function sendMessage(msg) {

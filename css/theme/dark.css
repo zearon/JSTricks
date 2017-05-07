@@ -1,7 +1,9 @@
 /* Global Styles */
 html body.theme-dark { background:#0f0f0f; color:#eeeeee; }
-
-
+.theme-dark table.table-grids {background-color:#eeeeee;}
+.theme-dark table.table-grids td {background-color:#0f0f0f;}
+.theme-dark a, body.theme-dark .ui-widget-content a { color: rgb(239, 239, 100) }
+.popupwindow .CodeMirror {border-color: #eeeeee;}
 /* Styles for options page */
 .theme-dark .ui-state-active > .ui-icon-close { background-position: -64px -144px; /* position of ui-icon-check*/}
 .theme-dark h1 { color:white; }
@@ -12,16 +14,23 @@ html body.theme-dark { background:#0f0f0f; color:#eeeeee; }
 	border-bottom:silver 1px solid;
 }
 .theme-dark .editorPanel { background:#555; }
+.theme-dark .editorPanel .ui-accordion-content,
+.theme-dark .editorPanel table.table-grids td { background:#323232; color:#eeeeee;}
 .theme-dark .jstbox {
 	border-bottom:1px solid rgba(0,0,0,0.2);
-	border-top:1px solid white;
+	border-top:1px solid #777777;
 	background:#555;
 	/*text-shadow:white 0 1px;		*/	
 	-webkit-transition: background-color 0.2s linear, margin 0.2s linear;
 }
-.theme-dark .jstbox:hover { background:  rgba(64,64,64,1); }
-.theme-dark .jstbox.selected { background: rgba(50,50,50,1); }
-.theme-dark .jstbox.autostart { background-image: url(img/autostart.png); background-repeat: no-repeat; }
+.theme-dark .jstbox:hover { background:  rgba(64,64,64,1); background-repeat: no-repeat; }
+.theme-dark .jstbox.selected { background: rgba(50,50,50,1); background-repeat: no-repeat; }
+.theme-dark .jstbox.siteScriptKey.autostart { background-image: url(img/autostart.png); }
+.theme-dark .jstbox.folder { background: rgba(70,70,70,1) url(img/folder-opened-white.gif) no-repeat left center; }
+.theme-dark .jstbox.folder.closed { background: rgba(70,70,70,1) url(img/folder-closed-white.gif) no-repeat left center; }
+.theme-dark .jstbox .include-icon { background-image: url(img/autostart.png); }
+.theme-dark .jstbox .plugin-icon { background-image: url(img/plugin.png); }
+.theme-dark .jstbox.top .plugin-icon { background-image: url(img/plugin-top.png); }
 .theme-dark #jstmessage {
 	background: #1C77FF;
 	box-shadow:rgba(0,0,0,0.4) 0 3px 10px;
@@ -31,87 +40,41 @@ html body.theme-dark { background:#0f0f0f; color:#eeeeee; }
 .theme-dark .jstmessage.ok { color:white; background:green;	}
 .theme-dark .jstmessage.error { color:white; background:red; }
 .theme-dark .hiddenFlag { color:#999; }
-.theme-dark #dcsindexup { 
-	/* -webkit-filter:invert(1); */ 
-	background: url('img/arrow_up_white.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868)); 
-}
-.theme-dark #dcsindexdown { 
-	/* -webkit-filter:invert(1); */
-	background: url('img/arrow_down_white.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868)); 
-}
+.theme-dark #dcsmultiselect .dcsmultiselect { 	background-image: url('img/check.png'); }
+
 
 /* Common styles for both options window and popup window */
-.theme-dark input[type=button] {
-	border:1px solid #bbbbbb;
-	color: #eeeeee;
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868));
-	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
-	text-shadow:rgba(255,255,255,0) 0 0px;
-}
-.theme-dark input[type=button]:hover,
-.theme-dark input[type=button]:focus {
-	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset,rgba(247,247,247,1) 0 0px 15px;
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#288eb2), color-stop(50%,#288eb2), color-stop(51%,#0078a3), color-stop(100%,#3a97b8));
-}
-.theme-dark input[type=button]:active {
-	box-shadow: rgba(0,0,0,0.2) 0 1px 2px inset,rgba(255,255,255,1) 0 -1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
-}
 .theme-dark div.tabs > ul li,
 .theme-dark #tabs > ul li,
-.theme-dark li.tab-title {
-	border:1px solid #666666;
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868));
+.theme-dark li.tab-title {	
+	border-top-left-radius: 6px;
+	border-top-right-radius: 6px;
 	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
 	text-shadow:rgba(255,255,255,0) 0 0;	
-	border-top-left-radius: 6px;
-	border-top-right-radius: 6px
+
+  /* copied from jquery-ui.theme-dark.css at line 51 */
+	border: 1px solid #666666;
+	background: #555555 url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAGQEAAAAAAao4lEAAAAAmJLR0T//xSrMc0AAAAJcEhZcwAAAEgAAABIAEbJaz4AAABGSURBVDjLY0j6wzCKRhHVUWgoQ+g9hnAhhohMhshHDNELGGJjGeJtGRJlGJJuMaRMZ0gzZkhfw5DxgCFzHUPmhVE0iohBAGPqARK5PBM1AAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTEyLTI3VDA3OjM1OjA0KzAwOjAw/xFyBAAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0xMi0yN1QwNzozNTowNCswMDowMI5MyrgAAAAASUVORK5CYII=") 50% 50% repeat-x;
+}
+.theme-dark div.tabs > ul li:hover,
+.theme-dark #tabs > ul li:hover,
+.theme-dark li.tab-title:hover {
+  /* copied from jquery-ui.theme-dark.css at line 66 */
+	border: 1px solid #59b4d4;
+	background: #0078a3 url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAGQEAIAAACwqkHPAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAlElEQVRIx+3PMQ4BURSF4Xv/+94Qq1BhB8wGlBINO5AwpXVQKSYRmT3oVWYFKlEoppxOo5hKwRaE4lZf8ScnOTJ4bvvHFSIiIo7jOM7XuXbq6SNF93rTHeFArRNCoKtrQsaMnJhaSUUysjMVsbCGNklhDS1iSklF/LSLbfREzJiTY+8xW+pY78hChtL7j9OO4zi/4wXRuCHqvShnYwAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0xMi0yN1QwNzozNTowNCswMDowMP8RcgQAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMTItMjdUMDc6MzU6MDQrMDA6MDCOTMq4AAAAAElFTkSuQmCC") 50% 50% repeat-x;
 }
 .theme-dark div.tabs > ul li.selected,
 .theme-dark #tabs > ul li.selected,
 .theme-dark li.tab-title.selected {
-	border:1px solid #ffaf0f;
-	background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f58400), /*color-stop(50%,#fce448), color-stop(51%,#f4d300), */color-stop(100%,#f7992c));
-	box-shadow: rgba(0,0,0,0) 0 -1px 2px inset,rgba(255,255,255,0) 0 1px 2px inset,rgba(255,255,255,0) 0 0px 15px;
+  /* copied from jquery-ui.theme-dark.css at line 88 */
+	border: 1px solid #ffaf0f;
+	background: #f58400 url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAABkEAIAAACY3hF0AAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAkklEQVQoz+2QsQnCUABE797XQhAigUhC0lokvWOIa/g7VzA4grNYZAgdIaUTpLeIxMpWG6vHcdwdnIbhfJaQpD8+Y6GjHnjpC1uUuvcNJe5o0dpzKpS654Yyz6hQ7oY4qhKV3ocrKlyHOHk5NRHnbsIB5a6JqHAT4tTyimfvhTtK3PmEEnW0aDWqoI13v37pu3gC674YHAAf+TYAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTUtMTItMjdUMDc6MzU6MDQrMDA6MDD/EXIEAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE1LTEyLTI3VDA3OjM1OjA0KzAwOjAwjkzKuAAAAABJRU5ErkJggg==") 50% 50% repeat-x;
 }
 
 
 /* Styles for popup window */
-.theme-dark #saveOptBtn {
-	background: url('img/icons_01.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868)); 
-}
-.theme-dark #laodCacheBtn {
-	background:   url('img/icons_02.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868)); 
-}
-.theme-dark #editInOptionPageBtn {
-	background:   url('img/icons_07.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868)); 
-}
-.theme-dark #runBtn {
-	background:   url('img/icons_03.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868)); 
-}
-.theme-dark #runSelectedBtn {
-	background:   url('img/icons_04_white.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868)); 
-}
-.theme-dark #deleteBtn {
-	background:   url('img/icons_05.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868)); 
-}
-.theme-dark #showInDialogBtn {
-	background:   url('img/icons_06.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868)); 
-}
-.theme-dark #enableDisableBtn.enable {
-	background:   url('img/enable.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868)); 
-}
-.theme-dark #enableDisableBtn.disable {
-	background:   url('img/disable.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868)); 
-}
-.theme-dark #optionsBtn {
-	background:   url('img/setting_lightblue.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#555555), color-stop(50%,#717171), color-stop(51%,#555555), color-stop(100%,#686868)); 
-}
-.theme-dark input[type=button].init-script-btn {
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#88c15c), /*color-stop(50%,#288eb2), color-stop(51%,#0078a3), */color-stop(100%,#4ca20b));
-}
-.theme-dark input[type=button].run-script-btn {
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#88c15c), /*color-stop(50%,#288eb2), color-stop(51%,#0078a3), */color-stop(100%,#4ca20b));
+.theme-dark #optionsBtn .img {
+	background:   url('img/setting_lightblue.png') no-repeat center; 
 }
 
 .theme-dark #title {
@@ -133,6 +96,11 @@ html body.theme-dark { background:#0f0f0f; color:#eeeeee; }
 }
 .theme-dark .CodeMirror-gutters {
     box-shadow: rgba(255,255,255,0.8) 2px 0 20px;
+}
+
+/* Styles for fold-gutter */
+.theme-dark .CodeMirror-foldgutter-folded:after {
+  color: #00FF03;
 }
 
 /* Styles for the selected text */

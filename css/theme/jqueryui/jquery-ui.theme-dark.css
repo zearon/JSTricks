@@ -15,7 +15,7 @@
 /* Component containers
 ----------------------------------*/
 .theme-dark .ui-widget {
-	font-family: Segoe UI,Arial,sans-serif;
+	font-family: Verdana,Arial,sans-serif;
 	font-size: 1.1em;
 }
 .theme-dark .ui-widget .ui-widget {
@@ -25,7 +25,7 @@
 .theme-dark .ui-widget select,
 .theme-dark .ui-widget textarea,
 .theme-dark .ui-widget button {
-	font-family: Segoe UI,Arial,sans-serif;
+	font-family: Verdana,Arial,sans-serif;
 	font-size: 1em;
 }
 .theme-dark .ui-widget-content {
@@ -51,9 +51,9 @@
 .theme-dark .ui-state-default,
 .theme-dark .ui-widget-content .ui-state-default,
 .theme-dark .ui-widget-header .ui-state-default {
-	border: 1px solid #666666;
+	border: 1px solid #777777;
 	background: #555555 url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAGQEAAAAAAao4lEAAAAAmJLR0T//xSrMc0AAAAJcEhZcwAAAEgAAABIAEbJaz4AAABGSURBVDjLY0j6wzCKRhHVUWgoQ+g9hnAhhohMhshHDNELGGJjGeJtGRJlGJJuMaRMZ0gzZkhfw5DxgCFzHUPmhVE0iohBAGPqARK5PBM1AAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTEyLTI3VDA3OjM1OjA0KzAwOjAw/xFyBAAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0xMi0yN1QwNzozNTowNCswMDowMI5MyrgAAAAASUVORK5CYII=") 50% 50% repeat-x;
-	font-weight: bold;
+	font-weight: normal;
 	color: #eeeeee;
 	text-shadow:rgba(255,255,255,0) 0 0px;
 }
@@ -71,7 +71,7 @@
 .theme-dark .ui-widget-header .ui-state-focus {
 	border: 1px solid #59b4d4;
 	background: #0078a3 url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAGQEAIAAACwqkHPAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAlElEQVRIx+3PMQ4BURSF4Xv/+94Qq1BhB8wGlBINO5AwpXVQKSYRmT3oVWYFKlEoppxOo5hKwRaE4lZf8ScnOTJ4bvvHFSIiIo7jOM7XuXbq6SNF93rTHeFArRNCoKtrQsaMnJhaSUUysjMVsbCGNklhDS1iSklF/LSLbfREzJiTY+8xW+pY78hChtL7j9OO4zi/4wXRuCHqvShnYwAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0xMi0yN1QwNzozNTowNCswMDowMP8RcgQAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMTItMjdUMDc6MzU6MDQrMDA6MDCOTMq4AAAAAElFTkSuQmCC") 50% 50% repeat-x;
-	font-weight: bold;
+	font-weight: normal;
 	color: #ffffff;
 }
 .theme-dark .ui-state-hover a,
@@ -90,7 +90,7 @@
 .theme-dark .ui-widget-header .ui-state-active {
 	border: 1px solid #ffaf0f;
 	background: #f58400 url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAABkEAIAAACY3hF0AAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAkklEQVQoz+2QsQnCUABE797XQhAigUhC0lokvWOIa/g7VzA4grNYZAgdIaUTpLeIxMpWG6vHcdwdnIbhfJaQpD8+Y6GjHnjpC1uUuvcNJe5o0dpzKpS654Yyz6hQ7oY4qhKV3ocrKlyHOHk5NRHnbsIB5a6JqHAT4tTyimfvhTtK3PmEEnW0aDWqoI13v37pu3gC674YHAAf+TYAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTUtMTItMjdUMDc6MzU6MDQrMDA6MDD/EXIEAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE1LTEyLTI3VDA3OjM1OjA0KzAwOjAwjkzKuAAAAABJRU5ErkJggg==") 50% 50% repeat-x;
-	font-weight: bold;
+	font-weight: normal;
 	color: #ffffff;
 }
 .theme-dark .ui-state-active a,
@@ -374,25 +374,25 @@
 .theme-dark .ui-corner-top,
 .theme-dark .ui-corner-left,
 .theme-dark .ui-corner-tl {
-	border-top-left-radius: 6px;
+	border-top-left-radius: 4px;
 }
 .theme-dark .ui-corner-all,
 .theme-dark .ui-corner-top,
 .theme-dark .ui-corner-right,
 .theme-dark .ui-corner-tr {
-	border-top-right-radius: 6px;
+	border-top-right-radius: 4px;
 }
 .theme-dark .ui-corner-all,
 .theme-dark .ui-corner-bottom,
 .theme-dark .ui-corner-left,
 .theme-dark .ui-corner-bl {
-	border-bottom-left-radius: 6px;
+	border-bottom-left-radius: 4px;
 }
 .theme-dark .ui-corner-all,
 .theme-dark .ui-corner-bottom,
 .theme-dark .ui-corner-right,
 .theme-dark .ui-corner-br {
-	border-bottom-right-radius: 6px;
+	border-bottom-right-radius: 4px;
 }
 
 /* Overlays */

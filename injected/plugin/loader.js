@@ -4,20 +4,31 @@
 // {
 //   ...
 //   "plugins": [
-//     {"conditions": [ {"url":["^regexp$"]} ], "action":{"script":"dfdf", "code":""} },
-//     {"conditions": [ {"selector":"#css_selector", "delay": 1000} ], "action":{"script":"efef", "code":""} }
-//   ],
+//     {"enabled":false, "index":0, "info":"Sample plugin for *.baidu.com",
+//     		"conditions": [ {"url":["\\.baidu\\.com"]} ], 
+//      		"action":{"script":"efef", "topFrame":true, "code":""} 
+//     },
+//     {"enabled":false, "index":1, "info":"Sample plugin for css selector",
+//      		"conditions": [ {"selector":"body.wiki-lemma.normal", "delay": 500} ], 
+//      		"action":{"script":"Plugins", "topFrame":false, "code":"plugins.test();"} 
+//     },
+//     {"enabled":true, "index":2, "info":"Adjust Height for Care-Your-Eyes extension",
+//      		"conditions": [ {"selector":"#cye-workaround-body", "delay": 500} ], 
+//      		"action":{"script":"Plugins", "topFrame":true, "code":"plugins.adjustHeightForEyesProtectExt(0);"} 
+//     }
+//  	],
 //   ...
 // }
 
 (function() {
-  var debug, settings;
+  var debug, settings, pluginLoaded = false; 
   autoload.addOnInitedListener(function(obj) {
     loadPlugins(obj.INFO.meta_data.plugins);
-  });
+  }); 
 
   function loadPlugins(plugins) {
     //console.log("plugins obj in storage", plugins);
+    var pluginLoaded = false;
     
     plugins.sort(function(p1, p2) {
       var index1 = p1.index ? p1.index : 0;
@@ -27,15 +38,15 @@
   
     for (var i = 0; i < plugins.length; ++ i) {
       var plugin = plugins[i];
+      var enabled = plugin.enabled !== false;
+      if (!enabled)
+        continue;
+      
       loadPlugin(plugin);
     }
   }
 
   function loadPlugin(plugin) {
-    var enabled = plugin.enabled !== false;
-    if (!enabled)
-      return;
-      
     var info = plugin.info;
     var conditions = plugin.conditions;
     var action = plugin.action;
@@ -61,6 +72,7 @@
       if (typeof condition.url === "string") {
         met = testUrlCondition(condition.url);
         if (met) {
+          action.conditionMet = condition;
           doAction(action);
           return true;
         } else {
@@ -74,6 +86,7 @@
           var url = condition.url[i];
           met = testUrlCondition(url);
           if (met) { 
+            action.conditionMet = condition;
             doAction(action);
             return true; 
           }
@@ -83,7 +96,10 @@
     }
     
     if (condition.selector) {
-      return testCssSelectorCondition(condition.selector, condition.delay, action);
+      window.addEventListener("load", function() {
+        testCssSelectorCondition(condition, action);
+      });
+      return false;
     }
     
     console.error("Unknown condition:", condition, "\nCondition should has a property 'url' or 'selector'. ");
@@ -94,19 +110,22 @@
     return regexp.test(location.href);
   }
   
-  function testCssSelectorCondition(selector, delay, action) {
-    delay = delay ? delay : 0;
+  function testCssSelectorCondition(condition, action) {
+    var delay = condition.delay ? condition.delay : 0;
     
     if (delay === 0) {
-      if (hasCssSelectorElement(selector)) {
+      if (hasCssSelectorElement(condition.selector)) {
+        action.conditionMet = condition;
         doAction(action);
         return true;
       }
+      return false;
     }
     
     else {
       setTimeout(function() {
-        if (action.notdone && hasCssSelectorElement(selector)) {
+        if (action.notdone && hasCssSelectorElement(condition.selector)) {
+          action.conditionMet = condition;
           doAction(action);
         }
       }, delay);
@@ -122,14 +141,83 @@
   }
 
   function doAction(action) {
-    if (action.info)
+    var script = action.script, code = action.code;     
+    if (!pluginLoaded) {
+      pluginLoaded = true;
+      autoload.pluginStatus = true;
+      autoload.setIcon();
+    }
+    if (action.info) {
       console.log("[Plugin Loader] " + action.info);
-    var script = action.script, code = action.code; var msgData = {name:script};
+      autoload.notifyMessage({type:"plugin", msg:action.info, script:script, 
+          code:code, conditionMet:action.conditionMet});
+    }
     if (debug)
       console.log("[Plugin Loader] Loading content script", action.script, "with code:", code);
-    
-    if (!!code) { msgData.extraCode = code; }
-    
+      
+    if (action.topFrame) {
+      addScriptNodeWithDataURI(script, code);
+    } else {
+      sendContentScriptLoadingRequest(script, code);
+    }
+  }
+  
+  function sendContentScriptLoadingRequest(scriptName, extraCode) {
+    var msgData = {name:scriptName};
+    if (!!extraCode) { msgData.extraCode = extraCode; }    
     chrome.runtime.sendMessage( {method:"ExecuteContentScript", data:msgData } );
   }
+  
+  function addScriptNodeWithDataURI(scriptName, extraCode) {
+    var scriptKeyName = "cs-" + scriptName;
+    chrome.storage.local.get([scriptKeyName], function(obj) {
+      var scriptObj = obj[scriptKeyName];
+      if (!scriptObj) {
+        console.error("Script", scriptName, "can not be found in cache (chrome.storage.local)");
+      } else {
+        var scriptCode = scriptObj.script;
+        var scriptSrc  = chrome.runtime.getURL("/dynamic/plugin/" + scriptName + ".plugin.js");
+        scriptCode += "\n\n//Extra code:\n" + extraCode + "\n//# sourceURL=" + scriptSrc;
+        var dataUri = "data:text/javascript;charset=UTF-8," + encodeURIComponent(scriptCode);
+        
+        // add this script node. InjectCodeToOriginalSpace is defined in dom.js, which is already injected
+        // as content script.
+        InjectCodeToOriginalSpace(dataUri, null, scriptSrc);
+      }
+    });
+  }
+	
+	/*
+	function injectEnvironment(callback) {	
+    function injectScriptsOneByOne(scripts, index) {
+      var script = scripts[index];
+      if (!script) {
+        if (callback) callback();
+        return;
+      }
+      
+      function callNextScript() {
+        injectScriptsOneByOne(scripts, index + 1);
+      }
+    
+      InjectCodeToOriginalSpace(script, callNextScript);
+    }
+    
+	  // Inject these scripts into the top frame of the target page.
+	  var code = `
+	      window.JSTricks_chromeExtId = "${chrome.runtime.id}";
+	      window.JSTricks_extUrlPrefix = "chrome-extension://${chrome.runtime.id}";
+	  `;
+	  var codeDataUri = "data:text/javascript;charset=UTF-8," + encodeURIComponent(code);
+	  var allScripts = [
+	                      codeDataUri, 
+	                      chrome.runtime.getURL("injected/dom.js"),
+	                      chrome.runtime.getURL("/js/common/commonext.js"),
+	                      chrome.runtime.getURL("/injected/sea-debug.js"),
+	                      chrome.runtime.getURL("/injected/seajs_boot.js")
+	                   ];
+	  injectScriptsOneByOne(allScripts, 0);
+	}*/
+  
+  
 }) ();

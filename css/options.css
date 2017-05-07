@@ -1,5 +1,19 @@
 
 		html,body{margin:0;padding:0;font-family:Verdana;height:100%;font-size: 75%;min-width:850px;}
+		#backupToolbar {
+		  display:block;
+		  margin-right:60px;
+		  float:right;
+		  position:relative;
+		  top:-25px;
+		}
+		#helpicon {
+		  display:inline-block;
+		  width: 24px;
+		  height: 24px;
+		  vertical-align: middle;
+		  background-image: url("theme/img/question_mark_icon.png");
+		}
 		.ui-widget-content {
 			background: #efefba;
 		}
@@ -27,6 +41,7 @@
 			width:600px;
 		}
 		.jstbox{
+		  position: relative;
 			border-bottom:1px solid rgba(0,0,0,0.2);
 			border-top:1px solid white;
 			background:#efefba;
@@ -35,8 +50,9 @@
 			/*text-shadow:white 0 1px;		*/	
 			-webkit-transition: background-color 0.2s linear, margin 0.2s linear;
 			overflow:hidden;
-			height: 30px;
+			height: 20px;
 		}
+		
 		.jstbox:hover
 		{
 			background:  rgba(247,223,29,0.5);
@@ -46,6 +62,13 @@
 			background: rgba(247,223,29,1) ;			
 			font-weight:900;
 		}
+		.jsttitle
+		{
+			font-size:11pt;			
+			line-height:20px;
+			float:left;
+		}
+		
 		.jstbox.selected:hover img.edit
 		{
 			visibility: visible;
@@ -58,12 +81,31 @@
 			background-repeat: no-repeat; 
 		}
 		.jstbox.siteScriptKey.autostart {
-			background-position: 0 9px; 
+			background-position: 0 center; 
+		}
+		.jstbox.contentScriptKey.autostart {
+			background-position: right center; 
+		}
+		.jstbox.plugin .jsttitle {
+			background-repeat: no-repeat; 
+			background-position: 2px center; 
+		}
+		#contentscript-menu .jstbox.contentScriptGroup .group
+		{
+			position: relative;
+			left: 15px;
+			font-variant: small-caps bold;
+			font-size: 16px;
+			/*text-transform: capitalize;*/
+		}
+		#contentscript-menu .contentScriptKey.jstbox.closed
+		{
+			display: none;
 		}
 		#contentscript-menu .jstbox.contentScriptKey span
 		{
 			position: relative;
-			top: 6px;
+			/*top: 4px;*/
 		}
 		#contentscript-menu .jstbox.contentScriptKey .index
 		{			
@@ -72,24 +114,74 @@
 			min-width: 35px;
 			text-align: right;
 		}
-		#contentscript-menu .jstbox.contentScriptKey .name
-		{			
-			font-size: 14px;
+		#contentscript-menu .jstbox.contentScriptKey .name {			
+			font-size: 11px;
+			display: inline;
+		}
+		#contentscript-menu .jstbox.contentScriptKey .title {		
+			font-size: 11px;
+			display: none;
+		}
+		#contentscript-menu.showTitle .jstbox.contentScriptKey .name {			
+			display: none;
+		}
+		#contentscript-menu.showTitle .jstbox.contentScriptKey .title {
+			display: inline;
 		}
 		#contentscript-menu .jstbox.contentScriptKey .group
 		{
-			display: inline;
+			display: none/*inline*/;
 			color: #aaaaaa;
 			font-size: 10px;
 			position: absolute;
 			top: -6px;
 			left: 50px;
 		}
-		.jsttitle
+		#contentscript-menu .jstbox.contentScriptKey .iconset {
+		  height: 100%;
+		  position:absolute;
+		  right: 0px;
+		  /*background-color: red;*/
+		}
+		#contentscript-menu .jstbox.contentScriptKey .iconset .icon {
+		  display: none;
+		  width: 16px;
+		  height: 20px;
+		  background-repeat: no-repeat;
+		  background-position: center center;
+		}
+		#contentscript-menu .jstbox.contentScriptKey.plugin .plugin-icon {
+		  display: inline-block;
+		}
+		#contentscript-menu .jstbox.contentScriptKey.include .include-icon {
+		  display: inline-block;
+		}
+		#script-list .jstbox .select
 		{
-			font-size:11pt;			
-			line-height:30px;
-			float:left;
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			display: none;
+		}
+		#script-list.multi-select .jstbox .select
+		{
+		  display: block;
+		}
+		#contentscript-menu .jstbox .select input[type=checkbox]
+		{
+			position: relative;
+			top: 0px;
+			margin: 0 0 0 2px;
+		}
+		#contentscript-menu .jstbox.file .select input[type=checkbox]
+		{
+			margin: 0 0 0 8px;
+		}
+		#settings-list .jstbox {
+		  height: 30px;
+		}
+		#settings-list .jsttitle {
+		  line-height: 30px;
 		}
 		#jstmessage
 		{
@@ -102,7 +194,7 @@
 			line-height:30px;
 			font-weight:900;
 			width:500px;
-			height:30px;
+			/*height:30px; comment it out to contain multiple messages */
 			padding:0 10px;
 			background:rgba(247,223,29,1);
 			box-shadow:rgba(0,0,0,0.4) 0 3px 10px;
@@ -143,7 +235,7 @@
 		{
 			position:absolute;
 			right: 5px;
-			margin:8px 0 0 5px;;
+			margin:4px 0 0 5px;;
 		}
 		img.edit
 		{
@@ -154,16 +246,16 @@
 		.hiddenFlag{
 			color:#999;
 		}
-		input[type=button]
+		.jstricks input[type=button]
 		{
+			padding:3px 10px;
+			cursor:pointer;/*
 			border:1px solid rgba(124,122,12,1);
-			cursor:pointer;
 			background-color:rgba(247,223,29,1); 
 			background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b));
 			box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
-			padding:3px 10px;
-			text-shadow:rgba(255,255,255,0.6) 0 1px;
-		}
+			text-shadow:rgba(255,255,255,0.6) 0 1px;*/
+		}/*
 		input[type=button]:hover,input[type=button]:focus
 		{
 			box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset,rgba(247,223,29,1) 0 0px 15px;
@@ -173,38 +265,28 @@
 			box-shadow: rgba(0,0,0,0.2) 0 1px 2px inset,rgba(255,255,255,1) 0 -1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
 			background-color:rgba(227,203,09,1);
 			background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
-		}
-		input[type=checkbox]
+		}*/
+		.jstricks input[type=checkbox]
 		{
 			position:relative;
 			top:1px;
 			margin:10px 5px 0 ;
 		}
-		div.tabs > ul{
+		#centercontainer div.tabs > ul{
 			padding:0px;
 			margin:0px 0px;
+			line-height:25px;
+			height: 25px;
+		}
+		#centercontainer #toptabs.tabs > ul{
 			line-height:30px;
+			height: 30px;
 		}
 		div.tabs > ul li
 		{
 			display:inline-block;
-			border:1px solid rgba(124,122,12,1);
 			cursor:pointer;			
-			background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
-			box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
 			padding:0px 10px;
-			text-shadow:rgba(255,255,255,0.6) 0 1px;			
-		}
-		div.tabs > ul li:active
-		{
-			box-shadow: rgba(0,0,0,0.2) 0 1px 2px inset,rgba(255,255,255,1) 0 -1px 2px inset,rgba(247,223,29,1) 0 0px 15px;				
-		}
-		div.tabs > ul li.selected
-		{
-			background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b));
-			background-color:rgba(247,223,29,1);
-			box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
-			
 		}
 		#donateDiv
 		{
@@ -212,7 +294,7 @@
 			text-align:center;
 		}
 		
-		.ui-dialog
+		.jstricks .ui-dialog
 		{
 			z-index:200;
 		}
@@ -253,18 +335,33 @@
 			clear:both;
 		}
 		
-		#dcsindexup {
-			position: relative;
-			top: 3px;
-			width: 26px;
-			background: url('theme/img/arrow_up.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+		#script-list .actions {
+		  height: 56px; 
+		  padding: 0  0  0  5px;
 		}
 		
-		#dcsindexdown {
-			position: relative;
-			top: 3px;
-			width: 26px;
-			background: url('theme/img/arrow_down.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+		#script-list .actions input, #script-list .actions button, #script-list .actions label {
+			padding: 0 0 0 0;
+			width: 44px;
+			height: 22px;
+			margin: 4px 0 0 0;
+		}
+    #script-list .actions label {
+			width: 42px;
+			height: 20px;
+    }
+    #script-list .actions .ui-button-text-only .ui-button-text {
+      padding: 3px;
+    }
+		
+		#script-list #contentscript-menu {
+		  overflow:auto;
+		  min-width:200px; 
+		  position:absolute; 
+		  top: 58px;
+		  bottom:0; 
+		  left:0; 
+		  right:0;
 		}
 		
 		#centercontainer
@@ -285,7 +382,7 @@
 			right: 0px;
 			width: 100%;
 		}
-		div.tabs{
+		#centercontainer div.tabs{
 			position: relative;
 			-webkit-box-sizing: border-box;
 			-moz-box-sizing: border-box;
@@ -332,6 +429,14 @@
 			border-top:white 1px solid;
 		}
 		
+		#tabs-gs .editorPanel {
+			margin-left: 150px;
+		}
+		
+		#editorJs, #editorScripts {
+		  padding-top: 3px;
+		}
+		
 		#tabs-options .editorPanel
 		{
 			margin-left: 0px;
@@ -349,14 +454,48 @@
 			display:block;
 			z-index: 2000;
 		}
+		
+		.editorPanel .toolbar.left {
+		  left: 0;
+		  right: 250px;
+		}
+		
 		.editorPanel table.toolbar-left {
 			width: 100%;
 			/* border: 1px solid #ccc; */
 			border-collapse: collapse;
 		}
+		
 		.editorPanel table.toolbar-left td {
 			padding: 0 0;
 			border: 0px solid #000000;
+		}
+		
+		#tabs-sss .toolbar.left {
+		}
+		
+		.autostartBtn {
+		  width: 100px;
+		}
+		
+		.importOnceBtn {
+		  width: 120px;
+		}
+		
+		.saveBtn {
+		  width: 60px;
+		}
+		
+		.deleteBtn {
+		  width: 60px;
+		}
+		
+		#tabs-sss .findReplaceDialogBtn {
+		  width: 128px;
+		}
+		
+		#tabs-dcs .findReplaceDialogBtn {
+		  width: 149px;
 		}
 		
 		#tabs-sss div.tabs {
@@ -370,7 +509,7 @@
 			padding:0px 0px 40px 0px;*/
 			right: 0;
 			bottom: 0;
-			top: 25px;
+			top: 30px;
 			height:auto;
 		}
 		
@@ -385,8 +524,26 @@
 			padding:0px 0px 40px 0px;*/
 			right: 0;
 			bottom: 0;
-			top: 25px;
+			top: 30px;
 			height:auto;
+		}
+		
+		.forward-backward {
+		  display: inline-block;
+		  margin-left: 10px;
+		  line-height: 25px;
+		  height: 25px;
+		}
+		
+		.forward-backward button {
+		  position: relative;
+		  top: -2px;
+		  width: 24px;
+		  height: 20px;
+		}
+		
+		#dcsgencodebytemplate {
+		  width: 80px;
 		}
 		
 		.localstorage_itemvalue .option {
@@ -406,12 +563,31 @@
 			width: 150px;
 		}
 		
+		.settingKey {
+		  padding-left: 5px;
+		}
+		
 		#json-viewer-tabs {
 			position:absolute;
 			left: 0px;
-			right: 5px;
 			top: 100px;
 			bottom: 0px;
+		  width: calc(100% - 200px);
+		  height: calc(100% - 100px);
+		  padding: 0 0 0 0;
+		  margin: 0 0 0 0;
+		  border-width: 0;
+		}
+		
+		.json-viewer-right-panel {
+		  position: absolute;
+		  top: 100px;
+		  right: 0;
+		  width: 195px;
+		  padding: 5px 2px 2px 2px;
+			z-index: 2;
+		  height: calc(100% - 100px - 7px);
+		  overflow-y: auto;
 		}
 		
 		#json-viewer-tabs .ui-tabs-panel {
@@ -422,12 +598,8 @@
 			padding: 2px 0px 5px 0px;
 		}
 		
-		#json-viewer-site-list {
-			overflow: auto;
-		}
-		
 		#json-viewer-tabs-1 .CodeMirror {
-			height: 200px;
+			height: 100%;
 		}
 		
 		#json-viewer-tabs-2 .CodeMirror {
@@ -450,8 +622,18 @@
 			margin-left: 20px;
 		}
 		
-		#settings-global h3 {
+		#settings-global table.localstorage_block {
+		  margin-left:10px;
+		}
+		
+		#settings-global table.localstorage_block h3 {
 			font-weight: bold;
+			border-top: solid 1px;
+			margin-bottom: 0;
+		}
+		
+		#settings-global table.localstorage_block tr.localstorage_item  td {
+		  padding-left: 15px;
 		}
 		/*
 		::-webkit-scrollbar {

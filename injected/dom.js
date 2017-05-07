@@ -2,16 +2,19 @@
   if (window.InjectCodeToOriginalSpace)
     return;
   
-	window.InjectCodeToOriginalSpace = function (src, onload) {
+	window.InjectCodeToOriginalSpace = function (src, onload, scriptName) {
 		var s = document.createElement('script');
 		s.setAttribute('src', src);
 		s.setAttribute('type', 'text/javascript');
 		s.onload = function() {
-			console.log("Script is loaded: " + src);
+			if (scriptName !== null) {
+			  var sname = !scriptName ? src : scriptName;
+			  console.log("Script is loaded: " + sname);
+			}
 			if (onload) { onload.apply(this, arguments); }
 		};
 		(document.head||document.documentElement).appendChild(s);
-	}
+	};
 	
 	window.InjectLinkElementToDom_____ = function (rel, href) {
 		var s = document.createElement('link');
@@ -19,7 +22,7 @@
 		s.setAttribute('href', href);
 		/*if (onload) { s.onload = onload; }*/
 		(document.head||document.documentElement).appendChild(s);
-	}
+	};
 	
 	window.DecorateStyleItems_____ = function (style) {
 		return style.replace(/(\S)(\s*)(\/\*[\s\S]*?\*\/)?(\s*\})/g, function(s, g1, g2, g3, g4) {
@@ -29,10 +32,10 @@
 							return g1+";"+g2+(g3?g3:"")+g4;
 					})
 					.replace(/;/g, " !important;");
-	}
+	};
 	
-	window.AppendStyleNodeToDom_____ = function (styles) {
-		var id = 'javascript-tricks';
+	window.AppendStyleNodeToDom_____ = function (id, styles) {
+		var id = 'javascript-tricks-' + id;
 		var os = document.getElementById(id);
 		if (os) {
 			os.parentNode.removeChild(os);
@@ -45,5 +48,17 @@
 		//(document.body||document.documentElement).appendChild(s);
 		//document.documentElement.insertBefore(s, document.documentElement.childNodes[1]);
 		document.documentElement.appendChild(s);
-	}
+    
+    var e = document.createEvent("CustomEvent");
+    e.initCustomEvent("CSS_Updated", true, true, {id:id, css:styles});
+    document.dispatchEvent(e);
+	};
+	
+	if (chrome.extension) {
+	  InjectCodeToOriginalSpace(chrome.runtime.getURL("/js/common/commonext.js"), null, null);
+	  InjectCodeToOriginalSpace(chrome.runtime.getURL("/injected/injected.js"), null, null);
+	  InjectCodeToOriginalSpace(chrome.runtime.getURL("/injected/ready.js"), null, null);
+	  InjectCodeToOriginalSpace(chrome.runtime.getURL("/injected/msgbox.js"), null, null);
+	} 
+
 }) ()

@@ -52,13 +52,18 @@ define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, expo
 	var selectionBox = new SelectionBox(edgeSize, edgeColor);
 	var autoScrollToSelectedNode = true;
 	
+	var NS_controlId;
+	var NS_setVariable;
 	var NS_switch = false;
+	var NS_cssMode = false;
 	var NS_styleName = "NS_SELECTED_NODE_2312356451321356453";
 	var NS_titleNode = "NS_nodeSelector";
+	var NS_targetClassName = null;
 	
 	var timer = null;
 	var currentSelector = null;
-	var lastSelectedNodes = null;	
+	var lastSelectedNodes = null;
+	var hoveredNode = null;
 	
 	// Export handleMessages function
 	exports.handleMessages = function(request, sender) {
@@ -79,7 +84,7 @@ define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, expo
 		<style>
 			.${NS_styleName} {
 				//background-color: rgba(0,0,255,0.2);
-				border: ${edgeSize}px ${edgeColor} solid;
+				border: ${edgeSize}px ${edgeColor} solid !important;
 			}
 			
 		</style>
@@ -101,13 +106,13 @@ define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, expo
 		
 		var nodes = $(selector);
 		if (nodes.length) {			
-			msgbox("" + nodes.length + " nodes are selected.");
+			msgbox.show("" + nodes.length + " nodes are selected.");
 			console.log("Selected " + nodes.length + " nodes are: ", nodes);
 			
 			nodes.addClass(NS_styleName);
 			
 			var firstNode = nodes[0];
-			selectionBox.highlight(firstNode);
+			//selectionBox.highlight(firstNode);
 			
 			if (autoScrollToSelectedNode) {
 				var top = $(firstNode).offset().top;
@@ -129,7 +134,7 @@ define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, expo
 			lastSelectedNodes = nodes;
 		} else {
 			lastSelectedNodes = null;
-			msgbox("The selector does not match any node.");
+			msgbox.show("The selector does not match any node.");
 		}
 	}
 	
@@ -140,49 +145,57 @@ define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, expo
 		
 		//NS_switch = true;
 		NS_controlId = request.controlid;
+		NS_setVariable = request.setVariable;
+		NS_cssMode = request.mode === "style";
+		NS_targetClassName = request.targetClassName ? request.targetClassName : null;
+		
 		$("#" + NS_titleNode).show();
 		$("#JST-POPUP-PINNED").parent().hide();
 		
-		$("*").bind("mouseenter", NS_MouseIn);
-		$("*").bind("mouseleave", NS_MouseOut);
-		$("*").bind("click", NS_MouseClick);
+    document.addEventListener("mousemove", NS_MouseMove, true);
+    document.addEventListener("mousedown", NS_MouseClick, true);
+    document.addEventListener("click", NS_MouseClick, true);
 	}
 	
-	function NS_MouseIn() {
-		//console.log("Entering node");
-		
-		var node = $(this);
-		NS_processNode(node);
-	}
-	
-	function NS_MouseOut() {
-		//console.log("Leaving node");
-		
-		var node = $(this).parent();
-		NS_processNode(node);	
+	function NS_MouseMove(e) {
+	  if (e.target !== hoveredNode && e.target.id !== NS_titleNode) {
+	    hoveredNode = e.target;
+	    NS_processNode($(hoveredNode));	
+	  }
 	}
 	
 	function NS_MouseClick(event) {
 		//console.log("Node selected");
 		
 		event.preventDefault();
+    event.stopPropagation();
 		
 		//NS_switch = false;
 		var nodestr = currentSelector.full; //$("#" + NS_titleNode).text();
 		setTimeout(function() { selectionBox.hide(); }, 5000);
 		
-		var iframe = $("#JST-POPUP-PINNED")[0];
-		iframe.contentWindow.postMessage({type:"NS-NodeSelected", tabid:tabid, controlid:NS_controlId, value:nodestr}, "*");
-	
-		$("#JST-POPUP-PINNED").closest(".ui-dialog").css("z-index", "2147483645");
-		$("#JST-POPUP-PINNED").parent().show();
+		var msg = {type:"NS-NodeSelected", tabid:tabid, controlid:NS_controlId, value:nodestr, setVariable:NS_setVariable, targetClassName:NS_targetClassName};
+		if (NS_targetClassName) {
+		  $(event.target).addClass(NS_targetClassName);
+		}
 		
-		$("*").removeClass(NS_styleName);
+		var iframe = $("#JST-POPUP-PINNED")[0];
+		if (iframe) {
+      iframe.contentWindow.postMessage(msg, "*");
+  
+      $("#JST-POPUP-PINNED").closest(".ui-dialog").css("z-index", "2147483645");
+      $("#JST-POPUP-PINNED").parent().show();
+		}
+		window.postMessage(msg, "*");
+		
+		$("." + NS_styleName).removeClass(NS_styleName);
 		$("#" + NS_titleNode).text("");
 		
-		$("*").unbind("mouseenter", NS_MouseIn);
-		$("*").unbind("mouseleave", NS_MouseOut);
-		$("*").unbind("click", NS_MouseClick);
+    document.removeEventListener("mousemove", NS_MouseMove, true);
+    document.removeEventListener("mousedown", NS_MouseClick, true);
+    setTimeout(function() {
+      document.removeEventListener("click", NS_MouseClick, true);
+    }, 100);
 	}
 	
 	function NS_processNode(node) {
@@ -193,13 +206,18 @@ define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, expo
 		
 		var nodeName = getNodeSelectorStr(node);
 		
-		$("#" + NS_titleNode).offset(node.offset());
-		$("#" + NS_titleNode).text(nodeName);
+		var selectorTitleNode = $("#" + NS_titleNode);
+		var pos = node.offset();
+		var offset_y = parseInt(selectorTitleNode.height()) + parseInt(edgeSize);
+		if (pos.top > offset_y)
+		  pos.top -= offset_y;
+		selectorTitleNode.offset(pos);
+		selectorTitleNode.text(nodeName);
 	}
 	
 	// node is a jquery node
 	function getNodeSelectorStr(node) {		
-		var args = {selectors: []};
+		var args = {selectors: [], cssMode:NS_cssMode};
 		maxLevel = 5;
 		
 		_getSelector(node, args, maxLevel);
@@ -221,10 +239,9 @@ define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, expo
 		nodeClass = nodeClass ? $.trim( nodeClass.replace(NS_styleName, '') ) : "";
 		if (nodeID) {
 			nodeName = "#" + nodeID;
-			args.selectors.unshift(nodeName);
-			
+			args.selectors.unshift(nodeName);			
 			return;
-		} 
+		}
 		
 		nodeName = tagName;		
 		if (nodeClass) {
@@ -232,10 +249,17 @@ define("nodeSelector", ["jquery", "selectbox", "msgbox"], function(require, expo
 				.filter(function(str) { return str != ""; })
 				.map(function(str) { return "." + str; });
 			nodeName = tagName + classNames.join("");
+			
+			if (args.cssMode) {
+        args.selectors.unshift(nodeName);			
+        return;
+			}
 		}
 		
 		var parentNode = node.parent();
-		nodeName += getIndexSelector(node, parentNode);
+		if (!args.cssMode) {
+		  nodeName += getIndexSelector(node, parentNode);
+		}
 		
 		args.selectors.unshift(nodeName);
 		_getSelector(parentNode, args, level-1);

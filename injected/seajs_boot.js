@@ -57,32 +57,68 @@
       "selectbox": "selectionBox"
     }
   });
-*/  
-  // Export as global symbols
-  window.require = seajs.require;
-  window.run = 
-  seajs.run = function(dependencys, callback) {
-  	if (!callback)
-  		callback = function() {
-  			var arglen = arguments.length;
-  			for (var i = 0; i < arglen; ++ i) 
-  				console.log(arguments[i]);
-  		};
-  	
-  	seajs.use(dependencys, callback);
+*/ 
+
+  function callback_run() {
+    var args = UTIL.argsToArray(arguments);
+    args.unshift("Exported symbols in these modules:");
+    console.log.apply(console, args);
   }
-  /*
-  window.clearCache = 
-  seajs.clearCache = function(ids) {
+  
+  // Export as global symbols
+  // callback can be a function
+  seajs.run = function(dependencies, callback) {
+  	if (!callback) {
+  		callback = callback_run;
+  	} else if (!UTIL.isFunction(callback)) {
+  	  var names;
+  	  if (UTIL.isArray(callback)) {
+  	    names = callback;
+  	  } else if (typeof callback === "string") {
+  	    names = [callback];
+  	  }
+  	  
+  	  // A default callback to set the exported symbols of each module
+  	  // into a global variable with given names.
+  	  callback = function() {
+  	    var nameLen = names.length, objLen = arguments.length;
+  	    var len = nameLen <= objLen ? nameLen : objLen;
+  	    
+  	    for (var i = 0; i < len; ++ i) {
+  	      window[names[i]] = arguments[i];
+  	    }
+  	  }
+  	}
+  	
+  	seajs.use(dependencies, callback);
+  }
+  
+  seajs.clearCache = function(ids, rerun) {
   	var idlist = ids;
   	if (typeof ids === "string")
   		idlist = [ids];
   	
   	for (var i = 0; i < idlist.length; ++ i) {
-  		var mod = seajs.Module.get(seajs.Module.resolve(idlist[i]));
-  		mod.status = 0;
+  	  var uri = seajs.Module.resolve(idlist[i]);
+  	  if (rerun) {
+        var mod = seajs.Module.get(uri);
+        mod.status = 0;
+  	  } else {
+  	    delete seajs.cache[uri];
+  	  }
   	}
-  }*/
+  }
+  
+  seajs.runtest = function(dependencies, callback) {
+    seajs.clearCache(dependencies);    
+    seajs.run(dependencies, callback);
+  }
+  
+  if (chrome.extension) {
+    window.require = seajs.require;
+    window.run = seajs.run;
+    window.runtest = seajs.runtest;
+  }
   
   
   
@@ -107,6 +143,8 @@
     		data.uri = "amd://" + data.uri.replace("[AMD]", "");
     	else if (data.uri.match(/\[CommonJS\]/i))
     		data.uri = "commonjs://" + data.uri.replace("[CommonJS]", "");
+    	else if (data.uri.match(/\[Raw\]/i))
+    		data.uri = "raw://" + data.uri.replace("[Raw]", "");
     }
     
     if (data.uri)
@@ -148,6 +186,9 @@
     } else if (data.requestUri.startsWith("commonjs://")) {
     	data.requestUri = data.requestUri.replace("commonjs://", "");
     	moduleSpec = "CommonJS";
+    } else if (data.requestUri.startsWith("raw://")) {
+    	data.requestUri = data.requestUri.replace("raw://", "");
+    	moduleSpec = "Raw";
     }
     
    	log("4. Requesting module: ", data.uri, "The requeste data is:", data);
@@ -190,7 +231,22 @@
                                 data:JSON.stringify({name: name, callback: callbackID})});
   }
   
-  function requestURI(uri, onload, moduleSpec) {    
+  function onScriptInjected(request) {
+    var error = !!(request.error);
+    var callbackID = request.callback;
+    var callback = callbacks[callbackID];
+    delete callbacks[callbackID];
+    
+    callback(error);
+  }
+  
+  chrome.runtime.onMessage.addListener(function(request, sender) {
+    if (request.method == "InjectModuleResponse") {
+      onScriptInjected(request);
+    }
+  });
+  
+  function requestURI(uri, onload, moduleSpec) {
     function onXHRload(event) {
       var xhr = event.srcElement;
       if (xhr.readyState == 4 && xhr.status == 200) {
@@ -345,28 +401,34 @@ ${srcCode};
 }) (window);
 `;
         	break;
+        case "Raw":
+        	srcCode = 
+/***************************************************
+ *               Raw module wrapper                *
+ ***************************************************/ 
+`${debugstr}${srcCode};
+`;
+        	break;
         }
         
-        // send code to background page to run
-        if (typeof INFO !== "undefined" && INFO.desc == "Javascript Tricks") {
-		  var callbackID = name + ":" + guid();
-		  callbacks[callbackID] = onload;
-	
-		  chrome.runtime.sendMessage({method:"InjectModule", 
-									  data:JSON.stringify({name: uri, code: srcCode, callback: callbackID})});
+        // Add annotation comment so that this dynamic script will be given a name in 
+        // Chrome Dev Tools, so that break points can be set on this script.
+        var prefix = "chrome-extension://" + chrome.runtime.id + "/dynamic/";
+        var scriptName = uri.replace(new RegExp("^(.*?:\\/\\/)?("+chrome.runtime.id+"\\/)?"), prefix);
+        //console.log(scriptName);
+        srcCode += "\n\n//# sourceURL=" + scriptName;
+        
+        // If it is in a content script, then send the code to background page to run
+        if (chrome.extension) {
+          var callbackID = name + ":" + guid();
+          callbacks[callbackID] = onload;
+  
+          chrome.runtime.sendMessage({method:"InjectModule", 
+                        data:JSON.stringify({name: uri, code: srcCode, callback: callbackID})});
         } 
         
-        // Add the srcCode as a script node with Data-URI.
+        // Otherwise, it is in a top frame script, so eval the code directly.
         else {
-          /*var s = document.createElement("script");
-          s.setAttribute("type", "text/javascript");
-          s.setAttribute("src", "data:text/javascript;charset=utf-8," + encodeURIComponent(srcCode));
-          s.onload = function () { 
-          	onload(false); // no error 
-          };
-          
-          (document.head || document.documentElement).appendChild(s);*/
-          
           eval(srcCode);
           onload(false);
         }
@@ -411,29 +473,21 @@ ${srcCode};
 	  log("#. ERROR:", data);
   });  
   
-  chrome.runtime.onMessage.addListener(function(request, sender) {
-      if (request.method == "InjectModuleResponse") {
-        var error = !!(request.error);
-        var callbackID = request.callback;
-        var callback = callbacks[callbackID];
-        delete callbacks[callbackID];
-        
-        callback(error);
-      }
-  });
-  
-  seajs.mod_boot.getDefaultConfig = function () { 
+  seajs.mod_boot.getDefaultConfig = function () {
     return {
       "base": ("chrome-extension://" + chrome.runtime.id + "/injected/"),
       "paths": {
-        "lib": "chrome-extension://" + chrome.runtime.id + "/lib"
+        "lib": "chrome-extension://" + chrome.runtime.id + "/lib",
+        "js": "chrome-extension://" + chrome.runtime.id + "/js",
+        "mootools": "https://ajax.googleapis.com/ajax/libs/mootools/1.6.0"
       },
       "alias": {
         "jquery": "lib/jquery[AMD]",  //"[AMD]jquery.sea.js", "[CommonJS]jquery.sea.js"
         "jquery-ui": "lib/jquery-ui[AMD]",
         "ready": "ready[AMD]",
-        "msgbox": "msgbox",
-        "selectbox": "selectionBox"
+        "msgbox": "msgbox[Raw]",
+        "selectbox": "selectionBox",
+        "mootools": "mootools/mootools[Raw]"
       }
     };
   };

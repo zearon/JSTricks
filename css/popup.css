@@ -1,15 +1,27 @@
 html{
 	overflow:hidden;
+	height: 100%;
 }
 body{
 	margin:0;
 	padding:0; 
 	overflow:hidden;
-	width: 600px;
+	width: 100%;
+	height: 100%;
+}
+body.inExtensionPage {
 	height: 600px;
+	width: 600px;
+}
+#tabs {
+	width: 100%;
+	font-size: 11px;
+}
+#tabs.inExtensionPage {
+  width: 600px;
 }
 ul {
-		display: block;
+	display: block;
 	list-style-type: disc;
 	-webkit-margin-before: 0em;
 	-webkit-margin-after: 0em;
@@ -21,32 +33,62 @@ ul {
 	color: black;
 	background-color: yellow;
 	position: absolute;
-	width: 150px;
-	right: 367px;
-	top: 0px;
+	max-width: 250px;
+	right: 2px;
+	top: 30px;
+}
+#title.ok {
+	color: black;
+	background-color: rgb(208, 251, 197);
+	border:2px outset;
+}
+#title.error {
+	color: black;
+	background-color: rgb(251, 197, 197);
+	border:2px outset;
 }
 #title.indialog {
-	right: 276px;
+	right: 276px; /*367px;*/
 }
-.CodeMirror
-{			
-	max-width:99%;
-	min-width:99%;
-	border:1px solid black;
-	clear:both;			
+.toolbarContainer {
+  float:right;
+  margin-top:2px; 
+  padding:3px;
+  position:absolute; 
+  right:0px; 
+  z-index:2;
 }
-h4{margin:0px;}
+.toolbar {
+  clear:both;
+  float:right;
+  font-size: 0;
+}
+.toolbar label.ui-button {
+  vertical-align:top;
+}
+.toobar>span {
+  font-size: 0;
+}
+.toolbar input, .toolbar button, .toolbar label span {
+  font-size: 12px;
+}
+.toolbar button.ui-button {
+  height: 23px;
+  width: 30px;
+  padding: 0 0 0 0;
+  vertical-align: top;
+  /*border-radius: 0;*/
+}
+.toolbar button div, .toolbar button .ui-button-text {
+  display: inline-block;
+  height: 100%;
+  width: 100%;
+}
 input[type=button]
 {
-	display:block;
-	float:right;
-	border:1px solid rgba(124,122,12,1);
+	/*display:block;
+	float:right;*/
 	cursor:pointer;
-	background-color:rgba(247,223,29,1); 
-	background:  -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b));
-	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
-	/*padding:3px 10px;*/
-	text-shadow:rgba(255,255,255,0.6) 0 1px;
 }
 input[type=button]:hover,input[type=button]:focus
 {
@@ -58,13 +100,43 @@ input[type=button]:active
 	background-color:rgba(227,203,09,1);
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
 }
-input.select-domnode-btn {
-	position: relative;
-	top: 4px; /* 2px on mac os x*/
-	margin-left: 0px;
-	height: 21px;
+
+.CodeMirror
+{			
+	max-width:99%;
+	min-width:99%;
+	border:1px solid black;
+	clear:both;
 }
-.osx input.select-domnode-btn { top: 2px; }
+h4{margin:0px;}
+#editor-script-gen-ui {
+  padding-top: 1px;
+}
+#editor-script-gen-ui button {
+  margin-right: 3px;
+}
+#editor-script-gen-ui .ui-button-text-only .ui-button-text  {
+  padding: 2px 3px 2px 3px;
+}
+#editor-script-gen-ui div.line  {
+  margin-top: 2px;
+}
+#editor-script-gen-ui .add-script-btn {
+	margin-right:1px;
+}
+#editor-script-gen-ui .select-domnode-btn { 
+  float:none;
+  display: inline;
+	width:21px;
+	height: 21px;
+	position: relative;
+	top: -2px; /* -1px on mac os x*/
+	margin-left: 0px;
+	background-image: url("theme/img/target.jpg");
+	background-size:contain;
+	background-repeat: no-repeat;
+}
+.osx #editor-script-gen-ui input.select-domnode-btn { top: -1px; }
 #tabs{
 	position:relative;
 	overflow:hidden;
@@ -77,7 +149,25 @@ input.select-domnode-btn {
 	top:32px;
 	left:0px;
 	width:100%;
-}		
+	height:calc( 100% - 32px );
+}
+.tabContent {
+  overflow-y: auto;
+}
+#tabs-1, #tabs-2, #tabs-3 {
+  overflow-y: hidden;
+}
+.topeditorwrap {
+	height:100%;
+}
+#siteScriptEditorWrapper {
+  position:relative;
+  overflow-y: hidden;
+  /*height attribute will be overridden by scripts */
+  height:100%;
+}
+
+
 #editor-script-gen-ui {
 	overflow-x:auto;
 	overflow-y:scroll;
@@ -86,7 +176,6 @@ input.select-domnode-btn {
 	padding:0px;
 	margin:1px 0px 0 0;
 	line-height:30px;
-	
 }
 #tabs > ul li
 {
@@ -96,9 +185,10 @@ input.select-domnode-btn {
 	background-color:rgba(227,203,09,1);
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4ebc6), color-stop(50%,#e7d069), color-stop(51%,#dfbc21), color-stop(100%,#efe1a3));
 	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset;
-	padding:0px 10px;
+	padding:0px 8px;
 	text-shadow:rgba(255,255,255,0.6) 0 1px;
 	font-size:1.4em;
+	margin-right:1px;
 }
 #tabs > ul li:active
 {
@@ -112,52 +202,50 @@ input.select-domnode-btn {
 	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
 	
 }
-#saveOptBtn{
-	width:30px;
-	background: url('img/icons_01.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+#saveOptBtn div.img {
+	background:   url('theme/img/icons_01.png') no-repeat center; 
 }
-#laodCacheBtn{
-	width:30px;
-	background:   url('img/icons_02.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+#laodCacheBtn div.img {
+	background:   url('theme/img/icons_02.png') no-repeat center; 
 }
-#editInOptionPageBtn{
-	width:30px;
-	background:   url('img/icons_07.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+#editInOptionPageBtn div.img {
+	background:   url('theme/img/icons_07.png') no-repeat center; 
 }
-#runBtn{
-	width:30px;
-	background:   url('img/icons_03.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+#runBtn div.img {
+	background:   url('theme/img/icons_03.png') no-repeat center; 
 }
-#runSelectedBtn{
-	width:30px;
-	background:   url('img/icons_04.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+#runSelectedBtn div.img {
+	background:   url('theme/img/icons_04.png') no-repeat center; 
 }
-#deleteBtn {
-	width:30px;
-	background:   url('img/icons_05.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+#deleteBtn div.img {
+	background:   url('theme/img/icons_05.png') no-repeat center; 
 }
-#showInDialogBtn {
-	width:30px;
-	background:   url('img/icons_06.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
+#showInDialogBtn div.img {
+	background:   url('theme/img/icons_06.png') no-repeat center; 
 }
-#enableDisableBtn {
-	width:30px;
+#optionsBtn div.img {
+  background:   url('theme/img/setting.png') no-repeat center;
+}
+#enableDisableBtn.enable div.img {
+	background:   url('theme/img/enable.png') no-repeat center; 
+}
+#enableDisableBtn.disable div.img {
+	background:   url('theme/img/disable.png') no-repeat center; 
+}
+#enableDisableBtn, #optionsBtn {
 	z-index: 999999;
 }
-#optionsBtn {
-	width:30px;
-	z-index: 999999;
-	background:   url('img/setting.png') no-repeat center, -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fcf1b4), color-stop(50%,#fce448), color-stop(51%,#f4d300), color-stop(100%,#fbec8b)); 
-}
-input[type=button].add-script-btn {
+#editor-script-gen-ui .add-script-btn {
 	height: 22px;
 	float: none;
 	display: inline;
 }
-input[type=button].init-script-btn {
+#editor-script-gen-ui .init-script-btn {
+  color: black;
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#D6FCB4), color-stop(50%,#D0FC48), color-stop(51%,#B8F400), color-stop(100%,#DFFB8B));
 }
-input[type=button].run-script-btn {
+#editor-script-gen-ui .run-script-btn {
+  color: black;
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#D6FCB4), color-stop(50%,#D0FC48), color-stop(51%,#B8F400), color-stop(100%,#DFFB8B));
 }
 
@@ -200,14 +288,6 @@ li.tab-title.selected
 	background-color:rgba(247,223,29,1);
 	box-shadow: rgba(0,0,0,0.2) 0 -1px 2px inset,rgba(255,255,255,1) 0 1px 2px inset,rgba(255,255,255,1) 0 0px 15px;
 }
-input[type=button].add-script-btn {
-	margin-right:1px;
-}
-#editor-script-gen-ui .select-domnode-btn { 
-	background-image: url("theme/img/target.jpg");
-	background-size:contain;
-	width:20px;
-}
 #cover-center {
 	top: 28px;
 	height: calc(100% - 28px);
@@ -216,7 +296,7 @@ input[type=button].add-script-btn {
 	width: calc(100% - 60px);
 	height: 28px;
 }
-.for-disabled {
+#editor-script-gen-ui .for-disabled {
 	z-index: 5000;
 	position:absolute;
 	top: 0;
@@ -225,9 +305,163 @@ input[type=button].add-script-btn {
 	height: 100%;
 	background-color: rgba(255,255,255,0.8);
 }
-.for-disabled h1 {
+#editor-script-gen-ui .for-disabled h1 {
 	color: black;
 	text-align: center;
 	padding: 250px 0;
 	cursor: default;
+}
+
+#loadedPlugins tr td:nth-child(2) {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.pluginIcon {
+  width: 16px;
+  height: 16px;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+.enabled .pluginIcon {
+  background-image: url("theme/img/autostart.png");
+}
+
+.disabled .pluginIcon {
+  background-image: url("theme/img/red.png");
+}
+
+#cssui {
+  position: relative;
+  height: 100%;
+  width: 260px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#editorwrap2 {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 260px;
+  height: 100%;
+}
+
+.sections {
+  position: absolute;
+  top: 28px;
+  width: 100%;
+  height: calc(100% - 28px);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.oneline {
+  margin-top: 2px;
+  position: relative;
+}
+.oneline > * {
+  vertical-align: middle;
+}
+
+#cssSelectNodeBtn {
+  width: 24px;
+  height: 24px;
+  margin-left: 0px;
+  background-image: url("theme/img/target.jpg");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+#cssHighlightNodeBtn {
+  float: right;
+  width: 24px;
+  height: 24px;
+  margin-left: 0px;
+  background-image: url("theme/img/eye.jpg");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+#cssSelectedNode {
+  width: 200px;
+}
+
+#cssui .ui-button-text-only .ui-button-text {
+  padding: .2em 0.4em;
+}
+.section {
+  margin-top: 0px;
+}
+.sectionTitle {
+  font-weight: bold;
+  font-size: 16px;
+  padding: 2px 0px 2px 20px;
+}
+.sectionContent {
+  padding-left: 10px;
+  display: table;
+  margin: 0 0 5px 0;
+}
+.sectionItem {
+  display: table-row;
+}
+.sectionItem > * {
+  display: table-cell;
+  padding: 5px 0 0 0;
+  vertical-align: middle;
+}
+.sectionItem > *:nth-child(1) {
+  padding-right: 5px;
+}
+.styleValues .custom-combobox-input {
+  width: 110px;
+  padding: 2px 5px;
+}
+.styleValues .custom-combobox-toggle {
+  width: 20px;
+}
+.dimension {
+  width: 38px;
+}
+#cssui .jscolor {
+  width: 15px;
+}
+.colorValue {
+  width: 130px;
+}
+.four-dimensions {
+  position: relative;
+  width: 130px;
+  height: 70px;
+}
+.four-dimensions .dimension {
+  position: absolute;
+  width: 30px;
+  height: 15px;
+}
+.four-dimensions .center {
+  top: 48px;
+  left: 0px;
+  width: 165px;
+}
+.four-dimensions .top {
+  top: 0px;
+  left: 40px;
+}
+.four-dimensions .bottom {
+  top: 24px;
+  left: 40px;
+}
+.four-dimensions .left {
+  top: 24px;
+  left: 0px;
+}
+.four-dimensions .right {
+  top: 24px;
+  left: 80px;
+}
+.four-dimensions .styleUnit {
+  position: absolute;
+  top: 26px;
+  left: 124px;
 }
