@@ -721,7 +721,9 @@
       $('#cloudlist').click(cloudStorageList);
       $('#cloudview').click(cloudStorageView);
       $('#clouddelete').click(cloudStorageDelete);
-      $('#cloudtoggleselect').click(cloudToggleSelect);      
+      $('#cloudtoggleselect').click(cloudToggleSelect);     
+      $('#cloudcheckselected').click(cloudCheckSelectedItems);
+      $('#cloudDeleteTodayButNewest').click(cloudDeleteTodayButNewest);       
       $('#cloudleavelast10').click(cloudStorageLeaveLast10);
       $(".cloudsave-showkey").click(cloudStorageShowKey);
       $("#cloudsave-genkey").click(cloudStorageGenKey);
@@ -2419,6 +2421,35 @@
       });
     }
     
+    function cloudDeleteTodayButNewest() {
+      var selectedKeys = [];
+      var todayDatePrefix = (new Date()).Format("yyyyMMdd-");
+      var todayFirst = true;
+      $("#cloudrestore-keys div.key").each(function(index, ele) {
+        var filename = $(ele).attr('name');
+        if (filename.indexOf(todayDatePrefix) == 0) {
+          if (todayFirst) {
+            todayFirst = false;
+          } else {
+            selectedKeys.push(filename); 
+          }
+        }
+      });
+      //console.log(selectedKeys);
+      
+      if (selectedKeys.length < 1) {
+        alert("No configuration is selected");
+        return;
+      }
+      
+      if (!confirm(`Are you sure you want to delete ${selectedKeys.length} configurations named \n${selectedKeys.join("\n")}?`))
+        return;
+      
+      for (var i = 0; i < selectedKeys.length; ++ i) {
+        cloudStorageDeleteItem(selectedKeys[i]);
+      }
+    }
+    
     function cloudToggleSelect() {
       var button = $("#cloudtoggleselect");
       var type = button.attr("data-selectmode");
@@ -2430,6 +2461,35 @@
         $("#cloudrestore-keys input:radio").attr("type", "checkbox");
         button.attr("data-selectmode", "checkbox");
         button.val("Single Select");
+      }
+    }
+    
+    function cloudCheckSelectedItems() {
+      function selectNodes(selector) {
+        var selection = window.getSelection();
+        var nodes = [];
+        for (var i = 0; i < selection.rangeCount; ++i) {
+          var range = selection.getRangeAt(i);
+          var container = $(range.commonAncestorContainer);
+          var children = container.find(selector);
+          var childrenCount = children.length;
+          for (var j = 0; j < childrenCount; ++ j) {
+            var child = children[j];
+            if (range.intersectsNode(child)) {
+              nodes.push(child);
+            }
+          }
+        }
+    
+        return $(nodes);
+      }
+      
+      var checkboxes = selectNodes(":checkbox");
+      if (checkboxes.length < 1) {
+        return;
+      } else {
+        var checked = checkboxes[0].checked;
+        checkboxes.prop('checked', !checked);
       }
     }
     
@@ -2490,7 +2550,7 @@
     }
     
     function cloudStorageAddKeysToUI(keys) {
-      var selectmode = $("#cloudtoggleselect").attr("data-selectmode");
+      var selectmode = $("#cloudtoggleselect").attr("data-selectmode"); // radio or checkbox
       $("#cloudrestore-keys").children("*").remove();
       for ( var i=0; i<keys.length; ++i) {
         var key = keys[i];
@@ -2500,12 +2560,13 @@
         $("#cloudrestore-keys").append(
           `<div name="${key}" class="key" name="${key}"><input type="${inputType}" name="cloudrestore-keychosen" value="${key}"><span>${key}</span></div>`
         );
-        $("#cloudrestore-keys span").click(onclick);
-        $("#cloudrestore-keys input:radio").click(cloudStorageKeyClicked);
       }
+      $("#cloudrestore-keys span").click(onclick);
+      $("#cloudrestore-keys input:"+selectmode).click(cloudStorageKeyClicked);
       
       function onclick() {
        $(this).prev().click(); 
+       console.log($(this).prev());
       }
     }
     
